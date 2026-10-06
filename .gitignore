@@ -1,24 +1,15 @@
-# --- Gradle ---
-.gradle/
-build/
-!gradle/wrapper/gradle-wrapper.jar
-
-# --- Local config ---
-local.properties
-.idea/
 *.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
 .DS_Store
-captures/
-.externalNativeBuild/
-.cxx/
-
-# --- Android ---
-*.apk
-*.aab
-*.ap_
-*.dex
-app/build/
-
-# --- Logs / build artifacts ---
-*.log
-*.code-workspace
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
