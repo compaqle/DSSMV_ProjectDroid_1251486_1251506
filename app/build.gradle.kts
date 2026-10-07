@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.compaqle.projectdroid"
+    namespace = "com.dssmv.plantkeep"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.compaqle.projectdroid"
+        applicationId = "com.dssmv.plantkeep"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
