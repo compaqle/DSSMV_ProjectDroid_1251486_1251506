@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -29,6 +31,22 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+// Lê o local.properties e expõe as credenciais do restdb via BuildConfig (nunca vão para git)
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
+android {
+    defaultConfig {
+        buildConfigField("String", "RESTDB_APIKEY", "\"${localProps.getProperty("restdb.apikey", "")}\"")
+        buildConfigField("String", "RESTDB_DBNAME", "\"${localProps.getProperty("restdb.dbname", "")}\"")
     }
 }
 

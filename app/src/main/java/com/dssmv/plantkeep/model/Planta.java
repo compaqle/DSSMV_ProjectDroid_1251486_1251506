@@ -1,10 +1,6 @@
 package com.dssmv.plantkeep.model;
 
-/**
- * Modelo da coleção "planta" no restdb.
- * Os campos espelham o JSON da API: nome, especie.
- * id é o _id devolvido pelo restdb (para PUT/DELETE).
- */
+
 public class Planta {
     private String id;      // _id restdb
     private String nome;
