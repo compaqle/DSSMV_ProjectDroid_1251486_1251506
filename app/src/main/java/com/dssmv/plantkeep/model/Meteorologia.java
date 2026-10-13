@@ -1,13 +1,14 @@
 package com.dssmv.plantkeep.model;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+
 public class Meteorologia {
 
     private double temperatura;
     private double precipitacao;
-    private LocalDateTime dataHora;
+    private Date dataHora;
 
-    public Meteorologia(double temperatura, double precipitacao, LocalDateTime dataHora) {
+    public Meteorologia(double temperatura, double precipitacao, Date dataHora) {
         this.temperatura = temperatura;
         this.precipitacao = precipitacao;
         this.dataHora = dataHora;
@@ -17,13 +18,13 @@ public class Meteorologia {
 
     public double getPrecipitacao() {return precipitacao;}
 
-    public LocalDateTime getDataHora() {return dataHora;}
+    public Date getDataHora() {return dataHora;}
 
     public void setTemperatura(double temperatura) {this.temperatura = temperatura;}
 
     public void setPrecipitacao(double precipitacao) {this.precipitacao = precipitacao;}
 
-    public void setDataHora(LocalDateTime dataHora) {this.dataHora = dataHora;}
+    public void setDataHora(Date dataHora) {this.dataHora = dataHora;}
 
     @Override
     public String toString() {
