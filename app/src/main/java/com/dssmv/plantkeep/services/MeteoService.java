@@ -1,5 +1,6 @@
 package com.dssmv.plantkeep.services;
 
+import android.util.Log;
 import com.dssmv.plantkeep.model.Meteorologia;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,11 +44,11 @@ public class MeteoService {
                 return new Meteorologia(temperatura, precipitacao, dataHoraAtual);
 
             } else {
-                System.out.println("Erro na chamada à API do Open Meteo. Código HTTP: " + responseCode);
+                Log.e("PlantKeep","Erro na chamada à API do Open Meteo. Código HTTP: " + responseCode);
             }
 
         } catch (Exception e) {
-            System.out.println("Ocorreu um erro ao obter a meteorologia: " + e.getMessage());
+           Log.e("PlantKeep","Ocorreu um erro ao obter a meteorologia: " + e.getMessage());
 
         }
         return null;
