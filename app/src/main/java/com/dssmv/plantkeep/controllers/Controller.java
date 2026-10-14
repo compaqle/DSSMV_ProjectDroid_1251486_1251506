@@ -11,11 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Único controller do app (um único ficheiro para o projeto todo):
- * toda a lógica de negócio + acesso ao restdb.
- * Todos os métodos são SÍNCRONOS — chamar num worker Thread, nunca no main thread.
- */
+
 public class Controller {
     private final RestDBClient rest;
 
