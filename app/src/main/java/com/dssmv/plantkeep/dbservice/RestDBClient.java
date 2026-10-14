@@ -11,13 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Cliente HTTP para o restdb (Java puro — HttpURLConnection).
- * Todos os métodos são SÍNCRONOS: devem ser chamados num worker Thread
- * (idioma do prof: Thread + view.post(Runnable)), nunca no main thread.
- *
- * Base: https://<dbname>.restdb.io/rest/<collection>
- */
+
 public class RestDBClient {
     private static final String BASE = "https://" + BuildConfig.RESTDB_DBNAME + ".restdb.io/rest";
     private static final String APIKEY = BuildConfig.RESTDB_APIKEY;
