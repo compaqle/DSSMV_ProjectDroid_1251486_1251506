@@ -6,33 +6,26 @@ import com.dssmv.plantkeep.views.PlanView;
 
 import java.util.List;
 
-/**
- * O CONTROLLER no estilo FSOFT: NÃO tem lógica dentro.
- * Só orquestra — pede input à view, chama o service (PlantaContainer)
- * e, quando o service responde, manda a view mostrar o resultado.
- */
+
 public class Controller {
-    private final PlantaContainer service;   // o SERVICE (FSOFT) — faz o trabalho
-    private final PlanView view;             // a VIEW
+    private final PlantaContainer service;   
+    private final PlanView view;            
 
     public Controller(PlantaContainer service, PlanView view) {
         this.service = service;
         this.view = view;
     }
 
-    /** Ponto de partida (como run() do FSOFT). Arranca listando. */
     public void run() {
         listar();
     }
 
-    /** Cria: pede a planta à view, chama o service, vê o resultado. */
     public void criar() {
         service.criar(view.getPlantaInput(), new PlantaContainer.Callback() {
             @Override
             public void onSucesso(List<Planta> plantas) {
                 view.mostraMensagem("Planta guardada!");
                 view.limparCampos();
-                view.atualizaLista(plantas);
             }
 
             @Override
@@ -42,7 +35,6 @@ public class Controller {
         });
     }
 
-    /** Lista: chama o service e mostra o resultado. */
     public void listar() {
         service.listar(new PlantaContainer.Callback() {
             @Override

@@ -11,11 +11,9 @@ import com.dssmv.plantkeep.views.PlanView;
 import com.dssmv.plantkeep.views.PlanViewAndroid;
 
 /**
- * A MainActivity é o "main" do FSOFT: ponto de entrada que cria os componentes
- * (service, view, controller) e liga os botões. NÃO é a view — a view é a
- * PlanViewAndroid. O controller.run() arranca a app.
+ * Ecrã de CRIAR planta (o formulário)
  */
-public class MainActivity extends AppCompatActivity {
+public class CriarPlantaActivity extends AppCompatActivity {
 
     private Controller controller;
 
@@ -24,16 +22,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Como o main() do FSOFT: cria service, view e controller, e manda correr.
         PlantaContainer service = new PlantaContainer();   // o SERVICE
-        PlanView view = new PlanViewAndroid(this);          // a VIEW (classe própria)
-        controller = new Controller(service, view);         // o CONTROLLER
-        controller.run();                                    // arranca
+        PlanView view = new PlanViewAndroid(this);          // a VIEW do form
+        controller = new Controller(service, view);         // o CONTROLLER (único)
 
         Button btnSalvar = findViewById(R.id.btn_salvar);
         btnSalvar.setOnClickListener(v -> controller.criar());
-
-        Button btnListar = findViewById(R.id.btn_listar);
-        btnListar.setOnClickListener(v -> controller.listar());
     }
 }
