@@ -11,35 +11,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Container das plantas — o "modelo" do padrão MVC, como o StudentContainer do professor.
- * Guarda a coleção de plantas e oferece as operações CRUD sobre o restdb.
+ * O "SERVICE" do padrão FSOFT — como o ClienteService. É aqui que vive a lógica
+ * (rede + JSON). Corre numa thread própria e devolve o resultado via callback.
+ * O Controller não faz o trabalho: só o chama.
  */
 public class PlantaContainer {
+    /** Callback que entrega o resultado ao Controller (em thread de fundo). */
+    public interface Callback {
+        void onSucesso(List<Planta> plantas);   // plantas = null quando não faz sentido
+        void onErro(String msg);
+    }
+
     private final RestDBClient rest;
 
     public PlantaContainer() {
         this.rest = new RestDBClient("planta");
     }
 
-    /** Adiciona uma planta (POST). Devolve a planta com o _id atribuído pelo restdb. */
-    public Planta add(Planta p) throws IOException, JSONException {
-        return Planta.fromJson(new JSONObject(rest.create(p.toJson())));
+    /** Cria a planta (POST) e, ao fim, devolve a lista atualizada. */
+    public void criar(final Planta p, final Callback cb) {
+        new Thread(() -> {
+            try {
+                Planta.fromJson(new JSONObject(rest.create(p.toJson())));
+                cb.onSucesso(getAll());
+            } catch (Exception e) {
+                cb.onErro(e.getMessage());
+            }
+        }).start();
     }
 
-    /** Devolve todas as plantas (GET). Lista vazia se não houver. */
-    public List<Planta> getAll() throws IOException, JSONException {
+    /** Devolve a lista de plantas (GET). */
+    public void listar(final Callback cb) {
+        new Thread(() -> {
+            try {
+                cb.onSucesso(getAll());
+            } catch (Exception e) {
+                cb.onErro(e.getMessage());
+            }
+        }).start();
+    }
+
+    /** Apaga uma planta (DELETE) e devolve a lista atualizada. */
+    public void apagar(final Planta p, final Callback cb) {
+        new Thread(() -> {
+            try {
+                if (p.getId() != null) {
+                    rest.delete(p.getId());
+                }
+                cb.onSucesso(getAll());
+            } catch (Exception e) {
+                cb.onErro(e.getMessage());
+            }
+        }).start();
+    }
+
+    /** Leitura interna (GET) usada pelos métodos acima. */
+    private List<Planta> getAll() throws IOException, JSONException {
         List<Planta> plantas = new ArrayList<>();
         JSONArray arr = new JSONArray(rest.list());
         for (int i = 0; i < arr.length(); i++) {
             plantas.add(Planta.fromJson(arr.getJSONObject(i)));
         }
         return plantas;
-    }
-
-    /** Apaga uma planta pelo _id (DELETE). Ignora se o id for nulo. */
-    public void remove(Planta p) throws IOException {
-        if (p.getId() != null) {
-            rest.delete(p.getId());
-        }
     }
 }

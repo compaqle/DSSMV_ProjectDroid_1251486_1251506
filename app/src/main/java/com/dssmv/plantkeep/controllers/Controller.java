@@ -7,61 +7,69 @@ import com.dssmv.plantkeep.views.PlanView;
 import java.util.List;
 
 /**
- * O CONTROLLER do padrão MVC, como o do professor: tem o model e a view,
- * e só orquestra. Recolhe input da view, manda o model operar e manda a
- * view mostrar o resultado.
+ * O CONTROLLER no estilo FSOFT: NÃO tem lógica dentro.
+ * Só orquestra — pede input à view, chama o service (PlantaContainer)
+ * e, quando o service responde, manda a view mostrar o resultado.
  */
 public class Controller {
-    private final PlantaContainer model;   // o MODEL (container das plantas)
-    private final PlanView view;           // a VIEW
+    private final PlantaContainer service;   // o SERVICE (FSOFT) — faz o trabalho
+    private final PlanView view;             // a VIEW
 
-    public Controller(PlantaContainer model, PlanView view) {
-        this.model = model;
+    public Controller(PlantaContainer service, PlanView view) {
+        this.service = service;
         this.view = view;
     }
 
-    /** Ponto de partida — como o run() do professor. Arranca listando as plantas. */
+    /** Ponto de partida (como run() do FSOFT). Arranca listando. */
     public void run() {
         listar();
     }
 
-    /** Recolhe a planta da view, manda o model guardar e manda a view confirmar. */
+    /** Cria: pede a planta à view, chama o service, vê o resultado. */
     public void criar() {
-        new Thread(() -> {
-            try {
-                Planta p = view.getPlantaInput();       // 1. VIEW recolhe input
-                model.add(p);                            // 2. MODEL guarda
-                view.mostraMensagem("Planta guardada!"); // 3. VIEW confirma
+        service.criar(view.getPlantaInput(), new PlantaContainer.Callback() {
+            @Override
+            public void onSucesso(List<Planta> plantas) {
+                view.mostraMensagem("Planta guardada!");
                 view.limparCampos();
-                listar();
-            } catch (Exception e) {
-                view.mostraErro(e.getMessage());
+                view.atualizaLista(plantas);
             }
-        }).start();
+
+            @Override
+            public void onErro(String msg) {
+                view.mostraErro(msg);
+            }
+        });
     }
 
-    /** Manda o model devolver as plantas e a view apresentá-las. */
+    /** Lista: chama o service e mostra o resultado. */
     public void listar() {
-        new Thread(() -> {
-            try {
-                List<Planta> plantas = model.getAll();  // 1. MODEL devolve
-                view.atualizaLista(plantas);             // 2. VIEW mostra
-            } catch (Exception e) {
-                view.mostraErro(e.getMessage());
+        service.listar(new PlantaContainer.Callback() {
+            @Override
+            public void onSucesso(List<Planta> plantas) {
+                view.atualizaLista(plantas);
             }
-        }).start();
+
+            @Override
+            public void onErro(String msg) {
+                view.mostraErro(msg);
+            }
+        });
     }
 
-    /** Manda o model apagar e a view confirmar. */
+    /** Apaga: chama o service, vê o resultado. */
     public void apagar(final Planta p) {
-        new Thread(() -> {
-            try {
-                model.remove(p);                          // 1. MODEL apaga
-                view.mostraMensagem("Planta apagada!");   // 2. VIEW confirma
-                listar();
-            } catch (Exception e) {
-                view.mostraErro(e.getMessage());
+        service.apagar(p, new PlantaContainer.Callback() {
+            @Override
+            public void onSucesso(List<Planta> plantas) {
+                view.mostraMensagem("Planta apagada!");
+                view.atualizaLista(plantas);
             }
-        }).start();
+
+            @Override
+            public void onErro(String msg) {
+                view.mostraErro(msg);
+            }
+        });
     }
 }
