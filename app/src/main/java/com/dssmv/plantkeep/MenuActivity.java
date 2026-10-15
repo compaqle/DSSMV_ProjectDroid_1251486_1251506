@@ -7,7 +7,7 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
-MENU PRINCIPAL — o ecrã inicial 
+MENU PRINCIPAL
  */
 public class MenuActivity extends AppCompatActivity {
 
