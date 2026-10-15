@@ -1,5 +1,7 @@
 package com.dssmv.plantkeep.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Planta {
     private String id;      // _id restdb
@@ -13,6 +15,21 @@ public class Planta {
     public Planta(String nome, String especie) {
         setNome(nome);
         this.especie = especie;
+    }
+
+    /** Converte PARA JSON (usado pelo Controller quando cria/atualiza no restdb). */
+    public String toJson() throws JSONException {
+        JSONObject o = new JSONObject();
+        o.put("nome", nome);
+        o.put("especie", especie);
+        return o.toString();
+    }
+
+    /** Converte DE JSON (usado pelo Controller quando recebe dados do restdb). */
+    public static Planta fromJson(JSONObject o) throws JSONException {
+        Planta p = new Planta(o.optString("nome", ""), o.optString("especie", ""));
+        p.setId(o.optString("_id", null));
+        return p;
     }
 
     public String getId() {
@@ -41,10 +58,5 @@ public class Planta {
 
     public void setEspecie(String especie) {
         this.especie = especie;
-    }
-
-    @Override
-    public String toString() {
-        return nome + (especie == null || especie.isEmpty() ? "" : " (" + especie + ")");
     }
 }

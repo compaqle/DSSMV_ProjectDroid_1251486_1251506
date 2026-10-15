@@ -1,62 +1,67 @@
 package com.dssmv.plantkeep.controllers;
 
-import com.dssmv.plantkeep.dbservice.RestDBClient;
 import com.dssmv.plantkeep.model.Planta;
+import com.dssmv.plantkeep.model.PlantaContainer;
+import com.dssmv.plantkeep.views.PlanView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * O CONTROLLER do padrão MVC, como o do professor: tem o model e a view,
+ * e só orquestra. Recolhe input da view, manda o model operar e manda a
+ * view mostrar o resultado.
+ */
 public class Controller {
-    private final RestDBClient rest;
+    private final PlantaContainer model;   // o MODEL (container das plantas)
+    private final PlanView view;           // a VIEW
 
-    public Controller() {
-        this.rest = new RestDBClient("planta");
+    public Controller(PlantaContainer model, PlanView view) {
+        this.model = model;
+        this.view = view;
     }
 
-    /** Lista todas as plantas (GET). Devolve lista vazia se não houver. */
-    public List<Planta> listar() throws IOException, JSONException {
-        String json = rest.list();
-        List<Planta> plantas = new ArrayList<>();
-        JSONArray arr = new JSONArray(json);
-        for (int i = 0; i < arr.length(); i++) {
-            plantas.add(fromJson(arr.getJSONObject(i)));
-        }
-        return plantas;
+    /** Ponto de partida — como o run() do professor. Arranca listando as plantas. */
+    public void run() {
+        listar();
     }
 
-    /** Cria uma planta (POST). Devolve o objeto com o _id do restdb. */
-    public Planta criar(String nome, String especie) throws IOException, JSONException {
-        Planta p = new Planta(nome, especie);
-        String json = rest.create(toJson(p));
-        p.setId(new JSONObject(json).optString("_id", null));
-        return p;
+    /** Recolhe a planta da view, manda o model guardar e manda a view confirmar. */
+    public void criar() {
+        new Thread(() -> {
+            try {
+                Planta p = view.getPlantaInput();       // 1. VIEW recolhe input
+                model.add(p);                            // 2. MODEL guarda
+                view.mostraMensagem("Planta guardada!"); // 3. VIEW confirma
+                view.limparCampos();
+                listar();
+            } catch (Exception e) {
+                view.mostraErro(e.getMessage());
+            }
+        }).start();
     }
 
-    /** Apaga uma planta por id (DELETE). Ignora se o id for nulo. */
-    public void apagar(Planta p) throws IOException {
-        if (p.getId() != null) {
-            rest.delete(p.getId());
-        }
+    /** Manda o model devolver as plantas e a view apresentá-las. */
+    public void listar() {
+        new Thread(() -> {
+            try {
+                List<Planta> plantas = model.getAll();  // 1. MODEL devolve
+                view.atualizaLista(plantas);             // 2. VIEW mostra
+            } catch (Exception e) {
+                view.mostraErro(e.getMessage());
+            }
+        }).start();
     }
 
-    private static String toJson(Planta p) throws JSONException {
-        JSONObject o = new JSONObject();
-        o.put("nome", p.getNome());
-        o.put("especie", p.getEspecie());
-        return o.toString();
-    }
-
-    private static Planta fromJson(JSONObject o) throws JSONException {
-        String nome = o.optString("nome", "");
-        String especie = o.optString("especie", "");
-        Planta p = new Planta(nome, especie);
-        p.setId(o.optString("_id", null));
-        return p;
+    /** Manda o model apagar e a view confirmar. */
+    public void apagar(final Planta p) {
+        new Thread(() -> {
+            try {
+                model.remove(p);                          // 1. MODEL apaga
+                view.mostraMensagem("Planta apagada!");   // 2. VIEW confirma
+                listar();
+            } catch (Exception e) {
+                view.mostraErro(e.getMessage());
+            }
+        }).start();
     }
 }

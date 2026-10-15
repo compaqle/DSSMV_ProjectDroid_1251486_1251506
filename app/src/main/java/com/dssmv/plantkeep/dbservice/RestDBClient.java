@@ -47,7 +47,7 @@ public class RestDBClient {
     public String delete(String id) throws IOException {
         return request("DELETE", collection + "/" + id, null);
     }
-
+// method (Get, Post etc); path (collection/etc); body (json que se vai enciar)
     private String request(String method, String path, String body) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -67,9 +67,14 @@ public class RestDBClient {
             }
 
             int code = conn.getResponseCode();
-            InputStream is = (code >= 200 && code < 300)
-                    ? conn.getInputStream()
-                    : conn.getErrorStream();
+            InputStream is;
+            if (code >= 200 && code < 300) {
+                // Pedido com sucesso (2xx), a resposta normal vem no getInputStream()
+                is = conn.getInputStream();
+            } else {
+                // Pedido falhou (4xx/5xx), o servidor devolve detalhes do erro aqui
+                is = conn.getErrorStream();
+            }
             String resp = is == null ? "" : readAll(is);
 
             if (code < 200 || code >= 300) {
