@@ -1,26 +1,23 @@
 package com.dssmv.plantkeep.services;
 
 import android.util.Log;
-import com.dssmv.plantkeep.model.Meteorologia;
-import org.json.JSONException;
-import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Date;
+import com.dssmv.plantkeep.model.*;
+import org.json.*;
+import java.io.*;
+import java.net.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 public class MeteoService {
     private static final String MeteoURL = "https://api.open-meteo.com/v1/forecast";
 
-    public Meteorologia obterDadosMeteorologicos(double latitude, double longitude) {
+    public MeteorologiaContainer obterDadosMeteorologicos(double latitude, double longitude) {
         try {
-            //Criar o URL
+            // Pede a previsão de hora em hora
             String urlString = MeteoURL + "?latitude=" + latitude +
                     "&longitude=" + longitude +
-                    "&current=temperature_2m,precipitation";
+                    "&hourly=temperature_2m,precipitation";
 
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -31,30 +28,42 @@ public class MeteoService {
 
             int responseCode = connection.getResponseCode();
 
-            //Extrai os valores em JSON e coloca em variaveis
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                JSONObject hourlyData = getHourlyData(connection);
 
-                JSONObject currentData = getCurrentData(connection);
+                // Extrai os 3 vetores do JSON
+                JSONArray times = hourlyData.getJSONArray("time");
+                JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
+                JSONArray precipitations = hourlyData.getJSONArray("precipitation");
 
-                double temperatura = currentData.getDouble("temperature_2m");
-                double precipitacao = currentData.getDouble("precipitation");
+                List<Meteorologia> listaPrevisao = new ArrayList<>();
 
-                Date dataHoraAtual = new Date();
+                SimpleDateFormat formatador = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.ROOT);
 
-                return new Meteorologia(temperatura, precipitacao, dataHoraAtual);
+                for (int i = 0; i < times.length(); i++) {
+                    String textoData = times.getString(i);
+                    double temperatura = temperatures.getDouble(i);
+                    double precipitacao = precipitations.getDouble(i);
+
+                    Date dataHora = formatador.parse(textoData);
+
+                    Meteorologia registoHora = new Meteorologia(temperatura, precipitacao, dataHora);
+                    listaPrevisao.add(registoHora);
+                }
+
+                return new MeteorologiaContainer(listaPrevisao);
 
             } else {
-                Log.e("PlantKeep","Erro na chamada à API do Open Meteo. Código HTTP: " + responseCode);
+                Log.e("PlantKeep", "Erro na chamada à API do Open Meteo. Código HTTP: " + responseCode);
             }
 
         } catch (Exception e) {
-           Log.e("PlantKeep","Ocorreu um erro ao obter a meteorologia: " + e.getMessage());
-
+            Log.e("PlantKeep", "Ocorreu um erro ao obter a meteorologia: " + e.getMessage());
         }
         return null;
     }
 
-    private static JSONObject getCurrentData(HttpURLConnection connection) throws IOException, JSONException {
+    private static JSONObject getHourlyData(HttpURLConnection connection) throws IOException, JSONException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         StringBuilder response = new StringBuilder();
         String line;
@@ -66,8 +75,7 @@ public class MeteoService {
 
         JSONObject jsonResponse = new JSONObject(response.toString());
 
-        return jsonResponse.getJSONObject("current");
+        return jsonResponse.getJSONObject("hourly");
     }
 }
-
 
