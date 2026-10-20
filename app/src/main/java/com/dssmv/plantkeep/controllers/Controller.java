@@ -77,21 +77,13 @@ public class Controller {
             public void onLocalizacao(double latitude, double longitude) {
                 meteoService.carregarMeteorologia(latitude, longitude, new MeteorologiaContainer.Callback() {
                     @Override
-                    public void onSucesso(MeteorologiaContainer container) {
-                        view.mostraMensagem("Meteorologia atualizada!");
-                    }
-
+                    public void onSucesso(MeteorologiaContainer container) {view.mostraMensagem("Meteorologia atualizada!");}
                     @Override
-                    public void onErro(String msg) {
-                        view.mostraErro(msg);
-                    }
+                    public void onErro(String msg) {view.mostraErro(msg);}
                 });
             }
-
             @Override
-            public void onErro(String msg) {
-                view.mostraErro(msg);
-            }
+            public void onErro(String msg) {view.mostraErro(msg);}
         });
     }
 }

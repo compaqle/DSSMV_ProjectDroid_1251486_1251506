@@ -51,7 +51,6 @@ public class MeteorologiaContainer {
         if (diaEscolhido == null) {
             return -1;
         }
-
         double total = 0;
         boolean encontrouDados = false;
 
@@ -62,8 +61,7 @@ public class MeteorologiaContainer {
         for (Meteorologia registo : previsaoHoraria) {
             calRegisto.setTime(registo.getDataHora());
 
-            boolean mesmoDia = calEscolhido.get(Calendar.YEAR) == calRegisto.get(Calendar.YEAR) &&
-                    calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR);
+            boolean mesmoDia = calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR);
 
             if (mesmoDia) {
                 total += registo.getPrecipitacao();
@@ -74,7 +72,5 @@ public class MeteorologiaContainer {
         return encontrouDados ? total : -1;
     }
 
-    public List<Meteorologia> getPrevisaoHoraria() {
-        return previsaoHoraria;
-    }
+    public List<Meteorologia> getPrevisaoHoraria() {return previsaoHoraria;}
 }
