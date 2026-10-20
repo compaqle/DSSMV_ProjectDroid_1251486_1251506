@@ -53,13 +53,9 @@ public class MeteoService {
 
                 return new MeteorologiaContainer(listaPrevisao);
 
-            } else {
-                Log.e("PlantKeep", "Erro na chamada à API do Open Meteo. Código HTTP: " + responseCode);
-            }
+            } else {Log.e("PlantKeep", "Erro na chamada à API do Open Meteo. Código HTTP: " + responseCode);}
 
-        } catch (Exception e) {
-            Log.e("PlantKeep", "Ocorreu um erro ao obter a meteorologia: " + e.getMessage());
-        }
+        } catch (Exception e) {Log.e("PlantKeep", "Ocorreu um erro ao obter a meteorologia: " + e.getMessage());}
         return null;
     }
 

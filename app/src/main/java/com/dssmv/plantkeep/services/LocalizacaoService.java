@@ -32,8 +32,7 @@ public class LocalizacaoService implements LocalizacaoProvider {
             listener.onErro("Por favor, ative o GPS do telemóvel.");
             return;
         }
-
-        // 1. Tenta obter a última localização em cache (resposta imediata)
+        //Verifica se existe alguma localização em cache
         Location ultimaLocalizacao = null;
         if (gpsAtivo) {
             ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -48,7 +47,7 @@ public class LocalizacaoService implements LocalizacaoProvider {
         }
 
         String provider = gpsAtivo ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
-
+        //Obtem a localização atual
         LocationManagerCompat.getCurrentLocation(
                 locationManager,
                 provider,
