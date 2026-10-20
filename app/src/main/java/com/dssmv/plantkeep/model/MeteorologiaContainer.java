@@ -1,5 +1,7 @@
 package com.dssmv.plantkeep.model;
 
+import com.dssmv.plantkeep.services.MeteoService;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -7,18 +9,46 @@ import java.util.List;
 public class MeteorologiaContainer {
 
     private List<Meteorologia> previsaoHoraria;
+    private final MeteoService meteoService;
+    private static MeteorologiaContainer instancia;
+
+    public interface Callback {
+        void onSucesso(MeteorologiaContainer container);
+        void onErro(String msg);
+
+    }
+
+    public MeteorologiaContainer() {
+        this.previsaoHoraria = new ArrayList<>();
+        this.meteoService = new MeteoService();
+    }
 
     public MeteorologiaContainer(List<Meteorologia> previsaoHoraria) {
-        this.previsaoHoraria = previsaoHoraria;
+        this.previsaoHoraria = (previsaoHoraria != null) ? previsaoHoraria : new ArrayList<>();
+        this.meteoService = new MeteoService();
     }
 
-    public List<Meteorologia> getPrevisaoHoraria() {
-        return previsaoHoraria;
+    public static synchronized MeteorologiaContainer getInstance() {
+        if (instancia == null) {
+            instancia = new MeteorologiaContainer();
+        }
+        return instancia;
     }
 
-    //Calcula o total de precipitação em um dia (mm). Caso não hajam dados meteorologicos guardados retorna -1
+    public void carregarMeteorologia(double latitude, double longitude, Callback callback) {
+        new Thread(() -> {
+            MeteorologiaContainer resultado = meteoService.obterDadosMeteorologicos(latitude, longitude);
+            if (resultado != null && !resultado.getPrevisaoHoraria().isEmpty()) {
+                this.previsaoHoraria = resultado.getPrevisaoHoraria();
+                callback.onSucesso(this);
+            } else {
+                callback.onErro("Erro ao obter dados meteorológicos");
+            }
+        }).start();
+    }
+
     public double calcularPrecipitacaoPorDia(Date diaEscolhido) {
-        if (diaEscolhido == null || previsaoHoraria == null || previsaoHoraria.isEmpty()) {
+        if (diaEscolhido == null) {
             return -1;
         }
 
@@ -32,16 +62,19 @@ public class MeteorologiaContainer {
         for (Meteorologia registo : previsaoHoraria) {
             calRegisto.setTime(registo.getDataHora());
 
-            if (calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR)) {
+            boolean mesmoDia = calEscolhido.get(Calendar.YEAR) == calRegisto.get(Calendar.YEAR) &&
+                    calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR);
+
+            if (mesmoDia) {
                 total += registo.getPrecipitacao();
                 encontrouDados = true;
             }
         }
 
-        if (encontrouDados) {
-            return total;
-        } else {
-            return -1;
-        }
+        return encontrouDados ? total : -1;
+    }
+
+    public List<Meteorologia> getPrevisaoHoraria() {
+        return previsaoHoraria;
     }
 }
