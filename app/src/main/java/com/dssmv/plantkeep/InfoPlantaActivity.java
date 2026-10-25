@@ -4,15 +4,19 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dssmv.plantkeep.dto.DetalheOpb;
+import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
+import com.dssmv.plantkeep.services.PlantaService;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -26,7 +30,9 @@ public class InfoPlantaActivity extends AppCompatActivity {
 
     private LinearLayout llInfo;
     private ImageView imgInfo;
+    private String id;
     private String pid;
+    private String nome;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +42,48 @@ public class InfoPlantaActivity extends AppCompatActivity {
         llInfo = findViewById(R.id.ll_info);
         imgInfo = findViewById(R.id.img_info);
         TextView titulo = findViewById(R.id.txt_titulo);
+        Button btnApagar = findViewById(R.id.btn_apagar);
+        btnApagar.setOnClickListener(v -> confirmarApagar());
 
-        String nome = getIntent().getStringExtra("nome");
+        id = getIntent().getStringExtra("id");
+        nome = getIntent().getStringExtra("nome");
         String especie = getIntent().getStringExtra("especie");
         pid = getIntent().getStringExtra("pid");
 
         titulo.setText(especie == null || especie.isEmpty() ? nome : nome + " (" + especie + ")");
 
         carregarDados();
+    }
+
+    private void confirmarApagar() {
+        new AlertDialog.Builder(this)
+                .setTitle("Apagar planta")
+                .setMessage("Tens a certeza que queres apagar \"" + nome + "\"?")
+                .setPositiveButton("Apagar", (d, w) -> apagar())
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void apagar() {
+        if (id == null || id.isEmpty()) {
+            Toast.makeText(this, "Sem id para apagar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final Planta p = new Planta(nome != null ? nome : "planta", "");
+        p.setId(id);
+        new Thread(() -> {
+            try {
+                PlantaService.apagar(p);
+                runOnUiThread(() -> {
+                    Toast.makeText(InfoPlantaActivity.this,
+                            "Planta apagada!", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(InfoPlantaActivity.this,
+                        "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 
     private void carregarDados() {
