@@ -17,22 +17,24 @@ public class PlantaService {
 
     /** Devolve a lista de plantas (GET). */
     public static List<Planta> getPlantas() throws Exception {
-        String json = new NetworkHandler("planta").list();
+        String url = NetworkHandler.BASE + "/planta";
+        String json = NetworkHandler.getDataInStringFromUrl(url);
         List<PlantaDTO> dtos = JsonHandler.deSerializeJson2ListPlantaDTO(json);
         return Mapper.listPlantaDTO2listPlanta(dtos);
     }
 
     /** Cria uma planta (POST). */
     public static void criar(Planta p) throws Exception {
-        PlantaDTO dto = Mapper.planta2PlantaDTO(p);
-        String json = JsonHandler.serializePlantaDTO2Json(dto);
-        new NetworkHandler("planta").create(json);
+        String url = NetworkHandler.BASE + "/planta";
+        String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
+        NetworkHandler.addDataInStringFromUrl(url, json);
     }
 
     /** Apaga uma planta (DELETE). */
     public static void apagar(Planta p) throws Exception {
         if (p.getId() != null) {
-            new NetworkHandler("planta").delete(p.getId());
+            String url = NetworkHandler.BASE + "/planta/" + p.getId();
+            NetworkHandler.deleteDataInStringFromUrl(url);
         }
     }
 }

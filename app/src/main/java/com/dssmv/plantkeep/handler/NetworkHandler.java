@@ -11,47 +11,39 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-
 public class NetworkHandler {
-    private static final String BASE = "https://" + BuildConfig.RESTDB_DBNAME + ".restdb.io/rest";
+
+    public static final String BASE = "https://" + BuildConfig.RESTDB_DBNAME + ".restdb.io/rest";
     private static final String APIKEY = BuildConfig.RESTDB_APIKEY;
     private static final int TIMEOUT_MS = 15000;
 
-    private final String collection;
+    private NetworkHandler() {}   // só estáticos, nunca instaciar
 
-    public NetworkHandler(String collection) {
-        this.collection = collection;
+    /** GET: le os dados da url */
+    public static String getDataInStringFromUrl(String url) throws IOException {
+        return request("GET", url, null);
     }
 
-    /** GET /rest/<collection>: lista os documetos */
-    public String list() throws IOException {
-        return request("GET", collection, null);
+    /** POST: manda um documento (body = JSON) */
+    public static String addDataInStringFromUrl(String url, String json) throws IOException {
+        return request("POST", url, json);
     }
 
-    /** POST /rest/<collection>: cria um documento (body = JSON) */
-    public String create(String json) throws IOException {
-        return request("POST", collection, json);
+    /** PUT: substitui um documento. */
+    public static String updateDataInStringFromUrl(String url, String json) throws IOException {
+        return request("PUT", url, json);
     }
 
-    /** GET /rest/<collection>/<id>: le um documento */
-    public String get(String id) throws IOException {
-        return request("GET", collection + "/" + id, null);
+    /** DELETE: apaga um documento. */
+    public static String deleteDataInStringFromUrl(String url) throws IOException {
+        return request("DELETE", url, null);
     }
 
-    /** PUT /rest/<collection>/<id>: substitui um documento. */
-    public String update(String id, String json) throws IOException {
-        return request("PUT", collection + "/" + id, json);
-    }
-
-    /** DELETE /rest/<collection>/<id>: apaga um documento. */
-    public String delete(String id) throws IOException {
-        return request("DELETE", collection + "/" + id, null);
-    }
-// method (Get, Post etc); path (collection/etc); body (json que se vai enciar)
-    private String request(String method, String path, String body) throws IOException {
+// method (Get, Post etc); url; body (json que se vai enciar)
+    private static String request(String method, String url, String body) throws IOException {
         HttpURLConnection conn = null;
         try {
-            conn = (HttpURLConnection) new URL(BASE + "/" + path).openConnection();
+            conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod(method);
             conn.setConnectTimeout(TIMEOUT_MS);
             conn.setReadTimeout(TIMEOUT_MS);
