@@ -86,7 +86,8 @@ public class CriarPlantaActivity extends AppCompatActivity {
     private void mostrarResultados(List<EspecieOpb> l) {
         btnPesquisar.setEnabled(true);
         if (l == null || l.isEmpty()) {
-            Toast.makeText(this, "Nada encontrado no OpenPlantbook", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Não encontrei nada com esse nome. Experimenta o nome científico (ex. lactuca).",
+                    Toast.LENGTH_LONG).show();
             return;
         }
         lista = l;
@@ -100,8 +101,10 @@ public class CriarPlantaActivity extends AppCompatActivity {
                             .inflate(R.layout.item_especie, parent, false);
                 }
                 TextView txt = convertView.findViewById(R.id.txt_especie);
+                TextView txtComuns = convertView.findViewById(R.id.txt_comuns);
                 ImageView img = convertView.findViewById(R.id.img_especie);
                 txt.setText(textoEspecie(e));
+                txtComuns.setText(joinComuns(e.getAliasesComuns()));
 
                 final String url = e.getImageUrl();
                 final ImageView imgRef = img;
@@ -180,6 +183,21 @@ public class CriarPlantaActivity extends AppCompatActivity {
             texto = texto + " (" + e.getAlias() + ")";
         }
         return texto;
+    }
+
+    /** Junta os nomes comuns numa linha (ex. "Potato, Potato plant"). */
+    private String joinComuns(List<String> comuns) {
+        if (comuns == null || comuns.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String c : comuns) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     /** Descarrega um bitmap a partir de um url (ou null se falhar). Roda fora da UI. */

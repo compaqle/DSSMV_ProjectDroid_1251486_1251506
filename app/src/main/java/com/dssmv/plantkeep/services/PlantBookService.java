@@ -88,31 +88,85 @@ public class PlantBookService {
             lista.add(e);
         }
 
-        // a pesquisa não devolve a imagem; obtém-na do detail de cada espécie (só se existir)
+        // filtra ruído: mantém o topo da API + quem tem o termo como palavra inteira no nome
+        lista = filtraRuido(lista, termo);
+
+        // a pesquisa não devolve imagem nem nomes comuns; obtém-nos do detail de cada espécie
         for (EspecieOpb e : lista) {
-            e.setImageUrl(obterImagem(e.getPid()));
+            preencherDetalhe(e);
         }
         return lista;
     }
 
-    /** Devolve o image_url da espécie (vazio se não existir ou der erro). */
-    private static String obterImagem(String pid) {
-        if (pid == null || pid.isEmpty()) {
-            return "";
+    /**
+     * Remove ruído de pesquisa fuzzy. O OpenPlantbook faz substring-match,
+     * por isso "potato" também devolve "Agave potatorum" (o termo aparece lá
+     * dentro por sorte). Regra: mantém sempre o 1º resultado (o match principal
+     * da API) e ainda todos os que têm o termo como palavra inteira no nome;
+     * esconde os restantes.
+     */
+    private static List<EspecieOpb> filtraRuido(List<EspecieOpb> lista, String termo) {
+        if (lista.size() <= 1) {
+            return lista;
         }
+        String q = termo == null ? "" : termo.trim().toLowerCase();
+        List<EspecieOpb> out = new ArrayList<>();
+        out.add(lista.get(0)); // match principal da API fica sempre
+        for (int i = 1; i < lista.size(); i++) {
+            EspecieOpb e = lista.get(i);
+            if (temPalavra(q, e.getDisplayPid()) || temPalavra(q, e.getAlias())) {
+                out.add(e);
+            }
+        }
+        return out;
+    }
+
+    /** True se q aparece como palavra inteira (token) no nome. */
+    private static boolean temPalavra(String q, String nome) {
+        if (q.isEmpty() || nome == null) {
+            return false;
+        }
+        String[] tokens = nome.toLowerCase().split("[^a-z0-9]+");
+        for (String t : tokens) {
+            if (t.equals(q)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Preenche imagem e nomes comuns da espécie a partir do detail (vazio se der erro). */
+    private static void preencherDetalhe(EspecieOpb e) {
         try {
-            String url = BASE + "/plant/detail/" + encPath(pid) + "/";
+            String url = BASE + "/plant/detail/" + encPath(e.getPid()) + "/";
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + getToken());
             int code = conn.getResponseCode();
             String resp = ler(conn);
             if (code != 200) {
-                return "";
+                return;
             }
-            return new JSONObject(resp).optString("image_url", "");
-        } catch (Exception e) {
-            return "";
+            JSONObject o = new JSONObject(resp);
+            e.setImageUrl(o.optString("image_url", ""));
+
+            List<String> comuns = new ArrayList<>();
+            JSONArray al = o.optJSONArray("common_names");
+            if (al != null) {
+                for (int i = 0; i < al.length(); i++) {
+                    JSONObject n = al.optJSONObject(i);
+                    if (n == null) {
+                        continue;
+                    }
+                    String a = n.optString("name", "").trim();
+                    if (!a.isEmpty() && !comuns.contains(a)) {
+                        comuns.add(a);
+                    }
+                }
+            }
+            e.setAliasesComuns(comuns);
+        } catch (Exception ex) {
+            // sem detail não bloqueamos a lista
         }
     }
 

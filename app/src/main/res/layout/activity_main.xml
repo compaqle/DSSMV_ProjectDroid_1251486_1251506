@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Escreve o nome da espécie para procurar no OpenPlantbook:"
+        android:text="Escreve o nome da espécie:"
         android:textSize="16sp" />
 
     <EditText

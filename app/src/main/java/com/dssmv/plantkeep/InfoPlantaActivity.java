@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.dssmv.plantkeep.dto.DetalheOpb;
 import com.dssmv.plantkeep.model.Planta;
@@ -51,6 +54,18 @@ public class InfoPlantaActivity extends AppCompatActivity {
         pid = getIntent().getStringExtra("pid");
 
         titulo.setText(especie == null || especie.isEmpty() ? nome : nome + " (" + especie + ")");
+
+        // edge-to-edge: afasta o conteúdo das barras do sistema (banner em cima, nav em baixo)
+        final LinearLayout llRoot = findViewById(R.id.ll_root);
+        final int paddingBase = Math.round(24 * getResources().getDisplayMetrics().density);
+        ViewCompat.setOnApplyWindowInsetsListener(llRoot, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(paddingBase + bars.left,
+                    paddingBase + bars.top,
+                    paddingBase + bars.right,
+                    paddingBase + bars.bottom);
+            return insets;
+        });
 
         carregarDados();
     }
