@@ -19,7 +19,7 @@ import com.dssmv.plantkeep.services.LocalizacaoService;
 /**
  * Menu principal.
  */
-public class MenuActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final int CODIGO_PERMISSAO_GPS = 100;
     private MeteorologiaContainer meteoService;
@@ -83,10 +83,10 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void mostraMensagem(String msg) {
-        runOnUiThread(() -> Toast.makeText(MenuActivity.this, msg, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
     }
 
     private void mostraErro(String msg) {
-        runOnUiThread(() -> Toast.makeText(MenuActivity.this, "Erro: " + msg, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> Toast.makeText(MainActivity.this, "Erro: " + msg, Toast.LENGTH_SHORT).show());
     }
 }
