@@ -5,7 +5,7 @@ import com.dssmv.plantkeep.model.Planta;
 import java.util.List;
 
 /**
- * A VIEW do padrão MVC 
+ * A view do padrão MVC.
  */
 public interface PlanView {
     Planta getPlantaInput();

@@ -11,7 +11,7 @@ import com.dssmv.plantkeep.views.PlanView;
 import com.dssmv.plantkeep.views.PlanViewAndroid;
 
 /**
- * Ecrã de CRIAR planta (o formulário)
+ * Ecrã de criar planta (o formulário)
  */
 public class CriarPlantaActivity extends AppCompatActivity {
 
@@ -22,9 +22,9 @@ public class CriarPlantaActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        PlantaContainer service = new PlantaContainer();   // o SERVICE
-        PlanView view = new PlanViewAndroid(this);          // a VIEW do form
-        controller = new Controller(service, view);         // o CONTROLLER (único)
+        PlantaContainer service = new PlantaContainer();
+        controller = new Controller(service);
+        controller.setView(new PlanViewAndroid(this));
 
         Button btnSalvar = findViewById(R.id.btn_salvar);
         btnSalvar.setOnClickListener(v -> controller.criar());

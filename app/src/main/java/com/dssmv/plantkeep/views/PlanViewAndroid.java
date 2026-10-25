@@ -10,8 +10,7 @@ import com.dssmv.plantkeep.model.Planta;
 import java.util.List;
 
 /**
- * A VIEW concreta do Android — como as *View do FSOFT (ClienteView, etc.).
- * Recebe a Activity para aceder à UI (widgets + runOnUiThread).
+ * A view concreta do Android. Recebe a Activity para usar a UI.
  * O Controller manda-a fazer e pede-lhe input.
  */
 public class PlanViewAndroid implements PlanView {
@@ -25,7 +24,7 @@ public class PlanViewAndroid implements PlanView {
         this.edtEspecie = activity.findViewById(R.id.edt_especie);
     }
 
-    /** Recolhe os dados dos campos (como getDadosCriarCliente do FSOFT). */
+    /** Recole os dados dos campos de input */
     @Override
     public Planta getPlantaInput() {
         String nome = edtNome.getText().toString().trim();

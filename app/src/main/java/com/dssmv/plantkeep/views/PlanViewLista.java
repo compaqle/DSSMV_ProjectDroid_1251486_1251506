@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * View concreta do ecrã de LISTA de plantas 
+ * View concreta do ecrã de lista de plantas.
  */
 public class PlanViewLista implements PlanView {
     private final Activity activity;
@@ -39,7 +39,7 @@ public class PlanViewLista implements PlanView {
         activity.runOnUiThread(() -> Toast.makeText(activity, "Erro: " + msg, Toast.LENGTH_SHORT).show());
     }
 
-    /** Preenche a ListView com os nomes das plantas (em vez de Toast). */
+    /** Preenche a ListView com os nommes das plantas. */
     @Override
     public void atualizaLista(List<Planta> plantas) {
         activity.runOnUiThread(() -> {

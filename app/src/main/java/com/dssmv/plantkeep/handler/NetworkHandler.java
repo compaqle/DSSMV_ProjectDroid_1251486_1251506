@@ -1,4 +1,4 @@
-package com.dssmv.plantkeep.dbservice;
+package com.dssmv.plantkeep.handler;
 
 import com.dssmv.plantkeep.BuildConfig;
 
@@ -12,38 +12,38 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 
-public class RestDBClient {
+public class NetworkHandler {
     private static final String BASE = "https://" + BuildConfig.RESTDB_DBNAME + ".restdb.io/rest";
     private static final String APIKEY = BuildConfig.RESTDB_APIKEY;
     private static final int TIMEOUT_MS = 15000;
 
     private final String collection;
 
-    public RestDBClient(String collection) {
+    public NetworkHandler(String collection) {
         this.collection = collection;
     }
 
-    /** GET /rest/<collection> — lista todos os documentos (array JSON). */
+    /** GET /rest/<collection>: lista os documetos */
     public String list() throws IOException {
         return request("GET", collection, null);
     }
 
-    /** POST /rest/<collection> — cria um documento (body = JSON). Devolve o JSON criado (com _id). */
+    /** POST /rest/<collection>: cria um documento (body = JSON) */
     public String create(String json) throws IOException {
         return request("POST", collection, json);
     }
 
-    /** GET /rest/<collection>/<id> — lê um documento. */
+    /** GET /rest/<collection>/<id>: le um documento */
     public String get(String id) throws IOException {
         return request("GET", collection + "/" + id, null);
     }
 
-    /** PUT /rest/<collection>/<id> — substitui um documento. */
+    /** PUT /rest/<collection>/<id>: substitui um documento. */
     public String update(String id, String json) throws IOException {
         return request("PUT", collection + "/" + id, json);
     }
 
-    /** DELETE /rest/<collection>/<id> — apaga um documento. */
+    /** DELETE /rest/<collection>/<id>: apaga um documento. */
     public String delete(String id) throws IOException {
         return request("DELETE", collection + "/" + id, null);
     }
@@ -69,10 +69,10 @@ public class RestDBClient {
             int code = conn.getResponseCode();
             InputStream is;
             if (code >= 200 && code < 300) {
-                // Pedido com sucesso (2xx), a resposta normal vem no getInputStream()
+                // Sucesso (2xx): a resposta vem no getInputStream()
                 is = conn.getInputStream();
             } else {
-                // Pedido falhou (4xx/5xx), o servidor devolve detalhes do erro aqui
+                // Falhou (4xx/5xx) o servidor devovle o erro aqui
                 is = conn.getErrorStream();
             }
             String resp = is == null ? "" : readAll(is);

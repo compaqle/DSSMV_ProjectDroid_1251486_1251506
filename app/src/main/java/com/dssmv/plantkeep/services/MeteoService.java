@@ -14,7 +14,7 @@ public class MeteoService {
 
     public MeteorologiaContainer obterDadosMeteorologicos(double latitude, double longitude) {
         try {
-            // Pede a previsão de hora em hora
+            // Pede a previsao de hora em hora
             String urlString = MeteoURL + "?latitude=" + latitude +
                     "&longitude=" + longitude +
                     "&hourly=temperature_2m,precipitation";
@@ -31,7 +31,7 @@ public class MeteoService {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 JSONObject hourlyData = getHourlyData(connection);
 
-                // Extrai os 3 vetores do JSON
+                // Tira os 3 vetores do JSON
                 JSONArray times = hourlyData.getJSONArray("time");
                 JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
                 JSONArray precipitations = hourlyData.getJSONArray("precipitation");

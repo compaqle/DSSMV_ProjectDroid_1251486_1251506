@@ -18,7 +18,7 @@ import com.dssmv.plantkeep.views.PlanViewMenu;
 
 
 /**
-MENU PRINCIPAL
+ * Menu principal.
  */
 public class MenuActivity extends AppCompatActivity {
 
@@ -31,15 +31,14 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_menu);
 
         Button btnCriar = findViewById(R.id.btn_criar_planta);
-        btnCriar.setOnClickListener(v ->
-                startActivity(new Intent(this, CriarPlantaActivity.class)));
+        btnCriar.setOnClickListener(v -> startActivity(new Intent(this, CriarPlantaActivity.class)));
 
         Button btnVer = findViewById(R.id.btn_ver_plantas);
-        btnVer.setOnClickListener(v ->
-                startActivity(new Intent(this, PlantasActivity.class)));
+        btnVer.setOnClickListener(v -> startActivity(new Intent(this, PlantasActivity.class)));
 
-        //Envia o pedido de permmissão para usar o GPS
-        controller = new Controller(new PlantaContainer(), new PlanViewMenu(this));
+        // Pedido de permissao para usar o GPS
+        controller = new Controller(new PlantaContainer());
+        controller.setView(new PlanViewMenu(this));
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,

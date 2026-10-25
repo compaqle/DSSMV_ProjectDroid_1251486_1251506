@@ -7,7 +7,7 @@ import com.dssmv.plantkeep.model.Planta;
 
 import java.util.List;
 
-/** View do ecrã de menu: só mostra mensagens e erros. */
+/** View do menu monstra mensagens e erros */
 public class PlanViewMenu implements PlanView {
     private final Activity activity;
 

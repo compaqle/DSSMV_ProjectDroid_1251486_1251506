@@ -11,9 +11,7 @@ import com.dssmv.plantkeep.views.PlanView;
 import com.dssmv.plantkeep.views.PlanViewLista;
 
 /**
- * Ecrã de LISTA de plantas. É um "main" como a MainActivity: cria o service,
- * a view (desta vez a de lista) e o MESMO Controller, e manda correr —
- * que aqui lista. Usa o mesmo ficheiro Controller.java (único).
+ * Ecrã que mostra a lista de plante faz de main
  */
 public class PlantasActivity extends AppCompatActivity {
 
@@ -23,11 +21,11 @@ public class PlantasActivity extends AppCompatActivity {
         setContentView(R.layout.activity_plantas);
 
         PlantaContainer service = new PlantaContainer();
-        PlanView view = new PlanViewLista(this);        // view da lista
-        Controller controller = new Controller(service, view);
-        controller.run();                                // lista ao abrir
+        Controller controller = new Controller(service);
+        controller.setView(new PlanViewLista(this));     // a view da lista
+        controller.run();                                // listta ao abrir
 
         Button btnVoltar = findViewById(R.id.btn_voltar);
-        btnVoltar.setOnClickListener(v -> finish());     // fecha este ecrã e volta
+        btnVoltar.setOnClickListener(v -> finish());     // fecha e volta
     }
 }

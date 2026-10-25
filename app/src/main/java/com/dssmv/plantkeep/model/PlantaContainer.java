@@ -1,38 +1,34 @@
 package com.dssmv.plantkeep.model;
 
-import com.dssmv.plantkeep.dbservice.RestDBClient;
+import com.dssmv.plantkeep.dto.Mapper;
+import com.dssmv.plantkeep.dto.PlantaDTO;
+import com.dssmv.plantkeep.handler.JsonHandler;
+import com.dssmv.plantkeep.handler.NetworkHandler;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * O "SERVICE" do padrão FSOFT — como o ClienteService. É aqui que vive a lógica
- * (rede + JSON). Corre numa thread própria e devolve o resultado via callback.
- * O Controller não faz o trabalho: só o chama.
+ * O orquestrador. Monta cada operação na ordem: rede, JSON, DTO, Mapper, model.
  */
 public class PlantaContainer {
-    /** Callback que entrega o resultado ao Controller (em thread de fundo). */
+    /** Da o resultado ao Controller (em thread de fundo) */
     public interface Callback {
-        void onSucesso(List<Planta> plantas);   // plantas = null quando não faz sentido
+        void onSucesso(List<Planta> plantas);
         void onErro(String msg);
     }
 
-    private final RestDBClient rest;
+    private final NetworkHandler network;
 
     public PlantaContainer() {
-        this.rest = new RestDBClient("planta");
+        this.network = new NetworkHandler("planta");
     }
 
     /** Cria a planta (POST) e, ao fim, devolve a lista atualizada. */
     public void criar(final Planta p, final Callback cb) {
         new Thread(() -> {
             try {
-                Planta.fromJson(new JSONObject(rest.create(p.toJson())));
+                PlantaDTO dto = Mapper.planta2PlantaDTO(p);                      // model -> DTO
+                network.create(JsonHandler.serializePlantaDTO2Json(dto));         // DTO -> JSON -> HTTP
                 cb.onSucesso(getAll());
             } catch (Exception e) {
                 cb.onErro(e.getMessage());
@@ -51,12 +47,12 @@ public class PlantaContainer {
         }).start();
     }
 
-    /** Apaga uma planta (DELETE) e devolve a lista atualizada. */
+    /** Apaga uma planta (DELETE) e deovlve a lista. */
     public void apagar(final Planta p, final Callback cb) {
         new Thread(() -> {
             try {
                 if (p.getId() != null) {
-                    rest.delete(p.getId());
+                    network.delete(p.getId());
                 }
                 cb.onSucesso(getAll());
             } catch (Exception e) {
@@ -65,13 +61,10 @@ public class PlantaContainer {
         }).start();
     }
 
-    /** Leitura interna (GET) usada pelos métodos acima. */
-    private List<Planta> getAll() throws IOException, JSONException {
-        List<Planta> plantas = new ArrayList<>();
-        JSONArray arr = new JSONArray(rest.list());
-        for (int i = 0; i < arr.length(); i++) {
-            plantas.add(Planta.fromJson(arr.getJSONObject(i)));
-        }
-        return plantas;
+    /** Leitura interna (GET) usada pelos metodos acima */
+    private List<Planta> getAll() throws Exception {
+        String json = network.list();                                             // HTTP -> texto
+        List<PlantaDTO> dtos = JsonHandler.deSerializeJson2ListPlantaDTO(json);   // texto -> DTO
+        return Mapper.listPlantaDTO2listPlanta(dtos);                             // DTO -> model
     }
 }

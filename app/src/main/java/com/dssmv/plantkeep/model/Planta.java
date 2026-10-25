@@ -1,8 +1,8 @@
 package com.dssmv.plantkeep.model;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+/**
+ * Model da planta, puro, sem rede nem JSON. Tem as regras e lança exceçao em dados inválidos.
+ */
 public class Planta {
     private String id;      // _id restdb
     private String nome;
@@ -15,21 +15,6 @@ public class Planta {
     public Planta(String nome, String especie) {
         setNome(nome);
         this.especie = especie;
-    }
-
-    /** Converte PARA JSON (usado pelo Controller quando cria/atualiza no restdb). */
-    public String toJson() throws JSONException {
-        JSONObject o = new JSONObject();
-        o.put("nome", nome);
-        o.put("especie", especie);
-        return o.toString();
-    }
-
-    /** Converte DE JSON (usado pelo Controller quando recebe dados do restdb). */
-    public static Planta fromJson(JSONObject o) throws JSONException {
-        Planta p = new Planta(o.optString("nome", ""), o.optString("especie", ""));
-        p.setId(o.optString("_id", null));
-        return p;
     }
 
     public String getId() {
