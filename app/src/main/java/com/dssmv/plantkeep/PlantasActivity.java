@@ -1,5 +1,6 @@
 package com.dssmv.plantkeep;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -40,15 +41,28 @@ public class PlantasActivity extends AppCompatActivity {
         Button btnVoltar = findViewById(R.id.btn_voltar);
         btnVoltar.setOnClickListener(v -> finish());
 
-        // Tocar numa planta escolhe-a (fica acesa a possibilidade de a apagar)
-        lvPlantas.setOnItemClickListener((parent, view, position, id) -> {
+        // Tocar numa planta abre a sua informação
+        lvPlantas.setOnItemClickListener((parent, view, position, id) ->
+                abrirInfo(plantasList.get(position)));
+
+        // Longo-toque escolhe-a para poder apagar
+        lvPlantas.setOnItemLongClickListener((parent, view, position, id) -> {
             selecionada = position;
             btnApagar.setEnabled(true);
             Toast.makeText(this, "Selecionada: " + nomePlanta(plantasList.get(position)),
                     Toast.LENGTH_SHORT).show();
+            return true;
         });
 
         getPlantasFromWS();
+    }
+
+    private void abrirInfo(Planta p) {
+        Intent i = new Intent(this, InfoPlantaActivity.class);
+        i.putExtra("nome", p.getNome());
+        i.putExtra("especie", p.getEspecie());
+        i.putExtra("pid", p.getPid());
+        startActivity(i);
     }
 
     private void getPlantasFromWS() {

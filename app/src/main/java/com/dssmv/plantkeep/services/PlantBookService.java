@@ -1,6 +1,7 @@
 package com.dssmv.plantkeep.services;
 
 import com.dssmv.plantkeep.BuildConfig;
+import com.dssmv.plantkeep.dto.DetalheOpb;
 import com.dssmv.plantkeep.dto.EspecieOpb;
 
 import org.json.JSONArray;
@@ -113,6 +114,43 @@ public class PlantBookService {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    /** Devolve os dados completos de uma espécie (cuidados + imagem). */
+    public static DetalheOpb detalhe(String pid) throws Exception {
+        String url = BASE + "/plant/detail/" + encPath(pid) + "/";
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Authorization", "Bearer " + getToken());
+
+        int code = conn.getResponseCode();
+        String resp = ler(conn);
+        if (code != 200) {
+            throw new RuntimeException("OpenPlantbook detail: HTTP " + code + " " + resp);
+        }
+
+        JSONObject o = new JSONObject(resp);
+        DetalheOpb d = new DetalheOpb();
+        d.setDisplayPid(o.optString("display_pid", ""));
+        d.setCategory(o.optString("category", ""));
+        d.setOrigin(o.optString("origin", ""));
+        d.setImageUrl(o.optString("image_url", ""));
+        d.setMinTemp(num(o, "min_temp"));
+        d.setMaxTemp(num(o, "max_temp"));
+        d.setMinEnvHumid(num(o, "min_env_humid"));
+        d.setMaxEnvHumid(num(o, "max_env_humid"));
+        d.setMinLightLux(num(o, "min_light_lux"));
+        d.setMaxLightLux(num(o, "max_light_lux"));
+        d.setMinSoilMoist(num(o, "min_soil_moist"));
+        d.setMaxSoilMoist(num(o, "max_soil_moist"));
+        d.setMinSoilEc(num(o, "min_soil_ec"));
+        d.setMaxSoilEc(num(o, "max_soil_ec"));
+        return d;
+    }
+
+    /** Lê um inteiro nullable: null se o campo não existir ou for null. */
+    private static Integer num(JSONObject o, String campo) {
+        return o.isNull(campo) ? null : o.optInt(campo);
     }
 
     /** Codifica para caminho URL (espaço como %20, não como +). */
