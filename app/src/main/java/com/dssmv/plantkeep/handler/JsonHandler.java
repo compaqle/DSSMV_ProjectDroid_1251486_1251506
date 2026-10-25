@@ -22,6 +22,7 @@ public class JsonHandler {
         JSONObject o = new JSONObject();
         o.put("nome", dto.getNome());
         o.put("especie", dto.getEspecie());
+        o.put("pid", dto.getPid());
         return o.toString();
     }
 
@@ -34,7 +35,8 @@ public class JsonHandler {
             PlantaDTO dto = new PlantaDTO(
                     o.optString("_id", null),
                     o.optString("nome", ""),
-                    o.optString("especie", "")
+                    o.optString("especie", ""),
+                    o.optString("pid", "")
             );
             dtos.add(dto);
         }

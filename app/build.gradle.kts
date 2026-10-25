@@ -47,6 +47,8 @@ android {
     defaultConfig {
         buildConfigField("String", "RESTDB_APIKEY", "\"${localProps.getProperty("restdb.apikey", "")}\"")
         buildConfigField("String", "RESTDB_DBNAME", "\"${localProps.getProperty("restdb.dbname", "")}\"")
+        buildConfigField("String", "OPB_CLIENT_ID", "\"${localProps.getProperty("opb.clientid", "")}\"")
+        buildConfigField("String", "OPB_CLIENT_SECRET", "\"${localProps.getProperty("opb.clientsecret", "")}\"")
     }
 }
 

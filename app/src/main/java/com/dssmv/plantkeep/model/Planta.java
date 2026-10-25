@@ -5,8 +5,9 @@ package com.dssmv.plantkeep.model;
  */
 public class Planta {
     private String id;      // _id restdb
-    private String nome;
-    private String especie;
+    private String nome;    // nome/apelido dado pelo utilizador
+    private String especie; // espécie tal como aparece no OpenPlantbook
+    private String pid;     // id da espécie no OpenPlantbook
 
     private boolean isNomeValid(String nome) {
         return nome != null && nome.trim().length() >= 3;
@@ -43,5 +44,13 @@ public class Planta {
 
     public void setEspecie(String especie) {
         this.especie = especie;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }

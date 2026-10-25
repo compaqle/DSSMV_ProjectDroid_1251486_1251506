@@ -17,12 +17,13 @@ public class Mapper {
     public static Planta plantaDTO2Planta(PlantaDTO dto) {
         Planta p = new Planta(dto.getNome(), dto.getEspecie());
         p.setId(dto.getId());
+        p.setPid(dto.getPid());
         return p;
     }
 
     /** Passa model para DTO (para enviar) */
     public static PlantaDTO planta2PlantaDTO(Planta p) {
-        return new PlantaDTO(p.getId(), p.getNome(), p.getEspecie());
+        return new PlantaDTO(p.getId(), p.getNome(), p.getEspecie(), p.getPid());
     }
 
     /** Passa uma lista DTO para uma lista model */
