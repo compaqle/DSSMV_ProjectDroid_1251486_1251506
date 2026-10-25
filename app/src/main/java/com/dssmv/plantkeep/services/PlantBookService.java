@@ -86,7 +86,38 @@ public class PlantBookService {
             e.setCategory(r.optString("category", ""));
             lista.add(e);
         }
+
+        // a pesquisa não devolve a imagem; obtém-na do detail de cada espécie (só se existir)
+        for (EspecieOpb e : lista) {
+            e.setImageUrl(obterImagem(e.getPid()));
+        }
         return lista;
+    }
+
+    /** Devolve o image_url da espécie (vazio se não existir ou der erro). */
+    private static String obterImagem(String pid) {
+        if (pid == null || pid.isEmpty()) {
+            return "";
+        }
+        try {
+            String url = BASE + "/plant/detail/" + encPath(pid) + "/";
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + getToken());
+            int code = conn.getResponseCode();
+            String resp = ler(conn);
+            if (code != 200) {
+                return "";
+            }
+            return new JSONObject(resp).optString("image_url", "");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /** Codifica para caminho URL (espaço como %20, não como +). */
+    private static String encPath(String s) throws Exception {
+        return URLEncoder.encode(s, "UTF-8").replace("+", "%20");
     }
 
     private static String ler(HttpURLConnection conn) throws IOException {

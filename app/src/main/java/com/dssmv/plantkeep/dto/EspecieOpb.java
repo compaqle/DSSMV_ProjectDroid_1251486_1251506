@@ -9,8 +9,17 @@ public class EspecieOpb {
     private String displayPid;  // nome apresentável (ex. "Lycopersicon esculentum")
     private String alias;       // apelido/filtro de pesquisa
     private String category;
+    private String imageUrl;    // url da imagem (pode ser vazio se não existir)
 
     public EspecieOpb() {
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public String getPid() {

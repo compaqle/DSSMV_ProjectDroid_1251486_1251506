@@ -1,10 +1,15 @@
 package com.dssmv.plantkeep;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +21,9 @@ import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,19 +91,38 @@ public class CriarPlantaActivity extends AppCompatActivity {
         }
         lista = l;
 
-        List<String> nomes = new ArrayList<>();
-        for (EspecieOpb e : l) {
-            String texto = e.getDisplayPid() == null || e.getDisplayPid().isEmpty()
-                    ? e.getPid() : e.getDisplayPid();
-            if (e.getAlias() != null && !e.getAlias().isEmpty()
-                    && !e.getAlias().equalsIgnoreCase(texto)) {
-                texto = texto + " (" + e.getAlias() + ")";
-            }
-            nomes.add(texto);
-        }
+        lvResultados.setAdapter(new ArrayAdapter<EspecieOpb>(this, 0, lista) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                EspecieOpb e = getItem(position);
+                if (convertView == null) {
+                    convertView = LayoutInflater.from(CriarPlantaActivity.this)
+                            .inflate(R.layout.item_especie, parent, false);
+                }
+                TextView txt = convertView.findViewById(R.id.txt_especie);
+                ImageView img = convertView.findViewById(R.id.img_especie);
+                txt.setText(textoEspecie(e));
 
-        lvResultados.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, nomes));
+                final String url = e.getImageUrl();
+                final ImageView imgRef = img;
+                imgRef.setTag(url);
+                if (url == null || url.isEmpty()) {
+                    // sem imagem -> não mostra nada
+                    imgRef.setVisibility(View.INVISIBLE);
+                } else {
+                    imgRef.setVisibility(View.VISIBLE);
+                    new Thread(() -> {
+                        final Bitmap b = carregarImagem(url);
+                        imgRef.post(() -> {
+                            if (url.equals(imgRef.getTag()) && b != null) {
+                                imgRef.setImageBitmap(b);
+                            }
+                        });
+                    }).start();
+                }
+                return convertView;
+            }
+        });
 
         // passa de "pesquisa" para "resultados"
         edtPesquisa.setVisibility(View.GONE);
@@ -142,5 +169,29 @@ public class CriarPlantaActivity extends AppCompatActivity {
                         "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
+    }
+
+    /** Texto mostrado para uma espécie: nome + alias entre parênteses. */
+    private String textoEspecie(EspecieOpb e) {
+        String texto = e.getDisplayPid() == null || e.getDisplayPid().isEmpty()
+                ? e.getPid() : e.getDisplayPid();
+        if (e.getAlias() != null && !e.getAlias().isEmpty()
+                && !e.getAlias().equalsIgnoreCase(texto)) {
+            texto = texto + " (" + e.getAlias() + ")";
+        }
+        return texto;
+    }
+
+    /** Descarrega um bitmap a partir de um url (ou null se falhar). Roda fora da UI. */
+    private static Bitmap carregarImagem(String url) {
+        try {
+            HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+            c.setConnectTimeout(5000);
+            c.setReadTimeout(5000);
+            InputStream in = c.getInputStream();
+            return BitmapFactory.decodeStream(in);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
