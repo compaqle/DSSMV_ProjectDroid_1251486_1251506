@@ -1,6 +1,5 @@
 package com.dssmv.plantkeep.model;
 
-import com.dssmv.plantkeep.services.MeteoService;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -9,23 +8,10 @@ import java.util.List;
 public class MeteorologiaContainer {
 
     private List<Meteorologia> previsaoHoraria;
-    private final MeteoService meteoService;
     private static MeteorologiaContainer instancia;
 
-    public interface Callback {
-        void onSucesso(MeteorologiaContainer container);
-        void onErro(String msg);
-
-    }
-
-    public MeteorologiaContainer() {
+    private MeteorologiaContainer() {
         this.previsaoHoraria = new ArrayList<>();
-        this.meteoService = new MeteoService();
-    }
-
-    public MeteorologiaContainer(List<Meteorologia> previsaoHoraria) {
-        this.previsaoHoraria = (previsaoHoraria != null) ? previsaoHoraria : new ArrayList<>();
-        this.meteoService = new MeteoService();
     }
 
     public static synchronized MeteorologiaContainer getInstance() {
@@ -35,20 +21,16 @@ public class MeteorologiaContainer {
         return instancia;
     }
 
-    public void carregarMeteorologia(double latitude, double longitude, Callback callback) {
-        new Thread(() -> {
-            MeteorologiaContainer resultado = meteoService.obterDadosMeteorologicos(latitude, longitude);
-            if (resultado != null && !resultado.getPrevisaoHoraria().isEmpty()) {
-                this.previsaoHoraria = resultado.getPrevisaoHoraria();
-                callback.onSucesso(this);
-            } else {
-                callback.onErro("Erro ao obter dados meteorológicos");
-            }
-        }).start();
+    public List<Meteorologia> getPrevisaoHoraria() {
+        return previsaoHoraria;
+    }
+
+    public void setPrevisaoHoraria(List<Meteorologia> previsaoHoraria) {
+        this.previsaoHoraria = (previsaoHoraria != null) ? previsaoHoraria : new ArrayList<>();
     }
 
     public double calcularPrecipitacaoPorDia(Date diaEscolhido) {
-        if (diaEscolhido == null) {
+        if (diaEscolhido == null || previsaoHoraria.isEmpty()) {
             return -1;
         }
         double total = 0;
@@ -56,12 +38,14 @@ public class MeteorologiaContainer {
 
         Calendar calEscolhido = Calendar.getInstance();
         calEscolhido.setTime(diaEscolhido);
+
         Calendar calRegisto = Calendar.getInstance();
 
         for (Meteorologia registo : previsaoHoraria) {
             calRegisto.setTime(registo.getDataHora());
 
-            boolean mesmoDia = calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR);
+            boolean mesmoDia = calEscolhido.get(Calendar.YEAR) == calRegisto.get(Calendar.YEAR)
+                    && calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR);
 
             if (mesmoDia) {
                 total += registo.getPrecipitacao();
@@ -71,6 +55,4 @@ public class MeteorologiaContainer {
 
         return encontrouDados ? total : -1;
     }
-
-    public List<Meteorologia> getPrevisaoHoraria() {return previsaoHoraria;}
 }

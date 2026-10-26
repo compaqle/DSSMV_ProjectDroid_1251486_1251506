@@ -12,9 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.dssmv.plantkeep.model.MeteorologiaContainer;
 import com.dssmv.plantkeep.services.LocalizacaoProvider;
 import com.dssmv.plantkeep.services.LocalizacaoService;
+import com.dssmv.plantkeep.services.MeteoService;
 
 /**
  * Menu principal.
@@ -22,14 +22,11 @@ import com.dssmv.plantkeep.services.LocalizacaoService;
 public class MainActivity extends AppCompatActivity {
 
     private static final int CODIGO_PERMISSAO_GPS = 100;
-    private MeteorologiaContainer meteoService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-
-        meteoService = MeteorologiaContainer.getInstance();
 
         Button btnCriar = findViewById(R.id.btn_criar_planta);
         btnCriar.setOnClickListener(v -> startActivity(new Intent(this, CriarPlantaActivity.class)));
@@ -62,17 +59,14 @@ public class MainActivity extends AppCompatActivity {
         new LocalizacaoService(this).obterLocalizacao(new LocalizacaoProvider.Callback() {
             @Override
             public void onLocalizacao(double latitude, double longitude) {
-                meteoService.carregarMeteorologia(latitude, longitude, new MeteorologiaContainer.Callback() {
-                    @Override
-                    public void onSucesso(MeteorologiaContainer container) {
+                new Thread(() -> {
+                    try {
+                        MeteoService.carregarMeteorologia(latitude, longitude);
                         mostraMensagem("Meteorologia atualizada!");
+                    } catch (Exception e) {
+                        mostraErro("Erro ao obter dados meteorológicos");
                     }
-
-                    @Override
-                    public void onErro(String msg) {
-                        mostraErro(msg);
-                    }
-                });
+                }).start();
             }
 
             @Override
