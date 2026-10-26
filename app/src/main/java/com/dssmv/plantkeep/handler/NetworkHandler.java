@@ -17,9 +17,9 @@ public class NetworkHandler {
     private static final String APIKEY = BuildConfig.RESTDB_APIKEY;
     private static final int TIMEOUT_MS = 15000;
 
-    private NetworkHandler() {}   // só estáticos, nunca instaciar
+    private NetworkHandler() {}   // só estáticos, nunca instanciar
 
-    /** GET: le os dados da url */
+    /** GET: lê os dados da url */
     public static String getDataInStringFromUrl(String url) throws IOException {
         return request("GET", url, null);
     }
@@ -39,7 +39,6 @@ public class NetworkHandler {
         return request("DELETE", url, null);
     }
 
-// method (Get, Post etc); url; body (json que se vai enciar)
     private static String request(String method, String url, String body) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -47,7 +46,9 @@ public class NetworkHandler {
             conn.setRequestMethod(method);
             conn.setConnectTimeout(TIMEOUT_MS);
             conn.setReadTimeout(TIMEOUT_MS);
-            conn.setRequestProperty("x-apikey", APIKEY);
+            if (url.startsWith(BASE)) {
+                conn.setRequestProperty("x-apikey", APIKEY);
+            }
             conn.setRequestProperty("Accept", "application/json");
 
             if (body != null) {
@@ -61,16 +62,14 @@ public class NetworkHandler {
             int code = conn.getResponseCode();
             InputStream is;
             if (code >= 200 && code < 300) {
-                // Sucesso (2xx): a resposta vem no getInputStream()
                 is = conn.getInputStream();
             } else {
-                // Falhou (4xx/5xx) o servidor devovle o erro aqui
                 is = conn.getErrorStream();
             }
             String resp = is == null ? "" : readAll(is);
 
             if (code < 200 || code >= 300) {
-                throw new IOException("restdb HTTP " + code + ": " + resp);
+                throw new IOException("HTTP " + code + ": " + resp);
             }
             return resp;
         } finally {
