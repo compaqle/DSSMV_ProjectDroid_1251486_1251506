@@ -1,9 +1,14 @@
 package com.dssmv.plantkeep.dto;
 
+import com.dssmv.plantkeep.model.Meteorologia;
 import com.dssmv.plantkeep.model.Planta;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * O Mapper. Único sito que converte entre o DTO e o model.
@@ -33,5 +38,21 @@ public class Mapper {
             plantas.add(plantaDTO2Planta(dto));
         }
         return plantas;
+    }
+
+    /** Passa um MeteorologiaDTO para o model Meteorologia */
+    public static Meteorologia meteorologiaDTO2Meteorologia(MeteorologiaDTO dto) throws ParseException {
+        SimpleDateFormat formatador = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.ROOT);
+        Date dataHora = formatador.parse(dto.getDataHora());
+        return new Meteorologia(dto.getTemperatura(), dto.getPrecipitacao(), dataHora);
+    }
+
+    /** Passa uma lista de MeteorologiaDTO para uma lista do model Meteorologia */
+    public static List<Meteorologia> listMeteorologiaDTO2listMeteorologia(List<MeteorologiaDTO> dtos) throws ParseException {
+        List<Meteorologia> previsoes = new ArrayList<>();
+        for (MeteorologiaDTO dto : dtos) {
+            previsoes.add(meteorologiaDTO2Meteorologia(dto));
+        }
+        return previsoes;
     }
 }

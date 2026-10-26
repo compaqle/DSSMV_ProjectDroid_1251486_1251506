@@ -1,5 +1,6 @@
 package com.dssmv.plantkeep.handler;
 
+import com.dssmv.plantkeep.dto.MeteorologiaDTO;
 import com.dssmv.plantkeep.dto.PlantaDTO;
 
 import org.json.JSONArray;
@@ -38,6 +39,28 @@ public class JsonHandler {
                     o.optString("especie", ""),
                     o.optString("pid", "")
             );
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+    /** Passa o JSON do Open-Meteo (objeto "hourly") para List<MeteorologiaDTO> */
+    public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(String json) throws JSONException {
+        List<MeteorologiaDTO> dtos = new ArrayList<>();
+
+        JSONObject jsonResponse = new JSONObject(json);
+        JSONObject hourlyData = jsonResponse.getJSONObject("hourly");
+
+        JSONArray times = hourlyData.getJSONArray("time");
+        JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
+        JSONArray precipitations = hourlyData.getJSONArray("precipitation");
+
+        for (int i = 0; i < times.length(); i++) {
+            String textoData = times.getString(i);
+            double temperatura = temperatures.getDouble(i);
+            double precipitacao = precipitations.getDouble(i);
+
+            MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, textoData);
             dtos.add(dto);
         }
         return dtos;
