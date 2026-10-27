@@ -7,6 +7,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
+import androidx.annotation.NonNull;
 
 public class LocalizacaoService implements LocalizacaoProvider {
 
@@ -16,6 +17,7 @@ public class LocalizacaoService implements LocalizacaoProvider {
         this.context = context.getApplicationContext();
     }
 
+    //Usa GPS e Network para obter a localizacao
     @SuppressLint("MissingPermission")
     @Override
     public void obterLocalizacao(Callback listener) {
@@ -56,7 +58,6 @@ public class LocalizacaoService implements LocalizacaoProvider {
                 @Override
                 public void onLocationChanged(Location location) {
                     locationManager.removeUpdates(this);
-                    // O callback do Android chega no Looper; abrimos Thread para não fazer trabalho pesado na MainThread
                     new Thread(() -> {
                         if (location != null) {
                             listener.onLocalizacao(location.getLatitude(), location.getLongitude());
@@ -70,12 +71,12 @@ public class LocalizacaoService implements LocalizacaoProvider {
                 public void onStatusChanged(String provider, int status, Bundle extras) {}
 
                 @Override
-                public void onProviderEnabled(String provider) {}
+                public void onProviderEnabled(@NonNull String provider) {}
 
                 @Override
-                public void onProviderDisabled(String provider) {}
+                public void onProviderDisabled(@NonNull String provider) {}
             };
-
+            // Devolve a localizacao à thread principal
             locationManager.requestLocationUpdates(provider, 0, 0, locationListener, Looper.getMainLooper());
         }).start();
     }
