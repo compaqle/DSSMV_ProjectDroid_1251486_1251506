@@ -14,13 +14,21 @@ public class Meteorologia {
         setDataHora(dataHora);
     }
 
-    public double getTemperatura() {return temperatura;}
+    public double getTemperatura() {
+        return temperatura;
+    }
 
-    public double getPrecipitacao() {return precipitacao;}
+    public double getPrecipitacao() {
+        return precipitacao;
+    }
 
-    public Date getDataHora() {return dataHora;}
+    public Date getDataHora() {
+        return dataHora;
+    }
 
-    public void setTemperatura(double temperatura) {this.temperatura = temperatura;}
+    public void setTemperatura(double temperatura) {
+        this.temperatura = temperatura;
+    }
 
     public void setPrecipitacao(double precipitacao) {
         if (precipitacao < 0) {

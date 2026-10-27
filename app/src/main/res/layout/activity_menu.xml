@@ -1,31 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="40dp" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp" />
 
     <Button
-        android:id="@+id/btn_criar_planta"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Criar Planta" />
+            android:id="@+id/btn_criar_planta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Criar Planta" />
 
     <Button
-        android:id="@+id/btn_ver_plantas"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Ver Plantas" />
+            android:id="@+id/btn_ver_plantas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Ver Plantas" />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Avisos Meteorológicos"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+    <TextView
+            android:id="@+id/txt_estado_avisos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="A carregar meteorologia e avisos..."
+            android:textSize="15sp"
+            android:textColor="#666666" />
+
+    <ListView
+            android:id="@+id/lv_avisos"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="8dp" />
 
 </LinearLayout>
