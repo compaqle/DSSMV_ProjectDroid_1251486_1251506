@@ -9,9 +9,9 @@ public class Meteorologia {
     private Date dataHora;
 
     public Meteorologia(double temperatura, double precipitacao, Date dataHora) {
-        this.temperatura = temperatura;
-        this.precipitacao = precipitacao;
-        this.dataHora = dataHora;
+        setTemperatura(temperatura);
+        setPrecipitacao(precipitacao);
+        setDataHora(dataHora);
     }
 
     public double getTemperatura() {return temperatura;}
@@ -22,9 +22,18 @@ public class Meteorologia {
 
     public void setTemperatura(double temperatura) {this.temperatura = temperatura;}
 
-    public void setPrecipitacao(double precipitacao) {this.precipitacao = precipitacao;}
-
-    public void setDataHora(Date dataHora) {this.dataHora = dataHora;}
+    public void setPrecipitacao(double precipitacao) {
+        if (precipitacao < 0) {
+            throw new IllegalArgumentException("Meteorologia: precipitação não pode ser negativa");
+        }
+        this.precipitacao = precipitacao;
+    }
+    public void setDataHora(Date dataHora) {
+        if (dataHora == null) {
+            throw new IllegalArgumentException("Meteorologia: dataHora não pode ser nula");
+        }
+        this.dataHora = dataHora;
+    }
 
     @Override
     public String toString() {
