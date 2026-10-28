@@ -28,7 +28,7 @@ public class MeteoService {
     public static List<Meteorologia> obterDadosMeteorologicos(double latitude, double longitude) throws Exception {
         String url = METEO_URL + "?latitude=" + latitude
                 + "&longitude=" + longitude
-                + "&hourly=temperature_2m,precipitation";
+                + "&hourly=temperature_2m,precipitation,soil_moisture_1_to_3cm";
 
         String json = NetworkHandler.getDataInStringFromUrl(url);
         List<MeteorologiaDTO> dtos = JsonHandler.deSerializeJson2ListMeteorologiaDTO(json);

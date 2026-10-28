@@ -44,7 +44,12 @@ public class Mapper {
     public static Meteorologia meteorologiaDTO2Meteorologia(MeteorologiaDTO dto) throws ParseException {
         SimpleDateFormat formatador = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.ROOT);
         Date dataHora = formatador.parse(dto.getDataHora());
-        return new Meteorologia(dto.getTemperatura(), dto.getPrecipitacao(), dataHora);
+        return new Meteorologia(
+                dto.getTemperatura(),
+                dto.getPrecipitacao(),
+                dto.getHumidadeSolo(),
+                dataHora
+        );
     }
 
     /** Passa uma lista de MeteorologiaDTO para uma lista do model Meteorologia */

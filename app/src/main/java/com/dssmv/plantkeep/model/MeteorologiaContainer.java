@@ -29,7 +29,7 @@ public class MeteorologiaContainer {
         this.previsaoHoraria = (previsaoHoraria != null) ? previsaoHoraria : new ArrayList<>();
     }
 
-    /** Devolve o registo (com temperatura e data/hora) mais frio previsto daqui para a frente. */
+    /** Devolve o registo mais frio previsto daqui para a frente. */
     public Meteorologia obterRegistoTemperaturaMinimaPrevista() {
         if (previsaoHoraria.isEmpty()) {
             return null;
@@ -47,7 +47,7 @@ public class MeteorologiaContainer {
         return registoMin;
     }
 
-    /** Devolve o registo (com temperatura e data/hora) mais quente previsto daqui para a frente. */
+    /** Devolve o registo mais quente previsto daqui para a frente. */
     public Meteorologia obterRegistoTemperaturaMaximaPrevista() {
         if (previsaoHoraria.isEmpty()) {
             return null;
@@ -65,30 +65,37 @@ public class MeteorologiaContainer {
         return registoMax;
     }
 
-    public double calcularPrecipitacaoPorDia(Date diaEscolhido) {
-        if (diaEscolhido == null || previsaoHoraria.isEmpty()) {
-            return -1;
+    public Meteorologia obterRegistoHumidadeSoloMinimaPrevista() {
+        if (previsaoHoraria.isEmpty()) {
+            return null;
         }
-        double total = 0;
-        boolean encontrouDados = false;
-
-        Calendar calEscolhido = Calendar.getInstance();
-        calEscolhido.setTime(diaEscolhido);
-
-        Calendar calRegisto = Calendar.getInstance();
+        Date agora = new Date();
+        Meteorologia registoMin = null;
 
         for (Meteorologia registo : previsaoHoraria) {
-            calRegisto.setTime(registo.getDataHora());
-
-            boolean mesmoDia = calEscolhido.get(Calendar.YEAR) == calRegisto.get(Calendar.YEAR)
-                    && calEscolhido.get(Calendar.DAY_OF_YEAR) == calRegisto.get(Calendar.DAY_OF_YEAR);
-
-            if (mesmoDia) {
-                total += registo.getPrecipitacao();
-                encontrouDados = true;
+            if (!registo.getDataHora().before(agora)) {
+                if (registoMin == null || registo.getHumidadeSolo() < registoMin.getHumidadeSolo()) {
+                    registoMin = registo;
+                }
             }
         }
+        return registoMin;
+    }
 
-        return encontrouDados ? total : -1;
+    public Meteorologia obterRegistoHumidadeSoloMaximaPrevista() {
+        if (previsaoHoraria.isEmpty()) {
+            return null;
+        }
+        Date agora = new Date();
+        Meteorologia registoMax = null;
+
+        for (Meteorologia registo : previsaoHoraria) {
+            if (!registo.getDataHora().before(agora)) {
+                if (registoMax == null || registo.getHumidadeSolo() > registoMax.getHumidadeSolo()) {
+                    registoMax = registo;
+                }
+            }
+        }
+        return registoMax;
     }
 }

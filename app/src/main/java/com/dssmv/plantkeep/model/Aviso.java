@@ -5,14 +5,15 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Model de um Aviso/Alerta para uma planta, incluindo a data e hora do evento.
- * Preparado com TipoAviso para no futuro suportar chuva, vento, humidade, etc.
+ * Model de um Aviso/Alerta para uma planta
  */
 public class Aviso {
 
     public enum TipoAviso {
         TEMPERATURA_BAIXA,
-        TEMPERATURA_ALTA
+        TEMPERATURA_ALTA,
+        HUMIDADE_SOLO_BAIXA,
+        HUMIDADE_SOLO_ALTA
     }
 
     private final String nomePlanta;
@@ -28,7 +29,7 @@ public class Aviso {
             throw new IllegalArgumentException("Tipo e mensagem são obrigatórios");
         }
         if (dataHora == null) {
-            throw new IllegalArgumentException("DataHora não pode ser nula");
+            throw new IllegalArgumentException("dataHora não pode ser nula");
         }
         this.nomePlanta = nomePlanta.trim();
         this.tipo = tipo;

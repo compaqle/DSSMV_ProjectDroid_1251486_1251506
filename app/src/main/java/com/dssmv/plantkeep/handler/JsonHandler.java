@@ -54,14 +54,15 @@ public class JsonHandler {
         JSONArray times = hourlyData.getJSONArray("time");
         JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
         JSONArray precipitations = hourlyData.getJSONArray("precipitation");
+        JSONArray soilMoistures = hourlyData.getJSONArray("soil_moisture_1_to_3cm");
 
         for (int i = 0; i < times.length(); i++) {
             String textoData = times.getString(i);
             double temperatura = temperatures.getDouble(i);
             double precipitacao = precipitations.getDouble(i);
+            double humidadeSolo = soilMoistures.optDouble(i) * 100.0;
 
-            MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, textoData);
-            dtos.add(dto);
+            MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData);            dtos.add(dto);
         }
         return dtos;
     }

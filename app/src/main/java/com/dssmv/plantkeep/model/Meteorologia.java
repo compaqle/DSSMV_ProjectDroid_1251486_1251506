@@ -6,11 +6,13 @@ public class Meteorologia {
 
     private double temperatura;
     private double precipitacao;
+    private double humidadeSolo;
     private Date dataHora;
 
-    public Meteorologia(double temperatura, double precipitacao, Date dataHora) {
+    public Meteorologia(double temperatura, double precipitacao, double humidadeSolo, Date dataHora) {
         setTemperatura(temperatura);
         setPrecipitacao(precipitacao);
+        setHumidadeSolo(humidadeSolo);
         setDataHora(dataHora);
     }
 
@@ -18,16 +20,12 @@ public class Meteorologia {
         return temperatura;
     }
 
-    public double getPrecipitacao() {
-        return precipitacao;
-    }
-
-    public Date getDataHora() {
-        return dataHora;
-    }
-
     public void setTemperatura(double temperatura) {
         this.temperatura = temperatura;
+    }
+
+    public double getPrecipitacao() {
+        return precipitacao;
     }
 
     public void setPrecipitacao(double precipitacao) {
@@ -36,6 +34,22 @@ public class Meteorologia {
         }
         this.precipitacao = precipitacao;
     }
+
+    public double getHumidadeSolo() {
+        return humidadeSolo;
+    }
+
+    public void setHumidadeSolo(double humidadeSolo) {
+        if (humidadeSolo < 0 || humidadeSolo > 100) {
+            throw new IllegalArgumentException("Meteorologia: humidade do solo deve estar entre 0% e 100%");
+        }
+        this.humidadeSolo = humidadeSolo;
+    }
+
+    public Date getDataHora() {
+        return dataHora;
+    }
+
     public void setDataHora(Date dataHora) {
         if (dataHora == null) {
             throw new IllegalArgumentException("Meteorologia: dataHora não pode ser nula");
@@ -45,6 +59,10 @@ public class Meteorologia {
 
     @Override
     public String toString() {
-        return "Meteorologia{" + "temperatura=" + temperatura + "ºC, precipitacao=" + precipitacao + "mm, dataHora=" + dataHora + '}';
+        return "Meteorologia{" +
+                "temperatura=" + temperatura + "°C, " +
+                "precipitacao=" + precipitacao + "mm, " +
+                "humidadeSolo=" + humidadeSolo + "%, " +
+                "dataHora=" + dataHora + '}';
     }
 }

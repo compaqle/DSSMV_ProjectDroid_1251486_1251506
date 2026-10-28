@@ -12,7 +12,7 @@ import java.util.Locale;
 
 /**
  * Serviço responsável por cruzar as plantas do utilizador com a meteorologia
- * e gerar a lista de avisos (Temperatura, e no futuro Chuva, Vento, etc.).
+ * e gerar a lista de avisos (Temperatur e Humidade do Solo).
  */
 public class AvisoService {
 
@@ -36,7 +36,10 @@ public class AvisoService {
             try {
                 DetalheOpb detalhe = PlantBookService.detalhe(p.getPid());
 
+                // Verificação de Temperatura
                 verificarAvisosTemperatura(p, detalhe, meteo, avisos);
+                // Verificação de Humidade do Solo
+                verificarAvisosHumidadeSolo(p, detalhe, meteo, avisos);
 
             } catch (Exception ignored) {
             }
@@ -64,6 +67,28 @@ public class AvisoService {
                     "Calor previsto: %.1f°C. Máximo suportado: %d°C",
                     registoMax.getTemperatura(), detalhe.getMaxTemp());
             avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.TEMPERATURA_ALTA, msg, registoMax.getDataHora()));
+        }
+    }
+
+    private static void verificarAvisosHumidadeSolo(Planta p, DetalheOpb detalhe,
+                                                    MeteorologiaContainer meteo, List<Aviso> avisos) {
+        Meteorologia registoSeco = meteo.obterRegistoHumidadeSoloMinimaPrevista();
+        Meteorologia registoHumido = meteo.obterRegistoHumidadeSoloMaximaPrevista();
+
+        if (detalhe.getMinSoilMoist() != null && registoSeco != null
+                && registoSeco.getHumidadeSolo() < detalhe.getMinSoilMoist()) {
+            String msg = String.format(Locale.ROOT,
+                    "Humidade do solo prevista: %.1f%%. Mínimo recomendado: %d%%",
+                    registoSeco.getHumidadeSolo(), detalhe.getMinSoilMoist());
+            avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.HUMIDADE_SOLO_BAIXA, msg, registoSeco.getDataHora()));
+        }
+
+        if (detalhe.getMaxSoilMoist() != null && registoHumido != null
+                && registoHumido.getHumidadeSolo() > detalhe.getMaxSoilMoist()) {
+            String msg = String.format(Locale.ROOT,
+                    "Humidade do solo prevista: %.1f%%. Máximo recomendado: %d%%",
+                    registoHumido.getHumidadeSolo(), detalhe.getMaxSoilMoist());
+            avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.HUMIDADE_SOLO_ALTA, msg, registoHumido.getDataHora()));
         }
     }
 }
