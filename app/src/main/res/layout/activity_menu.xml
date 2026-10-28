@@ -13,25 +13,60 @@
             android:text="@string/app_name"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="20dp" />
 
-    <Button
-            android:id="@+id/btn_criar_planta"
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Criar Planta" />
+            android:orientation="horizontal">
 
-    <Button
-            android:id="@+id/btn_ver_plantas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Ver Plantas" />
+        <Button
+                android:id="@+id/btn_criar_planta"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Criar Planta" />
 
+        <Button
+                android:id="@+id/btn_ver_plantas"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Ver Plantas" />
+    </LinearLayout>
+
+    <!--Proximas regas -->
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
+            android:text="Próximas Regas"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+    <TextView
+            android:id="@+id/txt_estado_regas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="A calcular necessidades de rega..."
+            android:textSize="15sp"
+            android:textColor="#666666" />
+
+    <ListView
+            android:id="@+id/lv_regas"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="6dp" />
+
+    <!-- Avisos Meteorologicos -->
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="Avisos Meteorológicos"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -40,7 +75,7 @@
             android:id="@+id/txt_estado_avisos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:text="A carregar meteorologia e avisos..."
             android:textSize="15sp"
             android:textColor="#666666" />
@@ -50,6 +85,6 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="6dp" />
 
 </LinearLayout>

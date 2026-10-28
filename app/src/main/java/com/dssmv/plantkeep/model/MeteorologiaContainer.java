@@ -64,22 +64,21 @@ public class MeteorologiaContainer {
         return registoMax;
     }
 
-    /** Devolve o registo com menor humidade do solo prevista */
-    public Meteorologia obterRegistoHumidadeSoloMinimaPrevista() {
+    /** Devolve o primeiro registo em que a humidade do solo cai abaixo do mínimo da planta. */
+    public Meteorologia obterPrimeiroRegistoAbaixoHumidadeMinima(int minSoilMoist) {
         if (previsaoHoraria.isEmpty()) {
             return null;
         }
         Date agora = new Date();
-        Meteorologia registoMin = null;
 
         for (Meteorologia registo : previsaoHoraria) {
             if (!registo.getDataHora().before(agora)) {
-                if (registoMin == null || registo.getHumidadeSolo() < registoMin.getHumidadeSolo()) {
-                    registoMin = registo;
+                if (registo.getHumidadeSolo() < minSoilMoist) {
+                    return registo;
                 }
             }
         }
-        return registoMin;
+        return null;
     }
 
     /** Devolve o registo com maior humidade do solo prevista */

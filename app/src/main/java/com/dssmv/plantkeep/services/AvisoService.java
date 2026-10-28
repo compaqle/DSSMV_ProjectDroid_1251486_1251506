@@ -36,9 +36,7 @@ public class AvisoService {
             try {
                 DetalheOpb detalhe = PlantBookService.detalhe(p.getPid());
 
-                // Verificação de Temperatura
                 verificarAvisosTemperatura(p, detalhe, meteo, avisos);
-                // Verificação de Humidade do Solo
                 verificarAvisosHumidadeSolo(p, detalhe, meteo, avisos);
 
             } catch (Exception ignored) {
@@ -49,14 +47,15 @@ public class AvisoService {
     }
 
     /** Verifica se a temperatura prevista ultrapassa o minTemp ou maxTemp da planta. */
-    private static void verificarAvisosTemperatura(Planta p, DetalheOpb detalhe, MeteorologiaContainer meteo, List<Aviso> avisos) {
+    private static void verificarAvisosTemperatura(Planta p, DetalheOpb detalhe,
+                                                   MeteorologiaContainer meteo, List<Aviso> avisos) {
         Meteorologia registoMin = meteo.obterRegistoTemperaturaMinimaPrevista();
         Meteorologia registoMax = meteo.obterRegistoTemperaturaMaximaPrevista();
 
         if (detalhe.getMinTemp() != null && registoMin != null
                 && registoMin.getTemperatura() < detalhe.getMinTemp()) {
             String msg = String.format(Locale.ROOT,
-                    "Frio previsto: %.1f°C. Mínimo suportado: %d°C",
+                    "Frio previsto (%.1f°C, Min: %d°C)",
                     registoMin.getTemperatura(), detalhe.getMinTemp());
             avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.TEMPERATURA_BAIXA, msg, registoMin.getDataHora()));
         }
@@ -64,7 +63,7 @@ public class AvisoService {
         if (detalhe.getMaxTemp() != null && registoMax != null
                 && registoMax.getTemperatura() > detalhe.getMaxTemp()) {
             String msg = String.format(Locale.ROOT,
-                    "Calor previsto: %.1f°C. Máximo suportado: %d°C",
+                    "Calor previsto (%.1f°C, Max: %d°C).",
                     registoMax.getTemperatura(), detalhe.getMaxTemp());
             avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.TEMPERATURA_ALTA, msg, registoMax.getDataHora()));
         }
@@ -73,21 +72,18 @@ public class AvisoService {
     /** Verifica se a humidade do solo prevista ultrapassa o minSoilMoist ou maxSoilMoist da planta. */
     private static void verificarAvisosHumidadeSolo(Planta p, DetalheOpb detalhe,
                                                     MeteorologiaContainer meteo, List<Aviso> avisos) {
-        Meteorologia registoSeco = meteo.obterRegistoHumidadeSoloMinimaPrevista();
-        Meteorologia registoHumido = meteo.obterRegistoHumidadeSoloMaximaPrevista();
-
-        if (detalhe.getMinSoilMoist() != null && registoSeco != null
-                && registoSeco.getHumidadeSolo() < detalhe.getMinSoilMoist()) {
-            String msg = String.format(Locale.ROOT,
-                    "Humidade do solo prevista: %.1f%%. Mínimo recomendado: %d%%",
-                    registoSeco.getHumidadeSolo(), detalhe.getMinSoilMoist());
-            avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.HUMIDADE_SOLO_BAIXA, msg, registoSeco.getDataHora()));
+        if (detalhe.getMinSoilMoist() != null) {
+            Meteorologia registoRega = meteo.obterPrimeiroRegistoAbaixoHumidadeMinima(detalhe.getMinSoilMoist());
+            if (registoRega != null) {
+                avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.HUMIDADE_SOLO_BAIXA, "", registoRega.getDataHora()));
+            }
         }
 
+        Meteorologia registoHumido = meteo.obterRegistoHumidadeSoloMaximaPrevista();
         if (detalhe.getMaxSoilMoist() != null && registoHumido != null
                 && registoHumido.getHumidadeSolo() > detalhe.getMaxSoilMoist()) {
             String msg = String.format(Locale.ROOT,
-                    "Humidade do solo prevista: %.1f%%. Máximo recomendado: %d%%",
+                    "Solo encharcado previsto (%.1f%%, Max: %d%%).",
                     registoHumido.getHumidadeSolo(), detalhe.getMaxSoilMoist());
             avisos.add(new Aviso(p.getNome(), Aviso.TipoAviso.HUMIDADE_SOLO_ALTA, msg, registoHumido.getDataHora()));
         }
