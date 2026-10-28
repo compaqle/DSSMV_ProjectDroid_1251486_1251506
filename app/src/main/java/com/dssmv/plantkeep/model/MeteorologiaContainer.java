@@ -1,7 +1,6 @@
 package com.dssmv.plantkeep.model;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +28,7 @@ public class MeteorologiaContainer {
         this.previsaoHoraria = (previsaoHoraria != null) ? previsaoHoraria : new ArrayList<>();
     }
 
-    /** Devolve o registo mais frio previsto daqui para a frente. */
+    /** Devolve o registo mais frio previsto */
     public Meteorologia obterRegistoTemperaturaMinimaPrevista() {
         if (previsaoHoraria.isEmpty()) {
             return null;
@@ -47,7 +46,7 @@ public class MeteorologiaContainer {
         return registoMin;
     }
 
-    /** Devolve o registo mais quente previsto daqui para a frente. */
+    /** Devolve o registo mais quente previsto */
     public Meteorologia obterRegistoTemperaturaMaximaPrevista() {
         if (previsaoHoraria.isEmpty()) {
             return null;
@@ -65,6 +64,7 @@ public class MeteorologiaContainer {
         return registoMax;
     }
 
+    /** Devolve o registo com menor humidade do solo prevista */
     public Meteorologia obterRegistoHumidadeSoloMinimaPrevista() {
         if (previsaoHoraria.isEmpty()) {
             return null;
@@ -82,6 +82,7 @@ public class MeteorologiaContainer {
         return registoMin;
     }
 
+    /** Devolve o registo com maior humidade do solo prevista */
     public Meteorologia obterRegistoHumidadeSoloMaximaPrevista() {
         if (previsaoHoraria.isEmpty()) {
             return null;

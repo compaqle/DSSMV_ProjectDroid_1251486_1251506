@@ -70,6 +70,7 @@ public class AvisoService {
         }
     }
 
+    /** Verifica se a humidade do solo prevista ultrapassa o minSoilMoist ou maxSoilMoist da planta. */
     private static void verificarAvisosHumidadeSolo(Planta p, DetalheOpb detalhe,
                                                     MeteorologiaContainer meteo, List<Aviso> avisos) {
         Meteorologia registoSeco = meteo.obterRegistoHumidadeSoloMinimaPrevista();
