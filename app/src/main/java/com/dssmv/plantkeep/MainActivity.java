@@ -195,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        listaRegas.sort((a1, a2) -> a1.getDataHora().compareTo(a2.getDataHora()));
+
         // Próximas Regas
         if (listaRegas.isEmpty()) {
             txtEstadoRegas.setVisibility(View.VISIBLE);
