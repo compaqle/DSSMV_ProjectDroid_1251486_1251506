@@ -4,19 +4,22 @@ package com.dssmv.plantkeep.dto;
  * DTO da planta. Recipiente de dados igual ao JSON. Só campos e getters/setters.
  */
 public class PlantaDTO {
-    private String id;      // _id do restdb
+
+    private String id;       // _id do restdb
     private String nome;
     private String especie;
-    private String pid;     // id da espécie no OpenPlantbook
+    private String pid;      // id da espécie no OpenPlantbook
+    private long ultimaRega; // timestamp (ms) da última rega
 
     public PlantaDTO() {
     }
 
-    public PlantaDTO(String id, String nome, String especie, String pid) {
+    public PlantaDTO(String id, String nome, String especie, String pid, long ultimaRega) {
         this.id = id;
         this.nome = nome;
         this.especie = especie;
         this.pid = pid;
+        this.ultimaRega = ultimaRega;
     }
 
     public String getId() {
@@ -49,5 +52,13 @@ public class PlantaDTO {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public long getUltimaRega() {
+        return ultimaRega;
+    }
+
+    public void setUltimaRega(long ultimaRega) {
+        this.ultimaRega = ultimaRega;
     }
 }

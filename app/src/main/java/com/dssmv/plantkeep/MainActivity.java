@@ -13,15 +13,18 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.dssmv.plantkeep.model.Aviso;
 import com.dssmv.plantkeep.model.MeteorologiaContainer;
+import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.AvisoService;
 import com.dssmv.plantkeep.services.LocalizacaoProvider;
 import com.dssmv.plantkeep.services.LocalizacaoService;
 import com.dssmv.plantkeep.services.MeteoService;
+import com.dssmv.plantkeep.services.PlantaService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView txtEstadoRegas;
     private ListView lvRegas;
+    private final List<Aviso> listaRegas = new ArrayList<>();
 
     private TextView txtEstadoAvisos;
     private ListView lvAvisos;
@@ -55,6 +59,13 @@ public class MainActivity extends AppCompatActivity {
         Button btnVer = findViewById(R.id.btn_ver_plantas);
         btnVer.setOnClickListener(v -> startActivity(new Intent(this, PlantasActivity.class)));
 
+        // Tocar numa planta da lista de "Próximas Regas" pergunta se já foi regada
+        lvRegas.setOnItemClickListener((parent, view, position, id) -> {
+            if (position >= 0 && position < listaRegas.size()) {
+                confirmarRega(listaRegas.get(position).getPlanta());
+            }
+        });
+
         // Verifica permissões
         if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -75,6 +86,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void confirmarRega(Planta p) {
+        if (p == null) {
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Regar planta")
+                .setMessage("Marcar \"" + p.getNome() + "\" como regada hoje?")
+                .setPositiveButton("Sim, reguei", (d, w) -> marcarComoRegada(p))
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void marcarComoRegada(Planta p) {
+        new Thread(() -> {
+            try {
+                PlantaService.regar(p);
+                mostraMensagem(p.getNome() + " marcada como regada!");
+                carregarAvisos();
+            } catch (Exception e) {
+                mostraErro("Não foi possível guardar a rega: " + e.getMessage());
+            }
+        }).start();
+    }
 
     /** Pedido de permissões de GPS */
     private final ActivityResultLauncher<String[]> launcher = registerForActivityResult(
@@ -148,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void mostrarSecoes(List<Aviso> todos) {
-        List<Aviso> listaRegas = new ArrayList<>();
+        listaRegas.clear();
         List<Aviso> listaMeteorologia = new ArrayList<>();
 
         if (todos != null) {

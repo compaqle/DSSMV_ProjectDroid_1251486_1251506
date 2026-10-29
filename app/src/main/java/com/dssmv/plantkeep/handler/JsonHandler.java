@@ -12,22 +12,23 @@ import java.util.List;
 
 /**
  * O tradutor de JSON só muda entre String JSON e DTO
- * e não faz HTTP nem conhece o model
+ * e não faz HTTP nem conhece o model.
  */
 public class JsonHandler {
 
-    private JsonHandler() {}   // só métodos estáticos, nunca instaciar
+    private JsonHandler() {}   // só métodos estáticos, nunca instanciar
 
-    /** Passa um DTO para JSON (corpo de um POST) */
+    /** Passa um DTO para JSON (corpo de um POST ou PUT) */
     public static String serializePlantaDTO2Json(PlantaDTO dto) throws JSONException {
         JSONObject o = new JSONObject();
         o.put("nome", dto.getNome());
         o.put("especie", dto.getEspecie());
         o.put("pid", dto.getPid());
+        o.put("ultimaRega", dto.getUltimaRega());
         return o.toString();
     }
 
-    /** Passa um JSON (aray) para List<PlantaDTO> */
+    /** Passa um JSON (array) para List<PlantaDTO> */
     public static List<PlantaDTO> deSerializeJson2ListPlantaDTO(String json) throws JSONException {
         List<PlantaDTO> dtos = new ArrayList<>();
         JSONArray arr = new JSONArray(json);
@@ -37,7 +38,8 @@ public class JsonHandler {
                     o.optString("_id", null),
                     o.optString("nome", ""),
                     o.optString("especie", ""),
-                    o.optString("pid", "")
+                    o.optString("pid", ""),
+                    o.optLong("ultimaRega", 0L)
             );
             dtos.add(dto);
         }
@@ -62,7 +64,8 @@ public class JsonHandler {
             double precipitacao = precipitations.getDouble(i);
             double humidadeSolo = soilMoistures.optDouble(i) * 100.0;
 
-            MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData);            dtos.add(dto);
+            MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData);
+            dtos.add(dto);
         }
         return dtos;
     }

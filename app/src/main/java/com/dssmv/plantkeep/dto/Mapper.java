@@ -11,24 +11,25 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * O Mapper. Único sito que converte entre o DTO e o model.
+ * O Mapper. Único sítio que converte entre o DTO e o model.
  * Não faz HTTP nem JSON.
  */
 public class Mapper {
 
-    private Mapper() {}   // só métodos estáticos, nunca instaciar
+    private Mapper() {}   // só métodos estáticos, nunca instanciar
 
-    /** Passa DTO para model (valida o nomme) */
+    /** Passa DTO para model (valida o nome) */
     public static Planta plantaDTO2Planta(PlantaDTO dto) {
         Planta p = new Planta(dto.getNome(), dto.getEspecie());
         p.setId(dto.getId());
         p.setPid(dto.getPid());
+        p.setUltimaRega(dto.getUltimaRega());
         return p;
     }
 
     /** Passa model para DTO (para enviar) */
     public static PlantaDTO planta2PlantaDTO(Planta p) {
-        return new PlantaDTO(p.getId(), p.getNome(), p.getEspecie(), p.getPid());
+        return new PlantaDTO(p.getId(), p.getNome(), p.getEspecie(), p.getPid(), p.getUltimaRega());
     }
 
     /** Passa uma lista DTO para uma lista model */

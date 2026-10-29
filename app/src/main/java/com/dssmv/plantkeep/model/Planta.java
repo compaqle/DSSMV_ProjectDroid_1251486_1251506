@@ -1,13 +1,15 @@
 package com.dssmv.plantkeep.model;
 
 /**
- * Model da planta, puro, sem rede nem JSON. Tem as regras e lança exceçao em dados inválidos.
+ * Model da planta, puro, sem rede nem JSON. Tem as regras e lança exceção em dados inválidos.
  */
 public class Planta {
-    private String id;      // _id restdb
-    private String nome;    // nome/apelido dado pelo utilizador
-    private String especie; // espécie tal como aparece no OpenPlantbook
-    private String pid;     // id da espécie no OpenPlantbook
+
+    private String id;       // _id restdb
+    private String nome;     // nome/apelido dado pelo utilizador
+    private String especie;  // espécie tal como aparece no OpenPlantbook
+    private String pid;      // id da espécie no OpenPlantbook
+    private long ultimaRega; // timestamp (ms) da última vez que foi regada (0 se nunca)
 
     private boolean isNomeValid(String nome) {
         return nome != null && nome.trim().length() >= 3;
@@ -52,5 +54,16 @@ public class Planta {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public long getUltimaRega() {
+        return ultimaRega;
+    }
+
+    public void setUltimaRega(long ultimaRega) {
+        if (ultimaRega < 0) {
+            throw new IllegalArgumentException("Planta: ultimaRega não pode ser negativa");
+        }
+        this.ultimaRega = ultimaRega;
     }
 }

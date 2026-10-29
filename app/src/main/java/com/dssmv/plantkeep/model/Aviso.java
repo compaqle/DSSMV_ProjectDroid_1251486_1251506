@@ -3,7 +3,6 @@ package com.dssmv.plantkeep.model;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Model de um Aviso/Alerta para uma planta, incluindo a data e hora do evento.
@@ -17,13 +16,14 @@ public class Aviso {
         HUMIDADE_SOLO_ALTA
     }
 
+    private final Planta planta;
     private final String nomePlanta;
     private final TipoAviso tipo;
     private final String mensagem;
     private final Date dataHora;
 
-    public Aviso(String nomePlanta, TipoAviso tipo, String mensagem, Date dataHora) {
-        if (nomePlanta == null || nomePlanta.trim().isEmpty()) {
+    public Aviso(Planta planta, TipoAviso tipo, String mensagem, Date dataHora) {
+        if (planta == null || planta.getNome() == null || planta.getNome().trim().isEmpty()) {
             throw new IllegalArgumentException("Nome da planta inválido");
         }
         if (tipo == null) {
@@ -32,10 +32,15 @@ public class Aviso {
         if (dataHora == null) {
             throw new IllegalArgumentException("dataHora não pode ser nula");
         }
-        this.nomePlanta = nomePlanta.trim();
+        this.planta = planta;
+        this.nomePlanta = planta.getNome().trim();
         this.tipo = tipo;
         this.mensagem = mensagem;
         this.dataHora = dataHora;
+    }
+
+    public Planta getPlanta() {
+        return planta;
     }
 
     public String getNomePlanta() {
@@ -56,7 +61,11 @@ public class Aviso {
 
     private String formatarData() {
         long diffMs = dataHora.getTime() - System.currentTimeMillis();
-        long dias = TimeUnit.MILLISECONDS.toDays(diffMs);
+        if (diffMs <= 0) {
+            return "hoje";
+        }
+        // Calcula os dias arredondando para cima (ex: 72 horas = 3 dias)
+        long dias = (long) Math.ceil(diffMs / (1000.0 * 60 * 60 * 24));
 
         if (dias <= 0) {
             return "hoje";
@@ -74,6 +83,6 @@ public class Aviso {
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM 'às' HH:mm", Locale.getDefault());
-        return  nomePlanta + " (" + sdf.format(dataHora) + "): " + mensagem;
+        return nomePlanta + " (" + sdf.format(dataHora) + "): " + mensagem;
     }
 }

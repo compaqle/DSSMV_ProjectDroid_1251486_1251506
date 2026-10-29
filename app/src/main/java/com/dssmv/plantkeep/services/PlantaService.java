@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class PlantaService {
 
-    private PlantaService() {}   // só estáticos, nunca instaciar
+    private PlantaService() {}   // só estáticos, nunca instanciar
 
     /** Devolve a lista de plantas (GET). */
     public static List<Planta> getPlantas() throws Exception {
@@ -28,6 +28,16 @@ public class PlantaService {
         String url = NetworkHandler.BASE + "/planta";
         String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
         NetworkHandler.addDataInStringFromUrl(url, json);
+    }
+
+    /** Marca uma planta como regada agora e atualiza no RestDB (PUT). */
+    public static void regar(Planta p) throws Exception {
+        if (p != null && p.getId() != null) {
+            p.setUltimaRega(System.currentTimeMillis());
+            String url = NetworkHandler.BASE + "/planta/" + p.getId();
+            String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
+            NetworkHandler.updateDataInStringFromUrl(url, json);
+        }
     }
 
     /** Apaga uma planta (DELETE). */
