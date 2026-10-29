@@ -1,5 +1,8 @@
 package com.dssmv.plantkeep.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Model da planta, puro, sem rede nem JSON. Tem as regras e lança exceção em dados inválidos.
  */
@@ -10,6 +13,7 @@ public class Planta {
     private String especie;  // espécie tal como aparece no OpenPlantbook
     private String pid;      // id da espécie no OpenPlantbook
     private long ultimaRega; // timestamp (ms) da última vez que foi regada (0 se nunca)
+    private List<RegistoDiario> diario; // registos do diário da planta
 
     private boolean isNomeValid(String nome) {
         return nome != null && nome.trim().length() >= 3;
@@ -18,6 +22,7 @@ public class Planta {
     public Planta(String nome, String especie) {
         setNome(nome);
         this.especie = especie;
+        this.diario = new ArrayList<>();
     }
 
     public String getId() {
@@ -65,5 +70,20 @@ public class Planta {
             throw new IllegalArgumentException("Planta: ultimaRega não pode ser negativa");
         }
         this.ultimaRega = ultimaRega;
+    }
+
+    public List<RegistoDiario> getDiario() {
+        return diario;
+    }
+
+    public void setDiario(List<RegistoDiario> diario) {
+        this.diario = (diario != null) ? diario : new ArrayList<>();
+    }
+
+    public void adicionarRegistoDiario(RegistoDiario registo) {
+        if (registo == null) {
+            throw new IllegalArgumentException("Planta: registo do diário não pode ser nulo");
+        }
+        this.diario.add(registo);
     }
 }

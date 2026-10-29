@@ -1,5 +1,6 @@
 package com.dssmv.plantkeep;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -45,8 +46,8 @@ public class InfoPlantaActivity extends AppCompatActivity {
         llInfo = findViewById(R.id.ll_info);
         imgInfo = findViewById(R.id.img_info);
         TextView titulo = findViewById(R.id.txt_titulo);
+        Button btnDiario = findViewById(R.id.btn_diario);
         Button btnApagar = findViewById(R.id.btn_apagar);
-        btnApagar.setOnClickListener(v -> confirmarApagar());
 
         id = getIntent().getStringExtra("id");
         nome = getIntent().getStringExtra("nome");
@@ -54,6 +55,9 @@ public class InfoPlantaActivity extends AppCompatActivity {
         pid = getIntent().getStringExtra("pid");
 
         titulo.setText(especie == null || especie.isEmpty() ? nome : nome + " (" + especie + ")");
+
+        btnDiario.setOnClickListener(v -> abrirDiario());
+        btnApagar.setOnClickListener(v -> confirmarApagar());
 
         // edge-to-edge: afasta o conteúdo das barras do sistema (banner em cima, nav em baixo)
         final LinearLayout llRoot = findViewById(R.id.ll_root);
@@ -68,6 +72,13 @@ public class InfoPlantaActivity extends AppCompatActivity {
         });
 
         carregarDados();
+    }
+
+    private void abrirDiario() {
+        Intent i = new Intent(this, DiarioPlantaActivity.class);
+        i.putExtra("id", id);
+        i.putExtra("nome", nome);
+        startActivity(i);
     }
 
     private void confirmarApagar() {
@@ -86,6 +97,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
         }
         final Planta p = new Planta(nome != null ? nome : "planta", "");
         p.setId(id);
+
         new Thread(() -> {
             try {
                 PlantaService.apagar(p);

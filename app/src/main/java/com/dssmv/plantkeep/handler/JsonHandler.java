@@ -2,6 +2,7 @@ package com.dssmv.plantkeep.handler;
 
 import com.dssmv.plantkeep.dto.MeteorologiaDTO;
 import com.dssmv.plantkeep.dto.PlantaDTO;
+import com.dssmv.plantkeep.dto.RegistoDiarioDTO;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,6 +26,18 @@ public class JsonHandler {
         o.put("especie", dto.getEspecie());
         o.put("pid", dto.getPid());
         o.put("ultimaRega", dto.getUltimaRega());
+
+        JSONArray arrDiario = new JSONArray();
+        if (dto.getDiario() != null) {
+            for (RegistoDiarioDTO r : dto.getDiario()) {
+                JSONObject regObj = new JSONObject();
+                regObj.put("texto", r.getTexto());
+                regObj.put("dataHora", r.getDataHora());
+                arrDiario.put(regObj);
+            }
+        }
+        o.put("diario", arrDiario);
+
         return o.toString();
     }
 
@@ -34,12 +47,29 @@ public class JsonHandler {
         JSONArray arr = new JSONArray(json);
         for (int i = 0; i < arr.length(); i++) {
             JSONObject o = arr.getJSONObject(i);
+
+            List<RegistoDiarioDTO> diario = new ArrayList<>();
+            JSONArray arrDiario = o.optJSONArray("diario");
+            if (arrDiario != null) {
+                for (int j = 0; j < arrDiario.length(); j++) {
+                    JSONObject regObj = arrDiario.optJSONObject(j);
+                    if (regObj != null) {
+                        String texto = regObj.optString("texto", "");
+                        long dataHora = regObj.optLong("dataHora", System.currentTimeMillis());
+                        if (!texto.isEmpty()) {
+                            diario.add(new RegistoDiarioDTO(texto, dataHora));
+                        }
+                    }
+                }
+            }
+
             PlantaDTO dto = new PlantaDTO(
                     o.optString("_id", null),
                     o.optString("nome", ""),
                     o.optString("especie", ""),
                     o.optString("pid", ""),
-                    o.optLong("ultimaRega", 0L)
+                    o.optLong("ultimaRega", 0L),
+                    diario
             );
             dtos.add(dto);
         }
