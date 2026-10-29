@@ -5,16 +5,22 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Model de um registo no diário da planta (estado de crescimento e data/hora).
+ * Model de um registo no diário da planta (texto, data/hora e fotografia opcional em Base64).
  */
 public class RegistoDiario {
 
     private String texto;
     private Date dataHora;
+    private String fotoBase64; // Fotografia codificada em Base64
 
     public RegistoDiario(String texto, Date dataHora) {
+        this(texto, dataHora, "");
+    }
+
+    public RegistoDiario(String texto, Date dataHora, String fotoBase64) {
         setTexto(texto);
         setDataHora(dataHora);
+        setFotoBase64(fotoBase64);
     }
 
     public String getTexto() {
@@ -37,6 +43,14 @@ public class RegistoDiario {
             throw new IllegalArgumentException("Diário: a data não pode ser nula");
         }
         this.dataHora = dataHora;
+    }
+
+    public String getFotoBase64() {
+        return fotoBase64;
+    }
+
+    public void setFotoBase64(String fotoBase64) {
+        this.fotoBase64 = (fotoBase64 != null) ? fotoBase64 : "";
     }
 
     @Override

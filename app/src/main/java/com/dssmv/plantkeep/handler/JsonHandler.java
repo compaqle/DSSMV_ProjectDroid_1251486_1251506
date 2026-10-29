@@ -33,6 +33,7 @@ public class JsonHandler {
                 JSONObject regObj = new JSONObject();
                 regObj.put("texto", r.getTexto());
                 regObj.put("dataHora", r.getDataHora());
+                regObj.put("fotoBase64", r.getFotoBase64() != null ? r.getFotoBase64() : "");
                 arrDiario.put(regObj);
             }
         }
@@ -56,8 +57,9 @@ public class JsonHandler {
                     if (regObj != null) {
                         String texto = regObj.optString("texto", "");
                         long dataHora = regObj.optLong("dataHora", System.currentTimeMillis());
+                        String fotoBase64 = regObj.optString("fotoBase64", "");
                         if (!texto.isEmpty()) {
-                            diario.add(new RegistoDiarioDTO(texto, dataHora));
+                            diario.add(new RegistoDiarioDTO(texto, dataHora, fotoBase64));
                         }
                     }
                 }

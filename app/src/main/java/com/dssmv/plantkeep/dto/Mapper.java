@@ -21,12 +21,12 @@ public class Mapper {
 
     /** Passa RegistoDiarioDTO para o model RegistoDiario */
     public static RegistoDiario registoDiarioDTO2RegistoDiario(RegistoDiarioDTO dto) {
-        return new RegistoDiario(dto.getTexto(), new Date(dto.getDataHora()));
+        return new RegistoDiario(dto.getTexto(), new Date(dto.getDataHora()), dto.getFotoBase64());
     }
 
     /** Passa model RegistoDiario para RegistoDiarioDTO */
     public static RegistoDiarioDTO registoDiario2RegistoDiarioDTO(RegistoDiario registo) {
-        return new RegistoDiarioDTO(registo.getTexto(), registo.getDataHora().getTime());
+        return new RegistoDiarioDTO(registo.getTexto(), registo.getDataHora().getTime(), registo.getFotoBase64());
     }
 
     /** Passa DTO para model (valida o nome) */

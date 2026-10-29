@@ -60,13 +60,13 @@ public class PlantaService {
         }
     }
 
-    /** Adiciona um novo registo de texto ao diário da planta e atualiza no RestDB (PUT). */
-    public static Planta adicionarRegistoDiario(String plantaId, String texto) throws Exception {
+    /** Adiciona um novo registo (texto + foto opcional em Base64) ao diário e atualiza no RestDB (PUT). */
+    public static Planta adicionarRegistoDiario(String plantaId, String texto, String fotoBase64) throws Exception {
         Planta p = obterPlantaPorId(plantaId);
         if (p == null) {
             throw new IllegalArgumentException("Planta não encontrada.");
         }
-        p.adicionarRegistoDiario(new RegistoDiario(texto, new Date()));
+        p.adicionarRegistoDiario(new RegistoDiario(texto, new Date(), fotoBase64));
 
         String url = NetworkHandler.BASE + "/planta/" + p.getId();
         String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
