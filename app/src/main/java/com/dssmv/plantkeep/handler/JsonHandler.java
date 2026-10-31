@@ -1,5 +1,7 @@
 package com.dssmv.plantkeep.handler;
 
+import com.dssmv.plantkeep.dto.DetalheOpb;
+import com.dssmv.plantkeep.dto.EspecieOpb;
 import com.dssmv.plantkeep.dto.MeteorologiaDTO;
 import com.dssmv.plantkeep.dto.PlantaDTO;
 import com.dssmv.plantkeep.dto.RegistoDiarioDTO;
@@ -100,5 +102,78 @@ public class JsonHandler {
             dtos.add(dto);
         }
         return dtos;
+    }
+
+    /** Extrai o access_token e o expires_in da resposta OAuth do OpenPlantbook */
+    public static String[] deSerializeOpbToken(String json) throws JSONException {
+        JSONObject o = new JSONObject(json);
+        String token = o.getString("access_token");
+        long expires = o.optLong("expires_in", 3600);
+        return new String[]{token, String.valueOf(expires)};
+    }
+
+    /** Passa o JSON de pesquisa do OpenPlantbook para List<EspecieOpb> */
+    public static List<EspecieOpb> deSerializeJson2ListEspecieOpb(String json) throws JSONException {
+        JSONObject root = new JSONObject(json);
+        JSONArray results = root.getJSONArray("results");
+        List<EspecieOpb> lista = new ArrayList<>();
+        for (int i = 0; i < results.length(); i++) {
+            JSONObject r = results.getJSONObject(i);
+            EspecieOpb e = new EspecieOpb();
+            e.setPid(r.optString("pid", ""));
+            e.setDisplayPid(r.optString("display_pid", ""));
+            e.setAlias(r.optString("alias", ""));
+            e.setCategory(r.optString("category", ""));
+            lista.add(e);
+        }
+        return lista;
+    }
+
+    /** Preenche imageUrl e aliasesComuns num EspecieOpb a partir do JSON de detail */
+    public static void preencherDetalheEspecieOpb(String json, EspecieOpb e) throws JSONException {
+        JSONObject o = new JSONObject(json);
+        e.setImageUrl(o.optString("image_url", ""));
+
+        List<String> comuns = new ArrayList<>();
+        JSONArray al = o.optJSONArray("common_names");
+        if (al != null) {
+            for (int i = 0; i < al.length(); i++) {
+                JSONObject n = al.optJSONObject(i);
+                if (n == null) {
+                    continue;
+                }
+                String a = n.optString("name", "").trim();
+                if (!a.isEmpty() && !comuns.contains(a)) {
+                    comuns.add(a);
+                }
+            }
+        }
+        e.setAliasesComuns(comuns);
+    }
+
+    /** Passa o JSON de detail do OpenPlantbook para DetalheOpb */
+    public static DetalheOpb deSerializeJson2DetalheOpb(String json) throws JSONException {
+        JSONObject o = new JSONObject(json);
+        DetalheOpb d = new DetalheOpb();
+        d.setDisplayPid(o.optString("display_pid", ""));
+        d.setCategory(o.optString("category", ""));
+        d.setOrigin(o.optString("origin", ""));
+        d.setImageUrl(o.optString("image_url", ""));
+        d.setMinTemp(num(o, "min_temp"));
+        d.setMaxTemp(num(o, "max_temp"));
+        d.setMinEnvHumid(num(o, "min_env_humid"));
+        d.setMaxEnvHumid(num(o, "max_env_humid"));
+        d.setMinLightLux(num(o, "min_light_lux"));
+        d.setMaxLightLux(num(o, "max_light_lux"));
+        d.setMinSoilMoist(num(o, "min_soil_moist"));
+        d.setMaxSoilMoist(num(o, "max_soil_moist"));
+        d.setMinSoilEc(num(o, "min_soil_ec"));
+        d.setMaxSoilEc(num(o, "max_soil_ec"));
+        return d;
+    }
+
+    /** Lê um inteiro nullable: null se o campo não existir ou for null. */
+    private static Integer num(JSONObject o, String campo) {
+        return o.isNull(campo) ? null : o.optInt(campo);
     }
 }

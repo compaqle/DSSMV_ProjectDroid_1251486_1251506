@@ -2,7 +2,6 @@ package com.dssmv.plantkeep;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,13 +17,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.dssmv.plantkeep.dto.DetalheOpb;
+import com.dssmv.plantkeep.handler.NetworkHandler;
 import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * Ecrã com as informações relevantes de uma planta (vindas do OpenPlantbook),
@@ -134,7 +130,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
         final String url = d.getImageUrl();
         if (url != null && !url.isEmpty()) {
             new Thread(() -> {
-                final Bitmap b = carregarImagem(url);
+                final Bitmap b = NetworkHandler.getBitmapFromUrl(url);
                 if (b != null) {
                     imgInfo.post(() -> imgInfo.setImageBitmap(b));
                 }
@@ -177,17 +173,5 @@ public class InfoPlantaActivity extends AppCompatActivity {
             return String.valueOf(min);
         }
         return min + " - " + max;
-    }
-
-    private static Bitmap carregarImagem(String url) {
-        try {
-            HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
-            c.setConnectTimeout(5000);
-            c.setReadTimeout(5000);
-            InputStream in = c.getInputStream();
-            return BitmapFactory.decodeStream(in);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

@@ -1,7 +1,6 @@
 package com.dssmv.plantkeep;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,19 +16,16 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dssmv.plantkeep.dto.EspecieOpb;
+import com.dssmv.plantkeep.handler.NetworkHandler;
 import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Ecrã de criar planta.
- * Fluxo: pesquisar espécie no OpenPlantbook -> escolher a espécie -> dar um nome/aplido -> guardar.
+ * Fluxo: pesquisar espécie no OpenPlantbook -> escolher a espécie -> dar um nome/apelido -> guardar.
  */
 public class CriarPlantaActivity extends AppCompatActivity {
 
@@ -69,6 +65,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
             return;
         }
         btnPesquisar.setEnabled(false);
+
         new Thread(() -> {
             try {
                 final List<EspecieOpb> l = PlantBookService.pesquisar(termo);
@@ -103,6 +100,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
                 TextView txt = convertView.findViewById(R.id.txt_especie);
                 TextView txtComuns = convertView.findViewById(R.id.txt_comuns);
                 ImageView img = convertView.findViewById(R.id.img_especie);
+
                 txt.setText(textoEspecie(e));
                 txtComuns.setText(joinComuns(e.getAliasesComuns()));
 
@@ -115,7 +113,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
                 } else {
                     imgRef.setVisibility(View.VISIBLE);
                     new Thread(() -> {
-                        final Bitmap b = carregarImagem(url);
+                        final Bitmap b = NetworkHandler.getBitmapFromUrl(url);
                         imgRef.post(() -> {
                             if (url.equals(imgRef.getTag()) && b != null) {
                                 imgRef.setImageBitmap(b);
@@ -198,18 +196,5 @@ public class CriarPlantaActivity extends AppCompatActivity {
             sb.append(c);
         }
         return sb.toString();
-    }
-
-    /** Descarrega um bitmap a partir de um url (ou null se falhar). Roda fora da UI. */
-    private static Bitmap carregarImagem(String url) {
-        try {
-            HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
-            c.setConnectTimeout(5000);
-            c.setReadTimeout(5000);
-            InputStream in = c.getInputStream();
-            return BitmapFactory.decodeStream(in);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

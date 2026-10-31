@@ -3,16 +3,9 @@ package com.dssmv.plantkeep.services;
 import com.dssmv.plantkeep.BuildConfig;
 import com.dssmv.plantkeep.dto.DetalheOpb;
 import com.dssmv.plantkeep.dto.EspecieOpb;
+import com.dssmv.plantkeep.handler.JsonHandler;
+import com.dssmv.plantkeep.handler.NetworkHandler;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,26 +29,14 @@ public class PlantBookService {
         if (token != null && System.currentTimeMillis() < tokenExpira) {
             return token;
         }
-
         String body = "grant_type=client_credentials"
                 + "&client_id=" + URLEncoder.encode(BuildConfig.OPB_CLIENT_ID, "UTF-8")
                 + "&client_secret=" + URLEncoder.encode(BuildConfig.OPB_CLIENT_SECRET, "UTF-8");
 
-        HttpURLConnection conn = (HttpURLConnection) new URL(BASE + "/token/").openConnection();
-        conn.setRequestMethod("POST");
-        conn.setDoOutput(true);
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        conn.getOutputStream().write(body.getBytes("UTF-8"));
-
-        int code = conn.getResponseCode();
-        String resp = ler(conn);
-        if (code != 200) {
-            throw new RuntimeException("OpenPlantbook token: HTTP " + code + " " + resp);
-        }
-
-        JSONObject o = new JSONObject(resp);
-        token = o.getString("access_token");
-        long expires = o.optLong("expires_in", 3600);
+        String resp = NetworkHandler.postFormUrlEncoded(BASE + "/token/", body);
+        String[] tokenInfo = JsonHandler.deSerializeOpbToken(resp);
+        token = tokenInfo[0];
+        long expires = Long.parseLong(tokenInfo[1]);
         tokenExpira = System.currentTimeMillis() + (expires - 60) * 1000;
         return token;
     }
@@ -65,28 +46,8 @@ public class PlantBookService {
         String url = BASE + "/plant/search?alias="
                 + URLEncoder.encode(termo, "UTF-8") + "&limit=20";
 
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "Bearer " + getToken());
-
-        int code = conn.getResponseCode();
-        String resp = ler(conn);
-        if (code != 200) {
-            throw new RuntimeException("OpenPlantbook search: HTTP " + code + " " + resp);
-        }
-
-        JSONObject root = new JSONObject(resp);
-        JSONArray results = root.getJSONArray("results");
-        List<EspecieOpb> lista = new ArrayList<>();
-        for (int i = 0; i < results.length(); i++) {
-            JSONObject r = results.getJSONObject(i);
-            EspecieOpb e = new EspecieOpb();
-            e.setPid(r.optString("pid", ""));
-            e.setDisplayPid(r.optString("display_pid", ""));
-            e.setAlias(r.optString("alias", ""));
-            e.setCategory(r.optString("category", ""));
-            lista.add(e);
-        }
+        String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
+        List<EspecieOpb> lista = JsonHandler.deSerializeJson2ListEspecieOpb(resp);
 
         // filtra ruído: mantém o topo da API + quem tem o termo como palavra inteira no nome
         lista = filtraRuido(lista, termo);
@@ -98,13 +59,7 @@ public class PlantBookService {
         return lista;
     }
 
-    /**
-     * Remove ruído de pesquisa fuzzy. O OpenPlantbook faz substring-match,
-     * por isso "potato" também devolve "Agave potatorum" (o termo aparece lá
-     * dentro por sorte). Regra: mantém sempre o 1º resultado (o match principal
-     * da API) e ainda todos os que têm o termo como palavra inteira no nome;
-     * esconde os restantes.
-     */
+
     private static List<EspecieOpb> filtraRuido(List<EspecieOpb> lista, String termo) {
         if (lista.size() <= 1) {
             return lista;
@@ -139,32 +94,8 @@ public class PlantBookService {
     private static void preencherDetalhe(EspecieOpb e) {
         try {
             String url = BASE + "/plant/detail/" + encPath(e.getPid()) + "/";
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Authorization", "Bearer " + getToken());
-            int code = conn.getResponseCode();
-            String resp = ler(conn);
-            if (code != 200) {
-                return;
-            }
-            JSONObject o = new JSONObject(resp);
-            e.setImageUrl(o.optString("image_url", ""));
-
-            List<String> comuns = new ArrayList<>();
-            JSONArray al = o.optJSONArray("common_names");
-            if (al != null) {
-                for (int i = 0; i < al.length(); i++) {
-                    JSONObject n = al.optJSONObject(i);
-                    if (n == null) {
-                        continue;
-                    }
-                    String a = n.optString("name", "").trim();
-                    if (!a.isEmpty() && !comuns.contains(a)) {
-                        comuns.add(a);
-                    }
-                }
-            }
-            e.setAliasesComuns(comuns);
+            String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
+            JsonHandler.preencherDetalheEspecieOpb(resp, e);
         } catch (Exception ex) {
             // sem detail não bloqueamos a lista
         }
@@ -173,56 +104,12 @@ public class PlantBookService {
     /** Devolve os dados completos de uma espécie (cuidados + imagem). */
     public static DetalheOpb detalhe(String pid) throws Exception {
         String url = BASE + "/plant/detail/" + encPath(pid) + "/";
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "Bearer " + getToken());
-
-        int code = conn.getResponseCode();
-        String resp = ler(conn);
-        if (code != 200) {
-            throw new RuntimeException("OpenPlantbook detail: HTTP " + code + " " + resp);
-        }
-
-        JSONObject o = new JSONObject(resp);
-        DetalheOpb d = new DetalheOpb();
-        d.setDisplayPid(o.optString("display_pid", ""));
-        d.setCategory(o.optString("category", ""));
-        d.setOrigin(o.optString("origin", ""));
-        d.setImageUrl(o.optString("image_url", ""));
-        d.setMinTemp(num(o, "min_temp"));
-        d.setMaxTemp(num(o, "max_temp"));
-        d.setMinEnvHumid(num(o, "min_env_humid"));
-        d.setMaxEnvHumid(num(o, "max_env_humid"));
-        d.setMinLightLux(num(o, "min_light_lux"));
-        d.setMaxLightLux(num(o, "max_light_lux"));
-        d.setMinSoilMoist(num(o, "min_soil_moist"));
-        d.setMaxSoilMoist(num(o, "max_soil_moist"));
-        d.setMinSoilEc(num(o, "min_soil_ec"));
-        d.setMaxSoilEc(num(o, "max_soil_ec"));
-        return d;
-    }
-
-    /** Lê um inteiro nullable: null se o campo não existir ou for null. */
-    private static Integer num(JSONObject o, String campo) {
-        return o.isNull(campo) ? null : o.optInt(campo);
+        String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
+        return JsonHandler.deSerializeJson2DetalheOpb(resp);
     }
 
     /** Codifica para caminho URL (espaço como %20, não como +). */
     private static String encPath(String s) throws Exception {
         return URLEncoder.encode(s, "UTF-8").replace("+", "%20");
-    }
-
-    private static String ler(HttpURLConnection conn) throws IOException {
-        InputStream in = conn.getResponseCode() >= 400 ? conn.getErrorStream() : conn.getInputStream();
-        if (in == null) {
-            return "";
-        }
-        BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-        StringBuilder sb = new StringBuilder();
-        String linha;
-        while ((linha = r.readLine()) != null) {
-            sb.append(linha);
-        }
-        return sb.toString();
     }
 }
