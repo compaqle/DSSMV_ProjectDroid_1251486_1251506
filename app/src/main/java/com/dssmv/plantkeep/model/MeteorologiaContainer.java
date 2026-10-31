@@ -1,6 +1,7 @@
 package com.dssmv.plantkeep.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -21,11 +22,11 @@ public class MeteorologiaContainer {
     }
 
     public List<Meteorologia> getPrevisaoHoraria() {
-        return previsaoHoraria;
+        return Collections.unmodifiableList(previsaoHoraria);
     }
 
     public void setPrevisaoHoraria(List<Meteorologia> previsaoHoraria) {
-        this.previsaoHoraria = (previsaoHoraria != null) ? previsaoHoraria : new ArrayList<>();
+        this.previsaoHoraria = (previsaoHoraria != null) ? new ArrayList<>(previsaoHoraria) : new ArrayList<>();
     }
 
     /** Devolve o registo mais frio previsto */
@@ -72,7 +73,7 @@ public class MeteorologiaContainer {
         if (previsaoHoraria.isEmpty()) {
             return null;
         }
-        Date inicio = (aPartirDe != null) ? aPartirDe : new Date();
+        Date inicio = (aPartirDe != null) ? new Date(aPartirDe.getTime()) : new Date();
 
         for (Meteorologia registo : previsaoHoraria) {
             if (!registo.getDataHora().before(inicio)) {

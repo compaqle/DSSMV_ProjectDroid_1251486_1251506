@@ -1,6 +1,7 @@
 package com.dssmv.plantkeep.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -73,11 +74,11 @@ public class Planta {
     }
 
     public List<RegistoDiario> getDiario() {
-        return diario;
+        return Collections.unmodifiableList(diario);
     }
 
     public void setDiario(List<RegistoDiario> diario) {
-        this.diario = (diario != null) ? diario : new ArrayList<>();
+        this.diario = (diario != null) ? new ArrayList<>(diario) : new ArrayList<>();
     }
 
     public void adicionarRegistoDiario(RegistoDiario registo) {

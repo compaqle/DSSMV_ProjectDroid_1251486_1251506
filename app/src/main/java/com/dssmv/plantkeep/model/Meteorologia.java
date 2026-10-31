@@ -47,14 +47,14 @@ public class Meteorologia {
     }
 
     public Date getDataHora() {
-        return dataHora;
+        return new Date(dataHora.getTime());
     }
 
     public void setDataHora(Date dataHora) {
         if (dataHora == null) {
             throw new IllegalArgumentException("Meteorologia: dataHora não pode ser nula");
         }
-        this.dataHora = dataHora;
+        this.dataHora = new Date(dataHora.getTime());
     }
 
     @Override

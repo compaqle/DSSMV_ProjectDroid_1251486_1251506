@@ -36,7 +36,7 @@ public class Aviso {
         this.nomePlanta = planta.getNome().trim();
         this.tipo = tipo;
         this.mensagem = mensagem;
-        this.dataHora = dataHora;
+        this.dataHora = new Date(dataHora.getTime()); // Cópia defensiva
     }
 
     public Planta getPlanta() {
@@ -56,7 +56,7 @@ public class Aviso {
     }
 
     public Date getDataHora() {
-        return dataHora;
+        return new Date(dataHora.getTime());
     }
 
     private String formatarData() {
