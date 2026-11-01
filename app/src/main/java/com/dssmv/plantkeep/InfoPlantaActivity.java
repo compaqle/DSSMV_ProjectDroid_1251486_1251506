@@ -48,6 +48,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
         Button btnDiario = findViewById(R.id.btn_diario);
         Button btnApagar = findViewById(R.id.btn_apagar);
         Button btnVerificarLuz = findViewById(R.id.btn_verificar_luz);
+        Button btnRega = findViewById(R.id.btn_rega);
 
         id = getIntent().getStringExtra("id");
         nome = getIntent().getStringExtra("nome");
@@ -65,6 +66,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
         btnDiario.setOnClickListener(v -> abrirDiario());
         btnApagar.setOnClickListener(v -> confirmarApagar());
         btnVerificarLuz.setOnClickListener(v -> abrirVerificacaoLuz());
+        btnRega.setOnClickListener(v -> abrirRega());
 
         // edge-to-edge: afasta o conteúdo das barras do sistema (banner em cima, nav em baixo)
         final LinearLayout llRoot = findViewById(R.id.ll_root);
@@ -83,6 +85,13 @@ public class InfoPlantaActivity extends AppCompatActivity {
 
     private void abrirDiario() {
         Intent i = new Intent(this, DiarioPlantaActivity.class);
+        i.putExtra("id", id);
+        i.putExtra("nome", nome);
+        startActivity(i);
+    }
+
+    private void abrirRega() {
+        Intent i = new Intent(this, RegaPlantaActivity.class);
         i.putExtra("id", id);
         i.putExtra("nome", nome);
         startActivity(i);

@@ -113,7 +113,28 @@ public class Aviso {
         return null;
     }
 
-    private String formatarData() {
+    /**
+     * Próxima rega recomendada para uma planta. Se a meteorologia previr seca
+     * (solo abaixo do mínimo), devolve a data dessa rega; senão devolve a cadência
+     * normal — o efeito de uma rega dura 3 dias — desde que seja futura.
+     * null se não houver data futura. Decisão de negócio no model.
+     */
+    public static Aviso obterProximaRega(Planta p, Integer minSoilMoist, Integer maxSoilMoist,
+                                         MeteorologiaContainer meteo) {
+        Aviso porMeteo = verificarHumidadeSolo(p, minSoilMoist, maxSoilMoist, meteo);
+        if (porMeteo != null && porMeteo.getTipo() == TipoAviso.HUMIDADE_SOLO_BAIXA) {
+            return porMeteo; // meteorologia prevê seca -> regar nesse dia
+        }
+        // sem seca prevista: próxima rega pela cadência normal (efeito de uma rega = 3 dias)
+        long base = p.getUltimaRega();
+        long alvo = base + EFEITO_REGA_MS;
+        if (base <= 0 || alvo <= System.currentTimeMillis()) {
+            return null; // nunca regada ou cadência já passou -> nada a agendar
+        }
+        return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", new Date(alvo));
+    }
+
+    public String formatarData() {
         long diffMs = dataHora.getTime() - System.currentTimeMillis();
         if (diffMs <= 0) {
             return "hoje";

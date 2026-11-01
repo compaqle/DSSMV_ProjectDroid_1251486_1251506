@@ -55,4 +55,18 @@ public class AvisoService {
 
         return avisos;
     }
+
+    /**
+     * Obtém a próxima rega prevista para uma única planta (Aviso HUMIDADE_SOLO_BAIXA),
+     * ou null se não precisar de rega nos dias previstos. A decisão vive no model (Aviso).
+     */
+    public static Aviso obterProximaRega(Planta p) throws Exception {
+        if (p == null || p.getPid() == null || p.getPid().isEmpty()) {
+            return null;
+        }
+        MeteorologiaContainer meteo = MeteorologiaContainer.getInstance();
+        DetalheOpb detalhe = PlantBookService.detalhe(p.getPid());
+        // A decisão (meteorologia prevê seca, senão cadência normal) vive no model (Aviso).
+        return Aviso.obterProximaRega(p, detalhe.getMinSoilMoist(), detalhe.getMaxSoilMoist(), meteo);
+    }
 }

@@ -46,6 +46,13 @@
             android:text="Diário da Planta" />
 
     <Button
+            android:id="@+id/btn_rega"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Rega da Planta" />
+
+    <Button
             android:id="@+id/btn_verificar_luz"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
