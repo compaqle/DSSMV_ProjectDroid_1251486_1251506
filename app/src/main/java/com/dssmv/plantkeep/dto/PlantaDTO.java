@@ -25,7 +25,11 @@ public class PlantaDTO {
         this.especie = especie;
         this.pid = pid;
         this.ultimaRega = ultimaRega;
-        this.diario = (diario != null) ? diario : new ArrayList<>();
+        if (diario != null) {
+            this.diario = diario;
+        } else {
+            this.diario = new ArrayList<>();
+        }
     }
 
     public String getId() {

@@ -26,7 +26,11 @@ public class MeteorologiaContainer {
     }
 
     public void setPrevisaoHoraria(List<Meteorologia> previsaoHoraria) {
-        this.previsaoHoraria = (previsaoHoraria != null) ? new ArrayList<>(previsaoHoraria) : new ArrayList<>();
+        if (previsaoHoraria != null) {
+            this.previsaoHoraria = new ArrayList<>(previsaoHoraria);
+        } else {
+            this.previsaoHoraria = new ArrayList<>();
+        }
     }
 
     /** Devolve o registo mais frio previsto */
@@ -73,7 +77,12 @@ public class MeteorologiaContainer {
         if (previsaoHoraria.isEmpty()) {
             return null;
         }
-        Date inicio = (aPartirDe != null) ? new Date(aPartirDe.getTime()) : new Date();
+        Date inicio;
+        if (aPartirDe != null) {
+            inicio = new Date(aPartirDe.getTime());
+        } else {
+            inicio = new Date();
+        }
 
         for (Meteorologia registo : previsaoHoraria) {
             if (!registo.getDataHora().before(inicio)) {

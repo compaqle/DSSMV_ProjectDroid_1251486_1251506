@@ -78,7 +78,11 @@ public class Planta {
     }
 
     public void setDiario(List<RegistoDiario> diario) {
-        this.diario = (diario != null) ? new ArrayList<>(diario) : new ArrayList<>();
+        if (diario != null) {
+            this.diario = new ArrayList<>(diario);
+        } else {
+            this.diario = new ArrayList<>();
+        }
     }
 
     public void adicionarRegistoDiario(RegistoDiario registo) {

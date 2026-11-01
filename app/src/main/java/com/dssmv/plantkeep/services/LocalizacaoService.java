@@ -52,7 +52,12 @@ public class LocalizacaoService implements LocalizacaoProvider {
             }
 
             // Se não houver cache, pede atualização ao LocationManager
-            String provider = gpsAtivo ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
+            String provider;
+            if (gpsAtivo) {
+                provider = LocationManager.GPS_PROVIDER;
+            } else {
+                provider = LocationManager.NETWORK_PROVIDER;
+            }
 
             LocationListener locationListener = new LocationListener() {
                 @Override

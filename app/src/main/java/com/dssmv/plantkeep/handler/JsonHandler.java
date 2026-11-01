@@ -35,7 +35,13 @@ public class JsonHandler {
                 JSONObject regObj = new JSONObject();
                 regObj.put("texto", r.getTexto());
                 regObj.put("dataHora", r.getDataHora());
-                regObj.put("fotoBase64", r.getFotoBase64() != null ? r.getFotoBase64() : "");
+                String fotoBase64;
+                if (r.getFotoBase64() != null) {
+                    fotoBase64 = r.getFotoBase64();
+                } else {
+                    fotoBase64 = "";
+                }
+                regObj.put("fotoBase64", fotoBase64);
                 arrDiario.put(regObj);
             }
         }
@@ -158,6 +164,9 @@ public class JsonHandler {
 
     /** Lê um inteiro nullable: null se o campo não existir ou for null. */
     private static Integer num(JSONObject o, String campo) {
-        return o.isNull(campo) ? null : o.optInt(campo);
+        if (o.isNull(campo)) {
+            return null;
+        }
+        return o.optInt(campo);
     }
 }

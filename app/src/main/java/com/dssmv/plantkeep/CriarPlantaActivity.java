@@ -171,8 +171,12 @@ public class CriarPlantaActivity extends AppCompatActivity {
 
     /** Texto mostrado para uma espécie: nome + alias entre parênteses. */
     private String textoEspecie(EspecieOpb e) {
-        String texto = e.getDisplayPid() == null || e.getDisplayPid().isEmpty()
-                ? e.getPid() : e.getDisplayPid();
+        String texto;
+        if (e.getDisplayPid() == null || e.getDisplayPid().isEmpty()) {
+            texto = e.getPid();
+        } else {
+            texto = e.getDisplayPid();
+        }
         if (e.getAlias() != null && !e.getAlias().isEmpty()
                 && !e.getAlias().equalsIgnoreCase(texto)) {
             texto = texto + " (" + e.getAlias() + ")";

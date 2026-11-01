@@ -65,7 +65,12 @@ public class PlantBookService {
         if (lista.size() <= 1) {
             return lista;
         }
-        String q = termo == null ? "" : termo.trim().toLowerCase();
+        String q;
+        if (termo == null) {
+            q = "";
+        } else {
+            q = termo.trim().toLowerCase();
+        }
         List<EspecieOpb> out = new ArrayList<>();
         out.add(lista.get(0)); // match principal da API fica sempre
         for (int i = 1; i < lista.size(); i++) {

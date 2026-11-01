@@ -50,7 +50,11 @@ public class RegistoDiario {
     }
 
     public void setFotoBase64(String fotoBase64) {
-        this.fotoBase64 = (fotoBase64 != null) ? fotoBase64 : "";
+        if (fotoBase64 != null) {
+            this.fotoBase64 = fotoBase64;
+        } else {
+            this.fotoBase64 = "";
+        }
     }
 
     @Override

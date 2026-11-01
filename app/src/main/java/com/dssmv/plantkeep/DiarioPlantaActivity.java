@@ -116,7 +116,15 @@ public class DiarioPlantaActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 final Planta p = PlantaService.obterPlantaPorId(plantaId);
-                runOnUiThread(() -> mostrarRegistos(p != null ? p.getDiario() : null));
+                runOnUiThread(() -> {
+                    List<RegistoDiario> diario;
+                    if (p != null) {
+                        diario = p.getDiario();
+                    } else {
+                        diario = null;
+                    }
+                    mostrarRegistos(diario);
+                });
             } catch (Exception e) {
                 runOnUiThread(() -> txtEstadoDiario.setText("Erro ao carregar diário: " + e.getMessage()));
             }

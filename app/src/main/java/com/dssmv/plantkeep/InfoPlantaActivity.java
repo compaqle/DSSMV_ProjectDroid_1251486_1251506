@@ -54,7 +54,13 @@ public class InfoPlantaActivity extends AppCompatActivity {
         String especie = getIntent().getStringExtra("especie");
         pid = getIntent().getStringExtra("pid");
 
-        titulo.setText(especie == null || especie.isEmpty() ? nome : nome + " (" + especie + ")");
+        String textoTitulo;
+        if (especie != null && !especie.isEmpty()) {
+            textoTitulo = nome + " (" + especie + ")";
+        } else {
+            textoTitulo = nome;
+        }
+        titulo.setText(textoTitulo);
 
         btnDiario.setOnClickListener(v -> abrirDiario());
         btnApagar.setOnClickListener(v -> confirmarApagar());
@@ -84,8 +90,20 @@ public class InfoPlantaActivity extends AppCompatActivity {
 
     private void abrirVerificacaoLuz() {
         Intent i = new Intent(this, MedirLuzActivity.class);
-        i.putExtra("minLux", minLux != null ? minLux : -1);
-        i.putExtra("maxLux", maxLux != null ? maxLux : -1);
+        int valorMinLux;
+        if (minLux != null) {
+            valorMinLux = minLux;
+        } else {
+            valorMinLux = -1;
+        }
+        i.putExtra("minLux", valorMinLux);
+        int valorMaxLux;
+        if (maxLux != null) {
+            valorMaxLux = maxLux;
+        } else {
+            valorMaxLux = -1;
+        }
+        i.putExtra("maxLux", valorMaxLux);
         startActivity(i);
     }
 
@@ -103,7 +121,13 @@ public class InfoPlantaActivity extends AppCompatActivity {
             Toast.makeText(this, "Sem id para apagar", Toast.LENGTH_SHORT).show();
             return;
         }
-        final Planta p = new Planta(nome != null ? nome : "planta", "");
+        String nomePlanta;
+        if (nome != null) {
+            nomePlanta = nome;
+        } else {
+            nomePlanta = "planta";
+        }
+        final Planta p = new Planta(nomePlanta, "");
         p.setId(id);
 
         new Thread(() -> {

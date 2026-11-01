@@ -108,8 +108,18 @@ public class NetworkHandler {
             }
 
             int code = conn.getResponseCode();
-            InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
-            String resp = is == null ? "" : readAll(is);
+            InputStream is;
+            if (code >= 200 && code < 300) {
+                is = conn.getInputStream();
+            } else {
+                is = conn.getErrorStream();
+            }
+            String resp;
+            if (is == null) {
+                resp = "";
+            } else {
+                resp = readAll(is);
+            }
 
             if (code < 200 || code >= 300) {
                 throw new IOException("HTTP " + code + ": " + resp);

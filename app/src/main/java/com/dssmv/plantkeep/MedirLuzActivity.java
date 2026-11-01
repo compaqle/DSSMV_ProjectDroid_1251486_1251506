@@ -55,8 +55,16 @@ public class MedirLuzActivity extends AppCompatActivity {
 
         int min = getIntent().getIntExtra("minLux", -1);
         int max = getIntent().getIntExtra("maxLux", -1);
-        minLux = (min > 0) ? min : null;
-        maxLux = (max > 0) ? max : null;
+        if (min > 0) {
+            minLux = min;
+        } else {
+            minLux = null;
+        }
+        if (max > 0) {
+            maxLux = max;
+        } else {
+            maxLux = null;
+        }
 
         btnFazerMedicao.setOnClickListener(v -> iniciarMedicao());
     }
@@ -124,7 +132,13 @@ public class MedirLuzActivity extends AppCompatActivity {
             aMedir = false;
 
             // se saturou (luz >= teto do sensor), guarda o teto — a luz real é ">="
-            luxMedidos[medicaoAtual] = saturado[0] ? (int) maxRange : maxLido[0];
+            int valorLido;
+            if (saturado[0]) {
+                valorLido = (int) maxRange;
+            } else {
+                valorLido = maxLido[0];
+            }
+            luxMedidos[medicaoAtual] = valorLido;
             saturados[medicaoAtual] = saturado[0];
             medicaoAtual++;
 
@@ -153,9 +167,12 @@ public class MedirLuzActivity extends AppCompatActivity {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < N_MEDICOES; i++) {
-            String valor = medicao.estaSaturada(i)
-                    ? "≥ " + medicao.getLux(i)
-                    : String.valueOf(medicao.getLux(i));
+            String valor;
+            if (medicao.estaSaturada(i)) {
+                valor = "≥ " + medicao.getLux(i);
+            } else {
+                valor = String.valueOf(medicao.getLux(i));
+            }
             sb.append("Medição ").append(i + 1).append(": ").append(valor).append(" lux\n");
         }
 
