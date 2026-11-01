@@ -1,7 +1,5 @@
 package com.dssmv.plantkeep.dto;
 
-import java.util.List;
-
 /**
  * Uma espécie devolvida pela pesquisa do OpenPlantbook.
  * Só campos e getters/setters. Nada de rede nem JSON.
@@ -12,17 +10,8 @@ public class EspecieOpb {
     private String alias;       // apelido/filtro de pesquisa
     private String category;
     private String imageUrl;    // url da imagem (pode ser vazio se não existir)
-    private List<String> aliasesComuns;  // nomes comuns (ex. "Potato"), do detail
 
     public EspecieOpb() {
-    }
-
-    public List<String> getAliasesComuns() {
-        return aliasesComuns;
-    }
-
-    public void setAliasesComuns(List<String> aliasesComuns) {
-        this.aliasesComuns = aliasesComuns;
     }
 
     public String getImageUrl() {

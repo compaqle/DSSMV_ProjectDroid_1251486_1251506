@@ -129,26 +129,10 @@ public class JsonHandler {
         return lista;
     }
 
-    /** Preenche imageUrl e aliasesComuns num EspecieOpb a partir do JSON de detail */
+    /** Preenche imageUrl num EspecieOpb a partir do JSON de detail */
     public static void preencherDetalheEspecieOpb(String json, EspecieOpb e) throws JSONException {
         JSONObject o = new JSONObject(json);
         e.setImageUrl(o.optString("image_url", ""));
-
-        List<String> comuns = new ArrayList<>();
-        JSONArray al = o.optJSONArray("common_names");
-        if (al != null) {
-            for (int i = 0; i < al.length(); i++) {
-                JSONObject n = al.optJSONObject(i);
-                if (n == null) {
-                    continue;
-                }
-                String a = n.optString("name", "").trim();
-                if (!a.isEmpty() && !comuns.contains(a)) {
-                    comuns.add(a);
-                }
-            }
-        }
-        e.setAliasesComuns(comuns);
     }
 
     /** Passa o JSON de detail do OpenPlantbook para DetalheOpb */
