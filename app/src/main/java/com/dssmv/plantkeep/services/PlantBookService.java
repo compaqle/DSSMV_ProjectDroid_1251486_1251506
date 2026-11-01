@@ -9,7 +9,9 @@ import com.dssmv.plantkeep.helper.Utils;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Serviço do OpenPlantbook (https://open.plantbook.io).
@@ -21,6 +23,10 @@ public class PlantBookService {
 
     private static String token;
     private static long tokenExpira;
+
+    // Cache em memória dos detalhes por pid: cada espécie é pedida à rede no máximo
+    // uma vez por execução, evitando 429 (rate limit) ao abrir os ecrãs repetidamente.
+    private static final Map<String, DetalheOpb> detalheCache = new HashMap<>();
 
     private PlantBookService() {
     }
@@ -107,11 +113,17 @@ public class PlantBookService {
         }
     }
 
-    /** Devolve os dados completos de uma espécie (cuidados + imagem). */
+    /** Devolve os dados completos de uma espécie (cuidados + imagem). Com cache por pid. */
     public static DetalheOpb detalhe(String pid) throws Exception {
+        DetalheOpb emCache = detalheCache.get(pid);
+        if (emCache != null) {
+            return emCache;
+        }
         String url = BASE + "/plant/detail/" + encPath(pid) + "/";
         String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
-        return JsonHandler.deSerializeJson2DetalheOpb(resp);
+        DetalheOpb d = JsonHandler.deSerializeJson2DetalheOpb(resp);
+        detalheCache.put(pid, d);
+        return d;
     }
 
     /** Descarrega os bytes de uma imagem de planta. Sem Android — a conversão para Bitmap fica na View. */
