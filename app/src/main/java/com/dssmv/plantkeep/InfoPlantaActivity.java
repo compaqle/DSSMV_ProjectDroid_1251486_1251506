@@ -1,7 +1,7 @@
 package com.dssmv.plantkeep;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,7 +17,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.dssmv.plantkeep.dto.DetalheOpb;
-import com.dssmv.plantkeep.handler.NetworkHandler;
 import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
@@ -34,6 +33,10 @@ public class InfoPlantaActivity extends AppCompatActivity {
     private String pid;
     private String nome;
 
+    // limites de luz (lux) do ideal da espécie, para a verificação de luz
+    private Integer minLux;
+    private Integer maxLux;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +47,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
         TextView titulo = findViewById(R.id.txt_titulo);
         Button btnDiario = findViewById(R.id.btn_diario);
         Button btnApagar = findViewById(R.id.btn_apagar);
+        Button btnVerificarLuz = findViewById(R.id.btn_verificar_luz);
 
         id = getIntent().getStringExtra("id");
         nome = getIntent().getStringExtra("nome");
@@ -54,6 +58,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
 
         btnDiario.setOnClickListener(v -> abrirDiario());
         btnApagar.setOnClickListener(v -> confirmarApagar());
+        btnVerificarLuz.setOnClickListener(v -> abrirVerificacaoLuz());
 
         // edge-to-edge: afasta o conteúdo das barras do sistema (banner em cima, nav em baixo)
         final LinearLayout llRoot = findViewById(R.id.ll_root);
@@ -74,6 +79,13 @@ public class InfoPlantaActivity extends AppCompatActivity {
         Intent i = new Intent(this, DiarioPlantaActivity.class);
         i.putExtra("id", id);
         i.putExtra("nome", nome);
+        startActivity(i);
+    }
+
+    private void abrirVerificacaoLuz() {
+        Intent i = new Intent(this, MedirLuzActivity.class);
+        i.putExtra("minLux", minLux != null ? minLux : -1);
+        i.putExtra("maxLux", maxLux != null ? maxLux : -1);
         startActivity(i);
     }
 
@@ -126,13 +138,17 @@ public class InfoPlantaActivity extends AppCompatActivity {
     }
 
     private void mostrar(DetalheOpb d) {
+        // guarda os limites de luz para a verificação de luz
+        minLux = d.getMinLightLux();
+        maxLux = d.getMaxLightLux();
+
         // imagem (só se existir)
         final String url = d.getImageUrl();
         if (url != null && !url.isEmpty()) {
             new Thread(() -> {
-                final Bitmap b = NetworkHandler.getBitmapFromUrl(url);
+                final byte[] b = PlantBookService.obterImagemBytes(url);
                 if (b != null) {
-                    imgInfo.post(() -> imgInfo.setImageBitmap(b));
+                    imgInfo.post(() -> imgInfo.setImageBitmap(BitmapFactory.decodeByteArray(b, 0, b.length)));
                 }
             }).start();
         } else {

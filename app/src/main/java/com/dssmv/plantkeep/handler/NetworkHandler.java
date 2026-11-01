@@ -1,11 +1,9 @@
 package com.dssmv.plantkeep.handler;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
 import com.dssmv.plantkeep.BuildConfig;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -52,8 +50,8 @@ public class NetworkHandler {
         return request("DELETE", url, null, "application/json", null);
     }
 
-    /** Descarrega um Bitmap a partir de um URL (ou devolve null se falhar). */
-    public static Bitmap getBitmapFromUrl(String url) {
+    /** Descarrega os bytes de um URL (ou devolve null se falhar). Puro: sem Android. */
+    public static byte[] getBytesFromUrl(String url) {
         if (url == null || url.isEmpty()) {
             return null;
         }
@@ -63,7 +61,7 @@ public class NetworkHandler {
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
             try (InputStream in = conn.getInputStream()) {
-                return BitmapFactory.decodeStream(in);
+                return readBytes(in);
             }
         } catch (Exception e) {
             return null;
@@ -72,6 +70,16 @@ public class NetworkHandler {
                 conn.disconnect();
             }
         }
+    }
+
+    private static byte[] readBytes(InputStream is) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = is.read(buf)) != -1) {
+            bos.write(buf, 0, n);
+        }
+        return bos.toByteArray();
     }
 
     private static String request(String method, String url, String body,

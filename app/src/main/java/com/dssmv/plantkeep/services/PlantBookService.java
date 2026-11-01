@@ -5,6 +5,7 @@ import com.dssmv.plantkeep.dto.DetalheOpb;
 import com.dssmv.plantkeep.dto.EspecieOpb;
 import com.dssmv.plantkeep.handler.JsonHandler;
 import com.dssmv.plantkeep.handler.NetworkHandler;
+import com.dssmv.plantkeep.helper.Utils;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 public class PlantBookService {
 
-    private static final String BASE = "https://open.plantbook.io/api/v1";
+    private static final String BASE = Utils.OPB_BASE;
 
     private static String token;
     private static long tokenExpira;
@@ -106,6 +107,11 @@ public class PlantBookService {
         String url = BASE + "/plant/detail/" + encPath(pid) + "/";
         String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
         return JsonHandler.deSerializeJson2DetalheOpb(resp);
+    }
+
+    /** Descarrega os bytes de uma imagem de planta. Sem Android — a conversão para Bitmap fica na View. */
+    public static byte[] obterImagemBytes(String url) {
+        return NetworkHandler.getBytesFromUrl(url);
     }
 
     /** Codifica para caminho URL (espaço como %20, não como +). */

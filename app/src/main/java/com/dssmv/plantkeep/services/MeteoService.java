@@ -4,6 +4,7 @@ import com.dssmv.plantkeep.dto.Mapper;
 import com.dssmv.plantkeep.dto.MeteorologiaDTO;
 import com.dssmv.plantkeep.handler.JsonHandler;
 import com.dssmv.plantkeep.handler.NetworkHandler;
+import com.dssmv.plantkeep.helper.Utils;
 import com.dssmv.plantkeep.model.Meteorologia;
 import com.dssmv.plantkeep.model.MeteorologiaContainer;
 
@@ -14,7 +15,7 @@ import java.util.List;
  */
 public class MeteoService {
 
-    private static final String METEO_URL = "https://api.open-meteo.com/v1/forecast";
+    private static final String METEO_URL = Utils.METEO_URL;
 
     private MeteoService() {} // Só estáticos, nunca instanciar
 

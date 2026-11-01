@@ -1,6 +1,6 @@
 package com.dssmv.plantkeep;
 
-import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +16,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dssmv.plantkeep.dto.EspecieOpb;
-import com.dssmv.plantkeep.handler.NetworkHandler;
 import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
@@ -113,10 +112,10 @@ public class CriarPlantaActivity extends AppCompatActivity {
                 } else {
                     imgRef.setVisibility(View.VISIBLE);
                     new Thread(() -> {
-                        final Bitmap b = NetworkHandler.getBitmapFromUrl(url);
+                        final byte[] b = PlantBookService.obterImagemBytes(url);
                         imgRef.post(() -> {
                             if (url.equals(imgRef.getTag()) && b != null) {
-                                imgRef.setImageBitmap(b);
+                                imgRef.setImageBitmap(BitmapFactory.decodeByteArray(b, 0, b.length));
                             }
                         });
                     }).start();

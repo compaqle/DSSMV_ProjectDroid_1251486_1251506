@@ -39,6 +39,9 @@
         <activity
                 android:name=".DiarioPlantaActivity"
                 android:exported="false" />
+        <activity
+                android:name=".MedirLuzActivity"
+                android:exported="false" />
     </application>
 
 </manifest>
