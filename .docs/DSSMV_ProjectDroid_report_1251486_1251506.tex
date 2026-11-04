@@ -1,8 +1,9 @@
 % Documento: DSSMV_ProjectDroid_report_1251486_1251506
 % Relatório final do projeto PlantKeep (DSSMV, ISEP LETI)
 % Turma 2DD, grupo #8 — Tiago Santos (1251486), Tomás Bastos (1251506)
+% Template mandatória: SurveyFormat (llncs.cls + typeinst.tex)
+\documentclass[runningheads,a4paper]{llncs}
 
-\documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -11,16 +12,33 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{enumitem}
+\setlist[itemize]{noitemsep, topsep=3pt, parsep=0pt, partopsep=0pt}
 
-\title{\textbf{PlantKeep}\\ Relatório}
-\author{Tiago Santos (1251486) \and Tomás Bastos (1251506)}
-\date{}
+\renewcommand{\refname}{Bibliografia}
 
 \begin{document}
+
+\mainmatter
+
+\title{PlantKeep\\ Relatório}
+
+\titlerunning{PlantKeep}
+
+\author{Tiago Santos (1251486) \and Tomás Bastos (1251506)}
+\authorrunning{PlantKeep — Relatório}
+
+\institute{ISEP — Licenciatura em Engenharia de Telecomunicações e Informática}
+
 \maketitle
 
+\begin{abstract}
+Este relatório documenta o desenvolvimento do PlantKeep, uma aplicação Android em Java para a gestão de plantas de vaso e hortas urbanas. A aplicação combina dados das APIs públicas \textit{OpenPlantbook} e \textit{Open-Meteo}/\textit{IPMA} com características do dispositivo (sensor de luz ambiente, GPS e notificações) e uma base de dados remota \textit{restdb.io}, com cache local \textit{Room}. O documento apresenta a análise de requisitos (user stories, requisitos funcionais e não funcionais segundo FURPS+), o design de software em camadas (model/dto/handler/services) e a implementação em Java Android.
+\\[2mm]
+\textbf{Palavras-chave:} Android, Java, REST, OpenPlantbook, Open-Meteo, IPMA, Sensor de Luz, Arquitetura em Camadas, FURPS+.
+\end{abstract}
+
 % -------------------------------------------------------------
-\section*{Contexto}
+\section{Contexto}
 
 O objetivo deste projeto é criar uma aplicação Android, para a gestão de plantas numa horta ou jardim. Quem cultiva plantas em casa encontra dificuldades: saber quando regar, saber se a temperatura ou a humidade do solo são adequadas à espécie, e acompanhar a evolução de cada planta ao longo do tempo. A aplicação centraliza toda esta informação e transformá-la em decisões práticas e automáticas.
 
@@ -33,9 +51,9 @@ A persistência está dividida em duas camadas: os dados do utilizador (plantas,
 Este relatório documenta o contexto, a análise de requisitos, o design de software (arquitetura em camadas com separação model,dto,handler,service), a implementação em Java Android e os testes realizados.
 
 % -------------------------------------------------------------
-\section*{Análise}
+\section{Análise}
 
-\subsection*{User Stories}
+\subsection{User Stories}
 
 \begin{itemize}
     \item \textbf{US01:} Como utilizador, eu quero registar uma nova planta (nome e espécie) para a poder acompanhar no futuro.
@@ -50,7 +68,7 @@ Este relatório documenta o contexto, a análise de requisitos, o design de soft
     \item \textbf{US10:} Como utilizador, eu quero que a aplicação funcione com os dados em cache mesmo sem ligação à Internet.
 \end{itemize}
 
-\subsection*{Requisitos Funcionais (RF)}
+\subsection{Requisitos Funcionais (RF)}
 
 \begin{itemize}
     \item \textbf{RF01:} O sistema deve permitir criar uma nova planta com um nome (mínimo de 3 caracteres) e indicar a sua espécie.
@@ -67,36 +85,36 @@ Este relatório documenta o contexto, a análise de requisitos, o design de soft
     \item \textbf{RF12:} O sistema deve emitir notificações quando um aviso é disparado.
 \end{itemize}
 
-\subsection*{Requisitos Não Funcionais (FURPS+)}
+\subsection{Requisitos Não Funcionais (FURPS+)}
 
-\subsubsection*{Functionality (F)}
+\subsubsection{Functionality (F)}
 \begin{itemize}
     \item \textbf{RNF01 (Persistência):} Os dados do utilizador (plantas, registos do diário, limiares e preferências) devem ser guardados na base de dados \textit{restdb.io}, com uma cache local \textit{Room} como falha de segurança para funcionamento offline.
 \end{itemize}
 
-\subsubsection*{Usability (U)}
+\subsubsection{Usability (U)}
 \begin{itemize}
     \item \textbf{RNF02 (Interface):} A aplicação deve apresentar uma interface gráfica simples e intuitiva, em ecrãs dedicados (criar planta, lista, informação, rega, diário, luz), navegáveis a partir de um menu principal.
 \end{itemize}
 
-\subsubsection*{Reliability (R)}
+\subsubsection{Reliability (R)}
 \begin{itemize}
     \item \textbf{RNF03 (Funcionamento offline):} A aplicação deve continuar a mostrar os dados previamente obtidos quando não há ligação à Internet, usando a cache local.
     \item \textbf{RNF04 (Robustez):} Uma falha de rede ou de API numa planta não deve bloquear o cálculo dos avisos das restantes plantas.
     \item \textbf{RNF05 (Validação):} O sistema deve validar os dados introduzidos pelo utilizador e recusar entradas inválidas (ex.: nome com menos de 3 caracteres).
 \end{itemize}
 
-\subsubsection*{Performance (P)}
+\subsubsection{Performance (P)}
 \begin{itemize}
     \item \textbf{RNF06 (Responsividade):} As operações de rede devem ser executadas em segundo plano (numa \texttt{Thread}), para que a interface responda de imediato às interações do utilizador.
 \end{itemize}
 
-\subsubsection*{Supportability (S)}
+\subsubsection{Supportability (S)}
 \begin{itemize}
     \item \textbf{RNF07 (Portabilidade/Build):} O projeto deve ser compilável com \textit{Gradle} (AGP) num ambiente de desenvolvimento Android padrão.
 \end{itemize}
 
-\subsubsection*{+ (Restrições de Implementação)}
+\subsubsection{+ (Restrições de Implementação)}
 \begin{itemize}
     \item \textbf{RNF08 (Linguagem):} A aplicação deve ser nativa para Android, escrita em \textbf{Java}.
     \item \textbf{RNF09 (Arquitetura):} O código deve seguir uma arquitetura em camadas, com separação \texttt{model}/\texttt{dto}/\texttt{handler}/\texttt{services}, em que o \texttt{model} é puro (sem rede, JSON ou dependências Android).
@@ -104,15 +122,15 @@ Este relatório documenta o contexto, a análise de requisitos, o design de soft
 \end{itemize}
 
 % -------------------------------------------------------------
-\section*{Design}
+\section{Design}
 
 
 % -------------------------------------------------------------
-\section*{Implementação}
+\section{Implementação}
 
 
 % -------------------------------------------------------------
-\section*{Testes}
+\section{Testes}
 
 
 \end{document}
