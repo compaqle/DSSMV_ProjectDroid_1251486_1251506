@@ -50,7 +50,7 @@ public class NetworkHandler {
         return request("DELETE", url, null, "application/json", null);
     }
 
-    /** Descarrega os bytes de um URL (ou devolve null se falhar). Puro: sem Android. */
+    /** Descarrega os bytes de um URL (ou devolve null se falhar) */
     public static byte[] getBytesFromUrl(String url) {
         if (url == null || url.isEmpty()) {
             return null;

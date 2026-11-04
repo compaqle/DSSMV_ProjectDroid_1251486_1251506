@@ -2,7 +2,6 @@ package com.dssmv.plantkeep.dto;
 
 /**
  * Dados completos de uma espécie devolvidos pelo detail do OpenPlantbook.
- * Só campos e getters/setters. Os números são Integer porque a API permite null.
  */
 public class DetalheOpb {
     private String displayPid;

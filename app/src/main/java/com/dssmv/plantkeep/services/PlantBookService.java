@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Serviço do OpenPlantbook (https://open.plantbook.io).
+ * Serviço do OpenPlantbook
  * Obtém o token OAuth (cacheado na memória ~1h) e pesquisa espécies.
  */
 public class PlantBookService {
@@ -25,7 +25,7 @@ public class PlantBookService {
     private static long tokenExpira;
 
     // Cache em memória dos detalhes por pid: cada espécie é pedida à rede no máximo
-    // uma vez por execução, evitando 429 (rate limit) ao abrir os ecrãs repetidamente.
+    // uma vez por execução, evitando ratelimit ao abrir os ecrãs repetidamente.
     private static final Map<String, DetalheOpb> detalheCache = new HashMap<>();
 
     private PlantBookService() {
@@ -126,7 +126,7 @@ public class PlantBookService {
         return d;
     }
 
-    /** Descarrega os bytes de uma imagem de planta. Sem Android — a conversão para Bitmap fica na View. */
+    /** Descarrega os bytes de uma imagem de planta.  */
     public static byte[] obterImagemBytes(String url) {
         return NetworkHandler.getBytesFromUrl(url);
     }

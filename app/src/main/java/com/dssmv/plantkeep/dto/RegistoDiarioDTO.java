@@ -2,7 +2,6 @@ package com.dssmv.plantkeep.dto;
 
 /**
  * DTO de um registo do diário da planta.
- * Só campos, construtor sem parâmetros e getters/setters.
  */
 public class RegistoDiarioDTO {
 

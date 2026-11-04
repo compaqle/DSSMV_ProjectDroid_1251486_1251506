@@ -6,10 +6,10 @@ package com.dssmv.plantkeep.dto;
  */
 public class EspecieOpb {
     private String pid;         // id da espécie no OpenPlantbook
-    private String displayPid;  // nome apresentável (ex. "Lycopersicon esculentum")
+    private String displayPid;  // nome técnico
     private String alias;       // apelido/filtro de pesquisa
     private String category;
-    private String imageUrl;    // url da imagem (pode ser vazio se não existir)
+    private String imageUrl;
 
     public EspecieOpb() {
     }

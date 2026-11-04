@@ -22,8 +22,7 @@ import java.util.Locale;
 
 /**
  * Ecrã da rega de uma planta: mostra a última vez que foi regada e a próxima rega
- * prevista, com um botão para a marcar como regada agora. Apenas formata e apresenta
- * dados; a decisão da próxima rega vive no model (Aviso.verificarHumidadeSolo).
+ * prevista, com um botão para a marcar como regada agora.
  */
 public class RegaPlantaActivity extends AppCompatActivity {
 

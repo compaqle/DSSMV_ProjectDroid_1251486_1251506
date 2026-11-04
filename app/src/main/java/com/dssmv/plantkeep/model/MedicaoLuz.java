@@ -3,12 +3,7 @@ package com.dssmv.plantkeep.model;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Modelo de domínio da medição de luz de uma planta.
- * Guarda as leituras de lux feitas no local e decide se a luz é boa ou má
- * para a espécie, comparando com o intervalo ideal vindo do OpenPlantbook.
- * Este modelo é puro: não tem dependências Android/JSON/HTTP.
- */
+/** Modelo de domínio da medição de luz de uma planta. */
 public class MedicaoLuz {
 
     /** Leituras de lux, uma por medição. Uma leitura saturada guarda o máximo
@@ -50,14 +45,10 @@ public class MedicaoLuz {
         return saturado.get(i);
     }
 
-    /**
-     * Melhor leitura: o maior lux observado (protocolo das 3 medições).
-     * Uma leitura saturada já guarda o máximo possível do sensor, por isso
-     * entra naturalmente no máximo.
-     */
+    /** Melhor leitura: o maior lux observado (protocolo das 3 medições) */
     public int melhorLeitura() {
         int max = 0;
-        for (int v : lux) {
+        for (int v = 0; v < lux.size(); v++) {
             if (v > max) {
                 max = v;
             }

@@ -11,7 +11,7 @@ import com.dssmv.plantkeep.model.MeteorologiaContainer;
 import java.util.List;
 
 /**
- * Serviço da meteorologia. Orquestra rede, JSON, DTO, Mapper e atualiza o Container.
+ * Serviço da meteorologia. Controla rede, JSON, DTO, Mapper e atualiza o Container.
  */
 public class MeteoService {
 

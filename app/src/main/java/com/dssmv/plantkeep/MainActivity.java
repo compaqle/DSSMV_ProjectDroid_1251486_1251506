@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnVer = findViewById(R.id.btn_ver_plantas);
         btnVer.setOnClickListener(v -> startActivity(new Intent(this, PlantasActivity.class)));
 
-        // Verifica permissões
+        // Verifica permissões de localizacao
         if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             launcher.launch(new String[]{

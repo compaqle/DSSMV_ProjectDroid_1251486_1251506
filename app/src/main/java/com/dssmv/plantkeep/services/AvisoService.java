@@ -9,10 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Serviço responsável por cruzar as plantas do utilizador com a meteorologia
- * e obter a lista de avisos (Temperatura e Humidade do Solo).
- * Apenas orquestra os dados: a decisão de "quando disparar um aviso"
- * vive no model (Aviso.verificarTemperatura / Aviso.verificarHumidadeSolo).
+ * Serviço responsável por comparar as plantas do utilizador com a meteorologia e obter a lista de avisos
  */
 public class AvisoService {
 
@@ -57,8 +54,7 @@ public class AvisoService {
     }
 
     /**
-     * Obtém a próxima rega prevista para uma única planta (Aviso HUMIDADE_SOLO_BAIXA),
-     * ou null se não precisar de rega nos dias previstos. A decisão vive no model (Aviso).
+     * Obtém a próxima rega prevista para uma única planta (Aviso HUMIDADE_SOLO_BAIXA)
      */
     public static Aviso obterProximaRega(Planta p) throws Exception {
         if (p == null || p.getPid() == null || p.getPid().isEmpty()) {
@@ -66,7 +62,7 @@ public class AvisoService {
         }
         MeteorologiaContainer meteo = MeteorologiaContainer.getInstance();
         DetalheOpb detalhe = PlantBookService.detalhe(p.getPid());
-        // A decisão (meteorologia prevê seca, senão cadência normal) vive no model (Aviso).
+        // A decisão (meteorologia prevê seca, senão cadência normal)
         return Aviso.obterProximaRega(p, detalhe.getMinSoilMoist(), detalhe.getMaxSoilMoist(), meteo);
     }
 }

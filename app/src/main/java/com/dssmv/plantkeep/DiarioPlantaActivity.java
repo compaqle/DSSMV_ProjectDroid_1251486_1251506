@@ -60,7 +60,7 @@ public class DiarioPlantaActivity extends AppCompatActivity {
             }
     );
 
-    // Pede permissão de CAMERA em runtime (Semana 5 - T5)
+    // Pede permissão de CAMERA em runtime
     private final ActivityResultLauncher<String> permissaoCameraLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             concedida -> {

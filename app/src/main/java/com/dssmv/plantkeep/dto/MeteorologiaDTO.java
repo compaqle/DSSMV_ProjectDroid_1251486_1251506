@@ -1,15 +1,14 @@
 package com.dssmv.plantkeep.dto;
 
 /**
- * DTO da meteorologia. Recipiente de dados igual ao JSON da API Open-Meteo.
- * Só campos, construtor sem parâmetros e getters/setters.
+ * DTO da meteorologia. Recebe os dados da API Open-Meteo.
  */
 public class MeteorologiaDTO {
 
     private double temperatura;
     private double precipitacao;
-    private double humidadeSolo; // Guardado já em percentagem (0 a 100%)
-    private String dataHora;     // Texto ISO tal como vem no JSON (ex: "2026-10-26T14:00")
+    private double humidadeSolo; // Em percentagem
+    private String dataHora;     // Data em formato ISO (ex: "2026-10-26T14:00")
 
     public MeteorologiaDTO() {
     }

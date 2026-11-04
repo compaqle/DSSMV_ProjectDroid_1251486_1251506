@@ -14,8 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * O tradutor de JSON só muda entre String JSON e DTO
- * e não faz HTTP nem conhece o model.
+ * O tradutor de JSON
  */
 public class JsonHandler {
 

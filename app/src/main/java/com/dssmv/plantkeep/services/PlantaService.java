@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Serviço das plantas. Orquestra rede, JSON, DTO e Mapper.
+ * Serviço das plantas. Controla rede, JSON, DTO e Mapper.
  */
 public class PlantaService {
 

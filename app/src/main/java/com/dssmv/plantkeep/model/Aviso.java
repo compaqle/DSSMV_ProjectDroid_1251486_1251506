@@ -11,8 +11,8 @@ import java.util.Locale;
  */
 public class Aviso {
 
-    // Duração do efeito de uma rega manual (3 dias em milissegundos)
-    private static final long EFEITO_REGA_MS = 3L * 24 * 60 * 60 * 1000;
+    // Duração do efeito de uma rega (3 dias em milissegundos)
+    private static final long EFEITO_REGA_MS = 3 * 24 * 60 * 60 * 1000;
 
     public enum TipoAviso {
         TEMPERATURA_BAIXA,
@@ -41,7 +41,7 @@ public class Aviso {
         this.nomePlanta = planta.getNome().trim();
         this.tipo = tipo;
         this.mensagem = mensagem;
-        this.dataHora = new Date(dataHora.getTime()); // Cópia defensiva
+        this.dataHora = new Date(dataHora.getTime());
     }
 
     public Planta getPlanta() {
@@ -64,11 +64,7 @@ public class Aviso {
         return new Date(dataHora.getTime());
     }
 
-    /**
-     * Decide se há aviso de temperatura: compara a previsão do container com os limites da espécie.
-     * Devolve um Aviso, ou null se nenhuma condição se aplica.
-     * A decisão de negócio vive no model — o service apenas fornece os dados.
-     */
+    /** Decide se há aviso de temperatura: compara a previsão do container com os limites da espécie. */
     public static Aviso verificarTemperatura(Planta p, Integer minTemp, Integer maxTemp,
                                              MeteorologiaContainer meteo) {
         Meteorologia registoMin = meteo.obterRegistoTemperaturaMinimaPrevista();
@@ -115,9 +111,7 @@ public class Aviso {
 
     /**
      * Próxima rega recomendada para uma planta. Se a meteorologia previr seca
-     * (solo abaixo do mínimo), devolve a data dessa rega; senão devolve a cadência
-     * normal — o efeito de uma rega dura 3 dias — desde que seja futura.
-     * null se não houver data futura. Decisão de negócio no model.
+     * (solo abaixo do mínimo), devolve a data dessa rega
      */
     public static Aviso obterProximaRega(Planta p, Integer minSoilMoist, Integer maxSoilMoist,
                                          MeteorologiaContainer meteo) {

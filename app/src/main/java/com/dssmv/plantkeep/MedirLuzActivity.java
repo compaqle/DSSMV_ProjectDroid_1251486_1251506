@@ -84,8 +84,7 @@ public class MedirLuzActivity extends AppCompatActivity {
     }
 
     /**
-     * Mede o lux uma vez: regista o sensor de luz durante ~1,2 s, guarda o valor
-     * máximo e trata a saturação ("≥ máximo" em vez de inventar um lux).
+     * Mede o lux uma vez: regista o sensor de luz durante ~1,2 s, guarda o valor máximo e trata a saturação
      */
     private void iniciarMedicao() {
         if (aMedir) {
@@ -151,7 +150,7 @@ public class MedirLuzActivity extends AppCompatActivity {
         }, DURACAO_MEDICAO_MS);
     }
 
-    /** Mostra as 3 medições e o veredito (bom/mau) vindo do modelo de domínio. */
+    /** Mostra as 3 medições e a classificacao (bom/mau)  */
     private void mostrarResultados() {
         btnFazerMedicao.setEnabled(false);
         btnFazerMedicao.setText("Medição completa");
@@ -180,7 +179,7 @@ public class MedirLuzActivity extends AppCompatActivity {
         if (minLux != null || maxLux != null) {
             sb.append("Ideal: ").append(formatarIntervalo()).append(" lux\n");
         }
-        // a regra de decisão (bom/mau) vive no modelo
+        // a regra de decisão (bom/mau)
         sb.append(medicao.avaliar(minLux, maxLux));
 
         txtResultado.setText(sb.toString());

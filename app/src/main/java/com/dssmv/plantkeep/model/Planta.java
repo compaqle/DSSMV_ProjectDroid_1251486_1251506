@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Model da planta, puro, sem rede nem JSON. Tem as regras e lança exceção em dados inválidos.
+ * Model da planta
  */
 public class Planta {
 
