@@ -5,9 +5,9 @@ package com.dssmv.plantkeep.dto;
  */
 public class RegistoDiarioDTO {
 
-    private String texto;
-    private long dataHora;
-    private String fotoBase64;
+    private final String texto;
+    private final long dataHora;
+    private final String fotoBase64;
 
     public RegistoDiarioDTO(String texto, long dataHora, String fotoBase64) {
         this.texto = texto;

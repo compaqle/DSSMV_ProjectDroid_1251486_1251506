@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -181,8 +182,9 @@ public class DiarioPlantaActivity extends AppCompatActivity {
 
         txtEstadoDiario.setVisibility(View.GONE);
         lvDiario.setAdapter(new ArrayAdapter<RegistoDiario>(this, 0, ordenados) {
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 if (convertView == null) {
                     convertView = LayoutInflater.from(DiarioPlantaActivity.this)
                             .inflate(R.layout.item_diario, parent, false);

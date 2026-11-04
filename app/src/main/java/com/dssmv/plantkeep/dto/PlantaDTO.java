@@ -13,7 +13,7 @@ public class PlantaDTO {
     private final String especie;
     private final String pid;      // id da espécie no OpenPlantbook
     private final long ultimaRega; // timestamp (ms) da última rega
-    private List<RegistoDiarioDTO> diario;
+    private final List<RegistoDiarioDTO> diario;
 
     public PlantaDTO(String id, String nome, String especie, String pid, long ultimaRega, List<RegistoDiarioDTO> diario) {
         this.id = id;

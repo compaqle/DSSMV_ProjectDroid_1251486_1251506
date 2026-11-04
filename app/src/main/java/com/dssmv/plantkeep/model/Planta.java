@@ -50,10 +50,6 @@ public class Planta {
         return especie;
     }
 
-    public void setEspecie(String especie) {
-        this.especie = especie;
-    }
-
     public String getPid() {
         return pid;
     }

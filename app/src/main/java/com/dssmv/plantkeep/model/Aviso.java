@@ -1,5 +1,7 @@
 package com.dssmv.plantkeep.model;
 
+import androidx.annotation.NonNull;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -137,6 +139,7 @@ public class Aviso {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         if (tipo == TipoAviso.HUMIDADE_SOLO_BAIXA) {

@@ -1,5 +1,7 @@
 package com.dssmv.plantkeep.model;
 
+import androidx.annotation.NonNull;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -53,6 +55,7 @@ public class RegistoDiario {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale.getDefault());

@@ -1,5 +1,7 @@
 package com.dssmv.plantkeep.model;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,10 +33,6 @@ public class MedicaoLuz {
                 throw new IllegalArgumentException("MedicaoLuz: a flag saturado não pode ser nula");
             }
         }
-    }
-
-    public int getNumMedicoes() {
-        return lux.size();
     }
 
     public int getLux(int i) {
@@ -74,6 +72,7 @@ public class MedicaoLuz {
         return "Luz adequada — este local é BOM para a planta.";
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "MedicaoLuz{" +

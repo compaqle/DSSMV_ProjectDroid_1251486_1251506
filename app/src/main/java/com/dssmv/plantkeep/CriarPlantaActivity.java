@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dssmv.plantkeep.dto.EspecieOpb;
@@ -89,8 +90,9 @@ public class CriarPlantaActivity extends AppCompatActivity {
         lista = l;
 
         lvResultados.setAdapter(new ArrayAdapter<EspecieOpb>(this, 0, lista) {
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 EspecieOpb e = getItem(position);
                 if (convertView == null) {
                     convertView = LayoutInflater.from(CriarPlantaActivity.this)
