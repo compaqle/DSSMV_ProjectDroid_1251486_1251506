@@ -24,10 +24,6 @@ public class Meteorologia {
         this.temperatura = temperatura;
     }
 
-    public double getPrecipitacao() {
-        return precipitacao;
-    }
-
     public void setPrecipitacao(double precipitacao) {
         if (precipitacao < 0) {
             throw new IllegalArgumentException("Meteorologia: precipitação não pode ser negativa");

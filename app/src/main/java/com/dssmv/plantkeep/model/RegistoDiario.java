@@ -13,10 +13,6 @@ public class RegistoDiario {
     private Date dataHora;
     private String fotoBase64; // Fotografia codificada em Base64
 
-    public RegistoDiario(String texto, Date dataHora) {
-        this(texto, dataHora, "");
-    }
-
     public RegistoDiario(String texto, Date dataHora, String fotoBase64) {
         setTexto(texto);
         setDataHora(dataHora);

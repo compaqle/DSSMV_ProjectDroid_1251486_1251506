@@ -9,9 +9,6 @@ public class RegistoDiarioDTO {
     private long dataHora;
     private String fotoBase64;
 
-    public RegistoDiarioDTO() {
-    }
-
     public RegistoDiarioDTO(String texto, long dataHora, String fotoBase64) {
         this.texto = texto;
         this.dataHora = dataHora;
@@ -22,23 +19,11 @@ public class RegistoDiarioDTO {
         return texto;
     }
 
-    public void setTexto(String texto) {
-        this.texto = texto;
-    }
-
     public long getDataHora() {
         return dataHora;
     }
 
-    public void setDataHora(long dataHora) {
-        this.dataHora = dataHora;
-    }
-
     public String getFotoBase64() {
         return fotoBase64;
-    }
-
-    public void setFotoBase64(String fotoBase64) {
-        this.fotoBase64 = fotoBase64;
     }
 }

@@ -10,14 +10,10 @@ public class PlantaDTO {
 
     private String id;       // _id do restdb
     private String nome;
-    private String especie;
-    private String pid;      // id da espécie no OpenPlantbook
-    private long ultimaRega; // timestamp (ms) da última rega
+    private final String especie;
+    private final String pid;      // id da espécie no OpenPlantbook
+    private final long ultimaRega; // timestamp (ms) da última rega
     private List<RegistoDiarioDTO> diario;
-
-    public PlantaDTO() {
-        this.diario = new ArrayList<>();
-    }
 
     public PlantaDTO(String id, String nome, String especie, String pid, long ultimaRega, List<RegistoDiarioDTO> diario) {
         this.id = id;
@@ -52,31 +48,16 @@ public class PlantaDTO {
         return especie;
     }
 
-    public void setEspecie(String especie) {
-        this.especie = especie;
-    }
-
     public String getPid() {
         return pid;
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
     }
 
     public long getUltimaRega() {
         return ultimaRega;
     }
 
-    public void setUltimaRega(long ultimaRega) {
-        this.ultimaRega = ultimaRega;
-    }
-
     public List<RegistoDiarioDTO> getDiario() {
         return diario;
     }
 
-    public void setDiario(List<RegistoDiarioDTO> diario) {
-        this.diario = diario;
-    }
 }

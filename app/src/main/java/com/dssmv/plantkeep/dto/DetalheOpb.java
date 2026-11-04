@@ -23,10 +23,6 @@ public class DetalheOpb {
     public DetalheOpb() {
     }
 
-    public String getDisplayPid() {
-        return displayPid;
-    }
-
     public void setDisplayPid(String displayPid) {
         this.displayPid = displayPid;
     }

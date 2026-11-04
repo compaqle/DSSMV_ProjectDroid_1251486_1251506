@@ -48,16 +48,8 @@ public class Aviso {
         return planta;
     }
 
-    public String getNomePlanta() {
-        return nomePlanta;
-    }
-
     public TipoAviso getTipo() {
         return tipo;
-    }
-
-    public String getMensagem() {
-        return mensagem;
     }
 
     public Date getDataHora() {
