@@ -64,8 +64,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        boolean temPermissaoGPS = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
         if (!MeteorologiaContainer.getInstance().getPrevisaoHoraria().isEmpty()) {
             carregarAvisos();
+        } else if (temPermissaoGPS) {
+            atualizarMeteorologia();
         }
     }
 
