@@ -15,19 +15,26 @@ import androidx.annotation.NonNull;
 public class LocalizacaoService implements LocalizacaoProvider {
 
     private final Context context;
+    private LocationManager locationManager;
+    private BroadcastReceiver gpsReceiver;
+    private LocationListener locationListener;
+    private Callback callbackAtivo;
 
     public LocalizacaoService(Context context) {
         this.context = context.getApplicationContext();
     }
 
-    /** Usa GPS e Network para obter a localizacao */
+    /** Usa GPS e Network para obter a localização */
     @SuppressLint("MissingPermission")
     @Override
     public void obterLocalizacao(Callback listener) {
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        pararObterLocalizacao(); // Antes de arrancar um novo pedido, cancela qualquer pedido anterior
+        this.callbackAtivo = listener;
+
+        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         if (locationManager == null) {
-            listener.onErro("Serviço de localização indisponível.");
+            notificarErro("Serviço de localização indisponível.");
             return;
         }
 
@@ -35,28 +42,39 @@ public class LocalizacaoService implements LocalizacaoProvider {
         boolean redeAtiva = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
         if (!gpsAtivo && !redeAtiva) {
-            listener.onErro("Por favor, ative a localização do telemóvel.");
-            // BroadcastReceiver que fica à espera até a localizaçao ser ligada
-            esperarGpsEObterLocalizacao(locationManager, listener);
+            notificarErro("Por favor, ative a localização do telemóvel.");
+            // Fica à espera com BroadcastReceiver até que o utilizador ligue o GPS
+            esperarGpsEObterLocalizacao();
             return;
         }
 
-        tentarObterLocalizacao(locationManager, gpsAtivo, redeAtiva, listener);
+        tentarObterLocalizacao(gpsAtivo, redeAtiva);
     }
 
-    /** Regista um BroadcastReceiver que fica à espera que o utilizador ligue a localizaçao */
-    private void esperarGpsEObterLocalizacao(LocationManager locationManager, Callback listener) {
-        BroadcastReceiver gpsReceiver = new BroadcastReceiver() {
+    /** Interrompe qualquer pedido  */
+    @Override
+    public void pararObterLocalizacao() {
+        this.callbackAtivo = null;
+        removerReceiver();
+        removerLocationUpdates();
+    }
+
+    /** Regista um BroadcastReceiver que fica à espera que o utilizador ligue a localização */
+    private void esperarGpsEObterLocalizacao() {
+        removerReceiver();
+
+        gpsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context ctx, Intent intent) {
-                // O Android envia este broadcast sempre que o estado dos providers muda
+                if (locationManager == null) return;
 
                 boolean gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
                 boolean rede = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
                 if (gps || rede) {
-                    context.unregisterReceiver(this);
-                    tentarObterLocalizacao(locationManager, gps, rede, listener);
+                    // Quando o utilizador liga a localização, remove este BroadcastReceiver
+                    removerReceiver();
+                    tentarObterLocalizacao(gps, rede);
                 }
             }
         };
@@ -65,12 +83,12 @@ public class LocalizacaoService implements LocalizacaoProvider {
         context.registerReceiver(gpsReceiver, filtro);
     }
 
-    /** Tenta obter a localização usando cache, se não houver pede uma localizacao nova */
+    /** Tenta obter a localização usando cache, se não houver pede uma localização nova */
     @SuppressLint("MissingPermission")
-    private void tentarObterLocalizacao(LocationManager locationManager,
-                                        boolean gpsAtivo, boolean redeAtiva,
-                                        Callback listener) {
-        // Verifica se há localização em cache
+    private void tentarObterLocalizacao(boolean gpsAtivo, boolean redeAtiva) {
+        if (locationManager == null) return;
+
+        // Verifica se existe alguma localização em cache
         Location ultimaLocalizacao = null;
         if (gpsAtivo) {
             ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -80,21 +98,20 @@ public class LocalizacaoService implements LocalizacaoProvider {
         }
 
         if (ultimaLocalizacao != null) {
-            listener.onLocalizacao(ultimaLocalizacao.getLatitude(), ultimaLocalizacao.getLongitude());
+            notificarLocalizacao(ultimaLocalizacao.getLatitude(), ultimaLocalizacao.getLongitude());
             return;
         }
-        // Se não houver em cache, pede atualização ao LocationManager
 
-        LocationListener locationListener = new LocationListener() {
+        // Se não houver em cache, pede a localização ao LocationManager
+        removerLocationUpdates();
+
+        locationListener = new LocationListener() {
             @Override
-            public void onLocationChanged(Location location) {
-                locationManager.removeUpdates(this);
+            public void onLocationChanged(@NonNull Location location) {
+                removerLocationUpdates(); // Ao receber uma localizaçao válida, para de atualizar a localização
+
                 new Thread(() -> {
-                    if (location != null) {
-                        listener.onLocalizacao(location.getLatitude(), location.getLongitude());
-                    } else {
-                        listener.onErro("Não foi possível obter a localização atual.");
-                    }
+                    notificarLocalizacao(location.getLatitude(), location.getLongitude());
                 }).start();
             }
 
@@ -108,14 +125,43 @@ public class LocalizacaoService implements LocalizacaoProvider {
             public void onProviderDisabled(@NonNull String provider) {}
         };
 
-        String provider;
-        if (gpsAtivo) {
-            provider = LocationManager.GPS_PROVIDER;
-        } else {
-            provider = LocationManager.NETWORK_PROVIDER;
-        }
-
-        // Devolve a localizacao à thread principal
+        String provider = gpsAtivo ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
         locationManager.requestLocationUpdates(provider, 0, 0, locationListener, Looper.getMainLooper());
+    }
+
+    /** Remove o BroadcastReceiver  */
+    private void removerReceiver() {
+        if (gpsReceiver != null) {
+            try {
+                context.unregisterReceiver(gpsReceiver);
+            } catch (IllegalArgumentException ignored) {
+            }
+            gpsReceiver = null;
+        }
+    }
+
+    /** Pede ao LocationManager para parar de atualizar a localização */
+    private void removerLocationUpdates() {
+        if (locationManager != null && locationListener != null) {
+            try {
+                locationManager.removeUpdates(locationListener);
+            } catch (Exception ignored) {
+            }
+            locationListener = null;
+        }
+    }
+
+    private void notificarLocalizacao(double lat, double lon) {
+        Callback cb = callbackAtivo;
+        if (cb != null) {
+            cb.onLocalizacao(lat, lon);
+        }
+    }
+
+    private void notificarErro(String msg) {
+        Callback cb = callbackAtivo;
+        if (cb != null) {
+            cb.onErro(msg);
+        }
     }
 }

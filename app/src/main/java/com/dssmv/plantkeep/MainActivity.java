@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView txtEstadoAvisos;
     private ListView lvAvisos;
+    private LocalizacaoProvider localizacaoProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         txtEstadoAvisos = findViewById(R.id.txt_estado_avisos);
         lvAvisos = findViewById(R.id.lv_avisos);
+        localizacaoProvider = new LocalizacaoService(this);
 
         Button btnCriar = findViewById(R.id.btn_criar_planta);
         btnCriar.setOnClickListener(v -> startActivity(new Intent(this, CriarPlantaActivity.class)));
@@ -75,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (localizacaoProvider != null) {
+            localizacaoProvider.pararObterLocalizacao();
+        }
+    }
+
     /** Pedido de permissões de GPS */
     private final ActivityResultLauncher<String[]> launcher = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(),
@@ -97,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private void atualizarMeteorologia() {
         txtEstadoAvisos.setText("A obter localização e meteorologia...");
 
-        new LocalizacaoService(this).obterLocalizacao(new LocalizacaoProvider.Callback() {
+        localizacaoProvider.obterLocalizacao(new LocalizacaoProvider.Callback() {
             @Override
             public void onLocalizacao(double latitude, double longitude) {
                 new Thread(() -> {
