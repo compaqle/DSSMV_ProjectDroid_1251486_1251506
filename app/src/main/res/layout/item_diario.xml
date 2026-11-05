@@ -38,4 +38,14 @@
                 android:textSize="16sp" />
     </LinearLayout>
 
+    <ImageButton
+            android:id="@+id/btn_apagar_registo"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="Apagar registo"
+            android:focusable="false" />
+
 </LinearLayout>

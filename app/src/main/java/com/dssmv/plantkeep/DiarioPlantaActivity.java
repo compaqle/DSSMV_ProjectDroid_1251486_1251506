@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -166,6 +168,37 @@ public class DiarioPlantaActivity extends AppCompatActivity {
         }).start();
     }
 
+    // Pede confirmação antes de apagar um registo do diário
+    private void confirmarApagarRegisto(RegistoDiario registo) {
+        new AlertDialog.Builder(this)
+                .setTitle("Apagar registo")
+                .setMessage("Tens a certeza que queres apagar este registo do diário?")
+                .setPositiveButton("Apagar", (dialog, which) -> apagarRegisto(registo))
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    // Remove o registo no RestDB e atualiza a interface
+    private void apagarRegisto(RegistoDiario registo) {
+        txtEstadoDiario.setVisibility(View.VISIBLE);
+        txtEstadoDiario.setText("A apagar registo...");
+
+        new Thread(() -> {
+            try {
+                final Planta pAtualizada = PlantaService.removerRegistoDiario(plantaId, registo);
+                runOnUiThread(() -> {
+                    Toast.makeText(DiarioPlantaActivity.this, "Registo apagado do diário!", Toast.LENGTH_SHORT).show();
+                    mostrarRegistos(pAtualizada.getDiario());
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    txtEstadoDiario.setVisibility(View.GONE);
+                    Toast.makeText(DiarioPlantaActivity.this, "Erro ao apagar registo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
     private void mostrarRegistos(List<RegistoDiario> registos) {
         if (registos == null || registos.isEmpty()) {
             txtEstadoDiario.setVisibility(View.VISIBLE);
@@ -194,6 +227,7 @@ public class DiarioPlantaActivity extends AppCompatActivity {
                 TextView txtData = convertView.findViewById(R.id.txt_data_diario);
                 TextView txtTexto = convertView.findViewById(R.id.txt_texto_diario);
                 ImageView imgFoto = convertView.findViewById(R.id.img_registo_diario);
+                ImageButton btnApagar = convertView.findViewById(R.id.btn_apagar_registo);
 
                 if (r != null) {
                     txtData.setText(sdf.format(r.getDataHora()));
@@ -207,6 +241,8 @@ public class DiarioPlantaActivity extends AppCompatActivity {
                         imgFoto.setImageBitmap(null);
                         imgFoto.setVisibility(View.GONE);
                     }
+
+                    btnApagar.setOnClickListener(v -> confirmarApagarRegisto(r));
                 }
                 return convertView;
             }

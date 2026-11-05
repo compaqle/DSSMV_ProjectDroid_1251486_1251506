@@ -87,4 +87,11 @@ public class Planta {
         }
         this.diario.add(registo);
     }
+
+    public boolean removerRegistoDiario(RegistoDiario registo) {
+        if (registo == null) {
+            return false;
+        }
+        return this.diario.remove(registo);
+    }
 }

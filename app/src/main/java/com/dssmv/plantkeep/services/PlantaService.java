@@ -74,6 +74,20 @@ public class PlantaService {
         return p;
     }
 
+    /** Remove um registo do diário e atualiza a planta no RestDB (PUT). */
+    public static Planta removerRegistoDiario(String plantaId, RegistoDiario registo) throws Exception {
+        Planta p = obterPlantaPorId(plantaId);
+        if (p == null) {
+            throw new IllegalArgumentException("Planta não encontrada.");
+        }
+        p.removerRegistoDiario(registo);
+
+        String url = NetworkHandler.BASE + "/planta/" + p.getId();
+        String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
+        NetworkHandler.updateDataInStringFromUrl(url, json);
+        return p;
+    }
+
     /** Apaga uma planta (DELETE). */
     public static void apagar(Planta p) throws Exception {
         if (p.getId() != null) {

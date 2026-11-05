@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Model de um registo no diário da planta (texto, data/hora e fotografia opcional em Base64).
@@ -60,5 +61,19 @@ public class RegistoDiario {
     public String toString() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale.getDefault());
         return sdf.format(dataHora) + "\n" + texto;
+    }
+
+    // Permite comparar registos pelo momento em que foram criados e pelo conteúdo
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RegistoDiario that = (RegistoDiario) o;
+        return Objects.equals(dataHora, that.dataHora) && Objects.equals(texto, that.texto);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(texto, dataHora);
     }
 }
