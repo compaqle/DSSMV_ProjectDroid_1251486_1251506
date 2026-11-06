@@ -32,8 +32,10 @@ import com.dssmv.plantkeep.services.PlantaService;
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Ecrã do Diário da Planta: permite reportar o estado de crescimento (texto),
@@ -51,14 +53,20 @@ public class DiarioPlantaActivity extends AppCompatActivity {
 
     private String fotoAtualBase64 = "";
 
-    // Abre a câmara e recebe o Bitmap da fotografia tirada
+    // Cache em memória para bitmaps descodificados (evita descodificar na Main Thread)
+    private final Map<String, Bitmap> cacheFotos = new HashMap<>();
+
+    // Abre a camara e fica com a miniatura da foto
     private final ActivityResultLauncher<Void> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.TakePicturePreview(),
             bitmap -> {
                 if (bitmap != null) {
                     fotoAtualBase64 = bitmapParaBase64(bitmap);
-                    imgPreview.setImageBitmap(bitmap);
-                    imgPreview.setVisibility(View.VISIBLE);
+                    cacheFotos.put(fotoAtualBase64, bitmap);
+                    if (imgPreview != null) {
+                        imgPreview.setImageBitmap(bitmap);
+                        imgPreview.setVisibility(View.VISIBLE);
+                    }
                 }
             }
     );
@@ -119,15 +127,9 @@ public class DiarioPlantaActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 final Planta p = PlantaService.obterPlantaPorId(plantaId);
-                runOnUiThread(() -> {
-                    List<RegistoDiario> diario;
-                    if (p != null) {
-                        diario = p.getDiario();
-                    } else {
-                        diario = null;
-                    }
-                    mostrarRegistos(diario);
-                });
+                final List<RegistoDiario> diario = (p != null) ? p.getDiario() : null;
+                predescodificarFotos(diario);
+                runOnUiThread(() -> mostrarRegistos(diario));
             } catch (Exception e) {
                 runOnUiThread(() -> txtEstadoDiario.setText("Erro ao carregar diário: " + e.getMessage()));
             }
@@ -135,19 +137,28 @@ public class DiarioPlantaActivity extends AppCompatActivity {
     }
 
     private void adicionarRegisto() {
-        final String texto = edtRegisto.getText().toString().trim();
-        if (texto.isEmpty()) {
-            Toast.makeText(this, "Escreve o estado de crescimento da planta.", Toast.LENGTH_SHORT).show();
+        String texto = edtRegisto.getText().toString().trim();
+
+        // Se nao escreveu nada nem tirou foto, avisa
+        if (texto.isEmpty() && fotoAtualBase64.isEmpty()) {
+            Toast.makeText(this, "Escreve o estado de crescimento ou tira uma foto.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // O model nao deixa guardar texto vazio, por isso metemos um texto base se for so foto
+        if (texto.isEmpty()) {
+            texto = "Foto adicionada";
+        }
+
+        final String textoFinal = texto;
         final String fotoParaEnviar = fotoAtualBase64;
         btnAdicionar.setEnabled(false);
         btnTirarFoto.setEnabled(false);
 
         new Thread(() -> {
             try {
-                final Planta pAtualizada = PlantaService.adicionarRegistoDiario(plantaId, texto, fotoParaEnviar);
+                final Planta pAtualizada = PlantaService.adicionarRegistoDiario(plantaId, textoFinal, fotoParaEnviar);
+                predescodificarFotos(pAtualizada.getDiario());
                 runOnUiThread(() -> {
                     btnAdicionar.setEnabled(true);
                     btnTirarFoto.setEnabled(true);
@@ -186,6 +197,7 @@ public class DiarioPlantaActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 final Planta pAtualizada = PlantaService.removerRegistoDiario(plantaId, registo);
+                predescodificarFotos(pAtualizada.getDiario());
                 runOnUiThread(() -> {
                     Toast.makeText(DiarioPlantaActivity.this, "Registo apagado do diário!", Toast.LENGTH_SHORT).show();
                     mostrarRegistos(pAtualizada.getDiario());
@@ -197,6 +209,20 @@ public class DiarioPlantaActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    // Descodifica as fotografias Base64 na thread de background antes de enviar para a interface
+    private void predescodificarFotos(List<RegistoDiario> registos) {
+        if (registos == null) return;
+        for (RegistoDiario r : registos) {
+            String base64 = r.getFotoBase64();
+            if (base64 != null && !base64.isEmpty() && !cacheFotos.containsKey(base64)) {
+                Bitmap bmp = base64ParaBitmap(base64);
+                if (bmp != null) {
+                    cacheFotos.put(base64, bmp);
+                }
+            }
+        }
     }
 
     private void mostrarRegistos(List<RegistoDiario> registos) {
@@ -233,7 +259,7 @@ public class DiarioPlantaActivity extends AppCompatActivity {
                     txtData.setText(sdf.format(r.getDataHora()));
                     txtTexto.setText(r.getTexto());
 
-                    Bitmap bmp = base64ParaBitmap(r.getFotoBase64());
+                    Bitmap bmp = cacheFotos.get(r.getFotoBase64());
                     if (bmp != null) {
                         imgFoto.setImageBitmap(bmp);
                         imgFoto.setVisibility(View.VISIBLE);

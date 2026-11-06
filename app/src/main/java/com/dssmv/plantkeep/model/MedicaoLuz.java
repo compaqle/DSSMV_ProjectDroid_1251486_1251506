@@ -47,8 +47,9 @@ public class MedicaoLuz {
     public int melhorLeitura() {
         int max = 0;
         for (int v = 0; v < lux.size(); v++) {
-            if (v > max) {
-                max = v;
+            int valor = lux.get(v);
+            if (valor > max) {
+                max = valor;
             }
         }
         return max;
