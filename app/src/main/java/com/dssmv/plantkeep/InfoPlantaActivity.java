@@ -16,14 +16,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.dssmv.plantkeep.dto.DetalheOpb;
+import com.dssmv.plantkeep.model.CuidadosEspecie;
 import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
 
 /**
  * Ecrã com as informações relevantes de uma planta (vindas do OpenPlantbook),
- * apresentadas quase em bruto: imagem + valores dos cuidados.
  */
 public class InfoPlantaActivity extends AppCompatActivity {
 
@@ -99,19 +98,9 @@ public class InfoPlantaActivity extends AppCompatActivity {
 
     private void abrirVerificacaoLuz() {
         Intent i = new Intent(this, MedirLuzActivity.class);
-        int valorMinLux;
-        if (minLux != null) {
-            valorMinLux = minLux;
-        } else {
-            valorMinLux = -1;
-        }
+        int valorMinLux = (minLux != null) ? minLux : -1;
         i.putExtra("minLux", valorMinLux);
-        int valorMaxLux;
-        if (maxLux != null) {
-            valorMaxLux = maxLux;
-        } else {
-            valorMaxLux = -1;
-        }
+        int valorMaxLux = (maxLux != null) ? maxLux : -1;
         i.putExtra("maxLux", valorMaxLux);
         startActivity(i);
     }
@@ -130,12 +119,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
             Toast.makeText(this, "Sem id para apagar", Toast.LENGTH_SHORT).show();
             return;
         }
-        String nomePlanta;
-        if (nome != null) {
-            nomePlanta = nome;
-        } else {
-            nomePlanta = "planta";
-        }
+        String nomePlanta = (nome != null) ? nome : "planta";
         final Planta p = new Planta(nomePlanta, "");
         p.setId(id);
 
@@ -161,8 +145,8 @@ public class InfoPlantaActivity extends AppCompatActivity {
         }
         new Thread(() -> {
             try {
-                final DetalheOpb d = PlantBookService.detalhe(pid);
-                runOnUiThread(() -> mostrar(d));
+                final CuidadosEspecie cuidados = PlantBookService.detalhe(pid);
+                runOnUiThread(() -> mostrar(cuidados));
             } catch (Exception e) {
                 runOnUiThread(() -> Toast.makeText(InfoPlantaActivity.this,
                         "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -170,13 +154,16 @@ public class InfoPlantaActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void mostrar(DetalheOpb d) {
+    private void mostrar(CuidadosEspecie cuidados) {
+        if (cuidados == null) {
+            return;
+        }
         // guarda os limites de luz para a verificação de luz
-        minLux = d.getMinLightLux();
-        maxLux = d.getMaxLightLux();
+        minLux = cuidados.getMinLightLux();
+        maxLux = cuidados.getMaxLightLux();
 
         // imagem (só se existir)
-        final String url = d.getImageUrl();
+        final String url = cuidados.getImagemUrl();
         if (url != null && !url.isEmpty()) {
             new Thread(() -> {
                 final byte[] b = PlantBookService.obterImagemBytes(url);
@@ -188,19 +175,21 @@ public class InfoPlantaActivity extends AppCompatActivity {
             imgInfo.setVisibility(View.GONE);
         }
 
-        // dados crus: só as linhas que têm valor
-        adicionarLinha("Temperatura", intervalo(d.getMinTemp(), d.getMaxTemp()) + " °C");
-        adicionarLinha("Humidade do ar", intervalo(d.getMinEnvHumid(), d.getMaxEnvHumid()) + " %");
-        adicionarLinha("Humidade do solo", intervalo(d.getMinSoilMoist(), d.getMaxSoilMoist()) + " %");
-        adicionarLinha("Luz", intervalo(d.getMinLightLux(), d.getMaxLightLux()) + " lux");
-        adicionarLinha("Condutividade do solo", intervalo(d.getMinSoilEc(), d.getMaxSoilEc()) + " µS/cm");
-        adicionarLinha("Categoria", d.getCategory());
-        adicionarLinha("Origem", d.getOrigin());
+        // dados de cuidados: só as linhas que têm valor
+        adicionarLinha("Temperatura", intervalo(cuidados.getMinTemp(), cuidados.getMaxTemp()) + " °C");
+        adicionarLinha("Humidade do ar", intervalo(cuidados.getMinEnvHumid(), cuidados.getMaxEnvHumid()) + " %");
+        adicionarLinha("Humidade do solo", intervalo(cuidados.getMinSoilMoist(), cuidados.getMaxSoilMoist()) + " %");
+        adicionarLinha("Luz", intervalo(cuidados.getMinLightLux(), cuidados.getMaxLightLux()) + " lux");
+        adicionarLinha("Condutividade do solo", intervalo(cuidados.getMinSoilEc(), cuidados.getMaxSoilEc()) + " µS/cm");
+        adicionarLinha("Categoria", cuidados.getCategoria());
+        adicionarLinha("Origem", cuidados.getOrigem());
     }
 
     /** Adiciona uma linha "rotulo: valor" se o valor não for vazio. */
     private void adicionarLinha(String rotulo, String valor) {
-        if (valor == null || valor.trim().isEmpty() || valor.startsWith("null")) {
+        if (valor == null || valor.trim().isEmpty() || valor.startsWith("null")
+                || valor.trim().equals("°C") || valor.trim().equals("%")
+                || valor.trim().equals("lux") || valor.trim().equals("µS/cm")) {
             return;
         }
         TextView row = new TextView(this);

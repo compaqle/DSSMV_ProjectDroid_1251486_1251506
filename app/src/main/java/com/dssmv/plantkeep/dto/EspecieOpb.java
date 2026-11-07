@@ -5,6 +5,7 @@ package com.dssmv.plantkeep.dto;
  * Só campos e getters/setters. Nada de rede nem JSON.
  */
 public class EspecieOpb {
+
     private String pid;         // id da espécie no OpenPlantbook
     private String displayPid;  // nome técnico
     private String alias;       // apelido/filtro de pesquisa
@@ -44,6 +45,10 @@ public class EspecieOpb {
 
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     public void setCategory(String category) {

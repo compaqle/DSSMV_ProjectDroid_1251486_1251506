@@ -3,9 +3,12 @@ package com.dssmv.plantkeep.services;
 import com.dssmv.plantkeep.BuildConfig;
 import com.dssmv.plantkeep.dto.DetalheOpb;
 import com.dssmv.plantkeep.dto.EspecieOpb;
+import com.dssmv.plantkeep.dto.Mapper;
 import com.dssmv.plantkeep.handler.JsonHandler;
 import com.dssmv.plantkeep.handler.NetworkHandler;
 import com.dssmv.plantkeep.helper.Utils;
+import com.dssmv.plantkeep.model.CuidadosEspecie;
+import com.dssmv.plantkeep.model.Especie;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -14,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Serviço do OpenPlantbook
- * Obtém o token OAuth (cacheado na memória ~1h) e pesquisa espécies.
+ * Serviço do OpenPlantbook.
+ * Obtém o token OAuth, pesquisa espécies e devolve models
  */
 public class PlantBookService {
 
@@ -24,14 +27,12 @@ public class PlantBookService {
     private static String token;
     private static long tokenExpira;
 
-    // Cache em memória dos detalhes por pid: cada espécie é pedida à rede no máximo
-    // uma vez por execução, evitando ratelimit ao abrir os ecrãs repetidamente.
-    private static final Map<String, DetalheOpb> detalheCache = new HashMap<>();
+    private static final Map<String, CuidadosEspecie> detalheCache = new HashMap<>();
 
     private PlantBookService() {
     }
 
-    /** Token OAuth client_credentials, cacheado na memória até expirar. */
+    /** Token OAuth client_credentials, cacheado na memória até expirar */
     private static synchronized String getToken() throws Exception {
         if (token != null && System.currentTimeMillis() < tokenExpira) {
             return token;
@@ -48,35 +49,29 @@ public class PlantBookService {
         return token;
     }
 
-    /** Pesquisa espécies pelo nome/alias. Devolve a lista encontrada. */
-    public static List<EspecieOpb> pesquisar(String termo) throws Exception {
+    /** Pesquisa espécies pelo nome/alias. Devolve a lista de model Especie */
+    public static List<Especie> pesquisar(String termo) throws Exception {
         String url = BASE + "/plant/search?alias="
                 + URLEncoder.encode(termo, "UTF-8") + "&limit=20";
 
         String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
-        List<EspecieOpb> lista = JsonHandler.deSerializeJson2ListEspecieOpb(resp);
+        List<EspecieOpb> listaDtos = JsonHandler.deSerializeJson2ListEspecieOpb(resp);
 
         // filtra ruído: mantém o topo da API + quem tem o termo como palavra inteira no nome
-        lista = filtraRuido(lista, termo);
+        listaDtos = filtraRuido(listaDtos, termo);
 
-        // a pesquisa não devolve imagem nem nomes comuns; obtém-nos do detail de cada espécie
-        for (EspecieOpb e : lista) {
+        // a pesquisa não devolve imagem; obtém-na do detail de cada espécie
+        for (EspecieOpb e : listaDtos) {
             preencherDetalhe(e);
         }
-        return lista;
+        return Mapper.paraListaEspecies(listaDtos);
     }
-
 
     private static List<EspecieOpb> filtraRuido(List<EspecieOpb> lista, String termo) {
         if (lista.size() <= 1) {
             return lista;
         }
-        String q;
-        if (termo == null) {
-            q = "";
-        } else {
-            q = termo.trim().toLowerCase();
-        }
+        String q = (termo == null) ? "" : termo.trim().toLowerCase();
         List<EspecieOpb> out = new ArrayList<>();
         out.add(lista.get(0)); // match principal da API fica sempre
         for (int i = 1; i < lista.size(); i++) {
@@ -88,7 +83,7 @@ public class PlantBookService {
         return out;
     }
 
-    /** True se q aparece como palavra inteira (token) no nome. */
+    /** True se q aparece como palavra inteira (token) no nome */
     private static boolean temPalavra(String q, String nome) {
         if (q.isEmpty() || nome == null) {
             return false;
@@ -102,31 +97,45 @@ public class PlantBookService {
         return false;
     }
 
-    /** Preenche imagem e nomes comuns da espécie a partir do detail (vazio se der erro). */
+    /** Preenche imagem da espécie a partir do detail e atualiza o cache se possível */
     private static void preencherDetalhe(EspecieOpb e) {
         try {
+            CuidadosEspecie emCache = detalheCache.get(e.getPid());
+            if (emCache != null) {
+                e.setImageUrl(emCache.getImagemUrl());
+                return;
+            }
             String url = BASE + "/plant/detail/" + encPath(e.getPid()) + "/";
             String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
             JsonHandler.preencherDetalheEspecieOpb(resp, e);
+
+            DetalheOpb dtoDetalhe = JsonHandler.deSerializeJson2DetalheOpb(resp);
+            CuidadosEspecie modeloDetalhe = Mapper.paraModelo(dtoDetalhe);
+            if (modeloDetalhe != null && e.getPid() != null && !e.getPid().isEmpty()) {
+                detalheCache.put(e.getPid(), modeloDetalhe);
+            }
         } catch (Exception ex) {
             // sem detail não bloqueamos a lista
         }
     }
 
-    /** Devolve os dados completos de uma espécie (cuidados + imagem). Com cache por pid. */
-    public static DetalheOpb detalhe(String pid) throws Exception {
-        DetalheOpb emCache = detalheCache.get(pid);
+    /** Devolve os dados completos de cuidados de uma espécie. Com cache por pid. */
+    public static CuidadosEspecie detalhe(String pid) throws Exception {
+        CuidadosEspecie emCache = detalheCache.get(pid);
         if (emCache != null) {
             return emCache;
         }
         String url = BASE + "/plant/detail/" + encPath(pid) + "/";
         String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
-        DetalheOpb d = JsonHandler.deSerializeJson2DetalheOpb(resp);
-        detalheCache.put(pid, d);
-        return d;
+        DetalheOpb dto = JsonHandler.deSerializeJson2DetalheOpb(resp);
+        CuidadosEspecie cuidados = Mapper.paraModelo(dto);
+        if (cuidados != null) {
+            detalheCache.put(pid, cuidados);
+        }
+        return cuidados;
     }
 
-    /** Descarrega os bytes de uma imagem de planta.  */
+    /** Descarrega os bytes de uma imagem de planta. */
     public static byte[] obterImagemBytes(String url) {
         return NetworkHandler.getBytesFromUrl(url);
     }

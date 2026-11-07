@@ -16,7 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.dssmv.plantkeep.dto.EspecieOpb;
+import com.dssmv.plantkeep.model.Especie;
 import com.dssmv.plantkeep.model.Planta;
 import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
@@ -37,8 +37,8 @@ public class CriarPlantaActivity extends AppCompatActivity {
     private TextView lblResultado;
     private TextView txtEscolhida;
 
-    private List<EspecieOpb> lista;   // resultados da pesquisa
-    private EspecieOpb escolhida;     // espécie que o utilizador escolheu
+    private List<Especie> lista;   // resultados da pesquisa
+    private Especie escolhida;     // espécie que o utilizador escolheu
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +68,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                final List<EspecieOpb> l = PlantBookService.pesquisar(termo);
+                final List<Especie> l = PlantBookService.pesquisar(termo);
                 runOnUiThread(() -> mostrarResultados(l));
             } catch (Exception e) {
                 runOnUiThread(() -> {
@@ -80,7 +80,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void mostrarResultados(List<EspecieOpb> l) {
+    private void mostrarResultados(List<Especie> l) {
         btnPesquisar.setEnabled(true);
         if (l == null || l.isEmpty()) {
             Toast.makeText(this, "Não encontrei nada com esse nome. Experimenta o nome científico.",
@@ -89,11 +89,11 @@ public class CriarPlantaActivity extends AppCompatActivity {
         }
         lista = l;
 
-        lvResultados.setAdapter(new ArrayAdapter<EspecieOpb>(this, 0, lista) {
+        lvResultados.setAdapter(new ArrayAdapter<Especie>(this, 0, lista) {
             @NonNull
             @Override
             public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-                EspecieOpb e = getItem(position);
+                Especie e = getItem(position);
                 if (convertView == null) {
                     convertView = LayoutInflater.from(CriarPlantaActivity.this)
                             .inflate(R.layout.item_especie, parent, false);
@@ -101,24 +101,26 @@ public class CriarPlantaActivity extends AppCompatActivity {
                 TextView txt = convertView.findViewById(R.id.txt_especie);
                 ImageView img = convertView.findViewById(R.id.img_especie);
 
-                txt.setText(textoEspecie(e));
+                if (e != null) {
+                    txt.setText(e.getNomeFormatado());
 
-                final String url = e.getImageUrl();
-                final ImageView imgRef = img;
-                imgRef.setTag(url);
-                if (url == null || url.isEmpty()) {
-                    // sem imagem -> não mostra nada
-                    imgRef.setVisibility(View.INVISIBLE);
-                } else {
-                    imgRef.setVisibility(View.VISIBLE);
-                    new Thread(() -> {
-                        final byte[] b = PlantBookService.obterImagemBytes(url);
-                        imgRef.post(() -> {
-                            if (url.equals(imgRef.getTag()) && b != null) {
-                                imgRef.setImageBitmap(BitmapFactory.decodeByteArray(b, 0, b.length));
-                            }
-                        });
-                    }).start();
+                    final String url = e.getImagemUrl();
+                    final ImageView imgRef = img;
+                    imgRef.setTag(url);
+                    if (url == null || url.isEmpty()) {
+                        // sem imagem -> não mostra nada
+                        imgRef.setVisibility(View.INVISIBLE);
+                    } else {
+                        imgRef.setVisibility(View.VISIBLE);
+                        new Thread(() -> {
+                            final byte[] b = PlantBookService.obterImagemBytes(url);
+                            imgRef.post(() -> {
+                                if (url.equals(imgRef.getTag()) && b != null) {
+                                    imgRef.setImageBitmap(BitmapFactory.decodeByteArray(b, 0, b.length));
+                                }
+                            });
+                        }).start();
+                    }
                 }
                 return convertView;
             }
@@ -140,7 +142,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
         // passa de "resultados" para "escolha + nome/apelido"
         lblResultado.setVisibility(View.GONE);
         lvResultados.setVisibility(View.GONE);
-        txtEscolhida.setText("Espécie: " + escolhida.getDisplayPid());
+        txtEscolhida.setText("Espécie: " + escolhida.getNomeCientifico());
         txtEscolhida.setVisibility(View.VISIBLE);
         edtNome.setVisibility(View.VISIBLE);
         btnGuardar.setVisibility(View.VISIBLE);
@@ -151,7 +153,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
             return;
         }
         final String nome = edtNome.getText().toString().trim();
-        final String especie = escolhida.getDisplayPid();
+        final String especie = escolhida.getNomeCientifico();
         final String pid = escolhida.getPid();
 
         new Thread(() -> {
@@ -170,20 +172,4 @@ public class CriarPlantaActivity extends AppCompatActivity {
             }
         }).start();
     }
-
-    /** Texto mostrado para uma espécie: nome + alias entre parênteses. */
-    private String textoEspecie(EspecieOpb e) {
-        String texto;
-        if (e.getDisplayPid() == null || e.getDisplayPid().isEmpty()) {
-            texto = e.getPid();
-        } else {
-            texto = e.getDisplayPid();
-        }
-        if (e.getAlias() != null && !e.getAlias().isEmpty()
-                && !e.getAlias().equalsIgnoreCase(texto)) {
-            texto = texto + " (" + e.getAlias() + ")";
-        }
-        return texto;
-    }
-
 }

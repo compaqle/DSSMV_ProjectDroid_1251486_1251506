@@ -6,11 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- * Model de um Aviso/Alerta para uma planta, incluindo a data e hora do evento.
- * Contém também as decisões de negócio (verificarTemperatura/HumidadeSolo):
- * a lógica de "quando disparar um aviso" vive aqui, não no service.
- */
 public class Aviso {
 
     // Duração do efeito de uma rega (3 dias em milissegundos)
@@ -58,58 +53,63 @@ public class Aviso {
         return new Date(dataHora.getTime());
     }
 
-    /** Decide se há aviso de temperatura: compara a previsão do container com os limites da espécie. */
-    public static Aviso verificarTemperatura(Planta p, Integer minTemp, Integer maxTemp,
+    /** Decide se há aviso de temperatura */
+    public static Aviso verificarTemperatura(Planta p, CuidadosEspecie cuidados,
                                              MeteorologiaContainer meteo) {
+        if (cuidados == null || meteo == null) {
+            return null;
+        }
         Meteorologia registoMin = meteo.obterRegistoTemperaturaMinimaPrevista();
-        Meteorologia registoMax = meteo.obterRegistoTemperaturaMaximaPrevista();
-
-        if (minTemp != null && registoMin != null && registoMin.getTemperatura() < minTemp) {
+        if (registoMin != null && !cuidados.isTemperaturaAdequada(registoMin.getTemperatura())
+                && cuidados.isTemperaturaAbaixoDoMinimo(registoMin.getTemperatura())) {
             String msg = String.format(Locale.ROOT,
-                    "Frio previsto (%.1f°C, Min: %d°C)", registoMin.getTemperatura(), minTemp);
+                    "Frio previsto (%.1f°C, Min: %d°C)", registoMin.getTemperatura(), cuidados.getMinTemp());
             return new Aviso(p, TipoAviso.TEMPERATURA_BAIXA, msg, registoMin.getDataHora());
         }
 
-        if (maxTemp != null && registoMax != null && registoMax.getTemperatura() > maxTemp) {
+        Meteorologia registoMax = meteo.obterRegistoTemperaturaMaximaPrevista();
+        if (registoMax != null && !cuidados.isTemperaturaAdequada(registoMax.getTemperatura())
+                && cuidados.isTemperaturaAcimaDoMaximo(registoMax.getTemperatura())) {
             String msg = String.format(Locale.ROOT,
-                    "Calor previsto (%.1f°C, Max: %d°C).", registoMax.getTemperatura(), maxTemp);
+                    "Calor previsto (%.1f°C, Max: %d°C).", registoMax.getTemperatura(), cuidados.getMaxTemp());
             return new Aviso(p, TipoAviso.TEMPERATURA_ALTA, msg, registoMax.getDataHora());
         }
         return null;
     }
 
-    /** Decide se há aviso de humidade do solo (rega necessária ou solo encharcado). Devolve Aviso ou null. */
-    public static Aviso verificarHumidadeSolo(Planta p, Integer minSoilMoist, Integer maxSoilMoist,
+    /** Decide se há aviso de humidade do solo */
+    public static Aviso verificarHumidadeSolo(Planta p, CuidadosEspecie cuidados,
                                               MeteorologiaContainer meteo) {
-        if (minSoilMoist != null) {
+        if (cuidados == null || meteo == null) {
+            return null;
+        }
+        if (cuidados.getMinSoilMoist() != null) {
             long agoraMs = System.currentTimeMillis();
             // Se foi regada há menos de 3 dias, só procura necessidade de rega após esses 3 dias
             long fimEfeitoRegaMs = p.getUltimaRega() + EFEITO_REGA_MS;
             Date procurarAPartirDe = new Date(Math.max(agoraMs, fimEfeitoRegaMs));
 
             Meteorologia registoRega = meteo.obterPrimeiroRegistoAbaixoHumidadeMinima(
-                    minSoilMoist, procurarAPartirDe);
+                    cuidados.getMinSoilMoist(), procurarAPartirDe);
             if (registoRega != null) {
                 return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", registoRega.getDataHora());
             }
         }
 
         Meteorologia registoHumido = meteo.obterRegistoHumidadeSoloMaximaPrevista();
-        if (maxSoilMoist != null && registoHumido != null && registoHumido.getHumidadeSolo() > maxSoilMoist) {
+        if (registoHumido != null && cuidados.isHumidadeSoloAcimaDoMaximo(registoHumido.getHumidadeSolo())) {
             String msg = String.format(Locale.ROOT,
-                    "Solo encharcado previsto (%.1f%%, Max: %d%%).", registoHumido.getHumidadeSolo(), maxSoilMoist);
+                    "Solo encharcado previsto (%.1f%%, Max: %d%%).",
+                    registoHumido.getHumidadeSolo(), cuidados.getMaxSoilMoist());
             return new Aviso(p, TipoAviso.HUMIDADE_SOLO_ALTA, msg, registoHumido.getDataHora());
         }
         return null;
     }
 
-    /**
-     * Próxima rega recomendada para uma planta. Se a meteorologia previr seca
-     * (solo abaixo do mínimo), devolve a data dessa rega
-     */
-    public static Aviso obterProximaRega(Planta p, Integer minSoilMoist, Integer maxSoilMoist,
+    /** Próxima rega recomendada para uma planta */
+    public static Aviso obterProximaRega(Planta p, CuidadosEspecie cuidados,
                                          MeteorologiaContainer meteo) {
-        Aviso porMeteo = verificarHumidadeSolo(p, minSoilMoist, maxSoilMoist, meteo);
+        Aviso porMeteo = verificarHumidadeSolo(p, cuidados, meteo);
         if (porMeteo != null && porMeteo.getTipo() == TipoAviso.HUMIDADE_SOLO_BAIXA) {
             return porMeteo; // meteorologia prevê seca -> regar nesse dia
         }
