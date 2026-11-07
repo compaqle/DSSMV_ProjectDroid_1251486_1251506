@@ -16,7 +16,7 @@ public class AvisoService {
 
     private AvisoService() {}
 
-    // Obtém todos os avisos meteorológicos ativos para as plantas do utilizador.
+    // Obtém todos os avisos meteorológicos ativos para as plantas do utilizador
     public static List<Aviso> obterAvisosAtuais() throws Exception {
         return gerarAvisos(MeteorologiaContainer.getInstance());
     }
@@ -37,7 +37,7 @@ public class AvisoService {
                 CuidadosEspecie cuidados = PlantBookService.detalhe(p.getPid());
                 avisos.addAll(gerarAvisosPlanta(p, cuidados, meteo));
             } catch (Exception ignored) {
-                // planta individual não deve bloquear as restantes
+                // Erro numa planta não bloqueia as restantes
             }
         }
         return avisos;
@@ -49,10 +49,8 @@ public class AvisoService {
         if (p == null || cuidados == null || meteo == null) {
             return avisosPlanta;
         }
-        Aviso temperatura = Aviso.verificarTemperatura(p, cuidados, meteo);
-        if (temperatura != null) {
-            avisosPlanta.add(temperatura);
-        }
+        avisosPlanta.addAll(Aviso.verificarTemperatura(p, cuidados, meteo));
+
         Aviso humidadeAlta = Aviso.verificarHumidadeSolo(p, cuidados, meteo);
         if (humidadeAlta != null) {
             avisosPlanta.add(humidadeAlta);

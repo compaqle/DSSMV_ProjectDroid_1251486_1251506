@@ -44,47 +44,52 @@ public class JsonHandler {
         return o.toString();
     }
 
-    // Converte o JSON do RestDB para PlantaDTO
+    // Converte o JSON de uma única planta do RestDB para PlantaDTO
+    public static PlantaDTO deSerializeJson2PlantaDTO(String json) throws JSONException {
+        return parsePlantaDTO(new JSONObject(json));
+    }
+
+    // Converte o JSON da lista de plantas do RestDB para PlantaDTO
     public static List<PlantaDTO> deSerializeJson2ListPlantaDTO(String json) throws JSONException {
         List<PlantaDTO> dtos = new ArrayList<>();
         JSONArray arr = new JSONArray(json);
-
         for (int i = 0; i < arr.length(); i++) {
-            JSONObject o = arr.getJSONObject(i);
-            List<RegistoDiarioDTO> diario = new ArrayList<>();
-            JSONArray arrDiario = o.optJSONArray("diario");
+            dtos.add(parsePlantaDTO(arr.getJSONObject(i)));
+        }
+        return dtos;
+    }
 
-            if (arrDiario != null) {
-                for (int j = 0; j < arrDiario.length(); j++) {
-                    JSONObject regObj = arrDiario.optJSONObject(j);
-                    if (regObj != null) {
-                        String texto = regObj.optString("texto", "");
-                        long dataHora = regObj.optLong("dataHora", System.currentTimeMillis());
-                        String fotoBase64 = regObj.optString("fotoBase64", "");
-                        if (!texto.isEmpty()) {
-                            diario.add(new RegistoDiarioDTO(texto, dataHora, fotoBase64));
-                        }
+    // Extrai os campos de um objeto JSON de planta para PlantaDTO
+    private static PlantaDTO parsePlantaDTO(JSONObject o) {
+        List<RegistoDiarioDTO> diario = new ArrayList<>();
+        JSONArray arrDiario = o.optJSONArray("diario");
+        if (arrDiario != null) {
+            for (int j = 0; j < arrDiario.length(); j++) {
+                JSONObject regObj = arrDiario.optJSONObject(j);
+                if (regObj != null) {
+                    String texto = regObj.optString("texto", "");
+                    long dataHora = regObj.optLong("dataHora", System.currentTimeMillis());
+                    String fotoBase64 = regObj.optString("fotoBase64", "");
+                    if (!texto.isEmpty()) {
+                        diario.add(new RegistoDiarioDTO(texto, dataHora, fotoBase64));
                     }
                 }
             }
-
-            dtos.add(new PlantaDTO(
-                    o.optString("_id", null),
-                    o.optString("nome", ""),
-                    o.optString("especie", ""),
-                    o.optString("pid", ""),
-                    o.optLong("ultimaRega", 0L),
-                    diario
-            ));
         }
-        return dtos;
+        return new PlantaDTO(
+                o.optString("_id", null),
+                o.optString("nome", ""),
+                o.optString("especie", ""),
+                o.optString("pid", ""),
+                o.optLong("ultimaRega", 0L),
+                diario
+        );
     }
 
     // Converte o JSON do Open-Meteo para MeteorologiaDTO
     public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(String json) throws JSONException {
         List<MeteorologiaDTO> dtos = new ArrayList<>();
         JSONObject hourlyData = new JSONObject(json).getJSONObject("hourly");
-
         JSONArray times = hourlyData.getJSONArray("time");
         JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
         JSONArray precipitations = hourlyData.getJSONArray("precipitation");
@@ -98,7 +103,6 @@ public class JsonHandler {
             double temperatura = temperatures.getDouble(i);
             double precipitacao = Math.max(0.0, precipitations.optDouble(i, 0.0));
             double humidadeSolo = soilMoistures.optDouble(i, 0.0) * 100.0;
-
             dtos.add(new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData));
         }
         return dtos;
@@ -116,14 +120,12 @@ public class JsonHandler {
     public static List<EspecieOpb> deSerializeJson2ListEspecieOpb(String json) throws JSONException {
         JSONArray results = new JSONObject(json).getJSONArray("results");
         List<EspecieOpb> lista = new ArrayList<>();
-
         for (int i = 0; i < results.length(); i++) {
             JSONObject r = results.getJSONObject(i);
             EspecieOpb e = new EspecieOpb();
             e.setPid(r.optString("pid", ""));
             e.setDisplayPid(r.optString("display_pid", ""));
             e.setAlias(r.optString("alias", ""));
-            e.setCategory(r.optString("category", ""));
             lista.add(e);
         }
         return lista;

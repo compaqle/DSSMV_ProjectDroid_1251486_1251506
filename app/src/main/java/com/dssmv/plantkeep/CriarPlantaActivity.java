@@ -1,6 +1,5 @@
 package com.dssmv.plantkeep;
 
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,10 +21,7 @@ import com.dssmv.plantkeep.services.PlantaService;
 
 import java.util.List;
 
-/**
- * Ecrã de criar planta
- * Permite escolher o nome da espécie e o apelido da planta
- */
+// Ecrã que permite pesquisar a espécie e guardar uma nova planta
 public class CriarPlantaActivity extends AppCompatActivity {
 
     private EditText edtPesquisa;
@@ -43,7 +38,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_criar_planta);
 
         edtPesquisa = findViewById(R.id.edt_pesquisa);
         edtNome = findViewById(R.id.edt_nome);
@@ -65,7 +60,6 @@ public class CriarPlantaActivity extends AppCompatActivity {
             return;
         }
         btnPesquisar.setEnabled(false);
-
         new Thread(() -> {
             try {
                 final List<Especie> l = PlantBookService.pesquisar(termo);
@@ -88,7 +82,6 @@ public class CriarPlantaActivity extends AppCompatActivity {
             return;
         }
         lista = l;
-
         lvResultados.setAdapter(new ArrayAdapter<Especie>(this, 0, lista) {
             @NonNull
             @Override
@@ -99,34 +92,14 @@ public class CriarPlantaActivity extends AppCompatActivity {
                             .inflate(R.layout.item_especie, parent, false);
                 }
                 TextView txt = convertView.findViewById(R.id.txt_especie);
-                ImageView img = convertView.findViewById(R.id.img_especie);
-
                 if (e != null) {
                     txt.setText(e.getNomeFormatado());
-
-                    final String url = e.getImagemUrl();
-                    final ImageView imgRef = img;
-                    imgRef.setTag(url);
-                    if (url == null || url.isEmpty()) {
-                        // sem imagem -> não mostra nada
-                        imgRef.setVisibility(View.INVISIBLE);
-                    } else {
-                        imgRef.setVisibility(View.VISIBLE);
-                        new Thread(() -> {
-                            final byte[] b = PlantBookService.obterImagemBytes(url);
-                            imgRef.post(() -> {
-                                if (url.equals(imgRef.getTag()) && b != null) {
-                                    imgRef.setImageBitmap(BitmapFactory.decodeByteArray(b, 0, b.length));
-                                }
-                            });
-                        }).start();
-                    }
                 }
                 return convertView;
             }
         });
 
-        // passa de "pesquisa" para "resultados"
+        // Passa da pesquisa para a lista de resultados
         edtPesquisa.setVisibility(View.GONE);
         btnPesquisar.setVisibility(View.GONE);
         lblResultado.setVisibility(View.VISIBLE);
@@ -139,7 +112,7 @@ public class CriarPlantaActivity extends AppCompatActivity {
         }
         escolhida = lista.get(position);
 
-        // passa de "resultados" para "escolha + nome/apelido"
+        // Passa dos resultados para a introdução do nome/apelido
         lblResultado.setVisibility(View.GONE);
         lvResultados.setVisibility(View.GONE);
         txtEscolhida.setText("Espécie: " + escolhida.getNomeCientifico());

@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
                 if (result.containsValue(false)) {
                     mostrarEstado("Permissão de GPS negada.");
                     mostraErro("Permissão de GPS negada.");
+                } else {
+                    atualizarMeteorologia();
                 }
             }
     );
@@ -50,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_menu);
+        setContentView(R.layout.activity_main);
 
         txtEstadoAvisos = findViewById(R.id.txt_estado_avisos);
         lvAvisos = findViewById(R.id.lv_avisos);
@@ -93,9 +95,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void atualizarMeteorologia() {
+        if (aCarregarMeteo) {
+            return;
+        }
         aCarregarMeteo = true;
         mostrarEstado("A obter localização e meteorologia...");
-
         localizacaoProvider.obterLocalizacao(new LocalizacaoProvider.Callback() {
             @Override
             public void onLocalizacao(double latitude, double longitude) {

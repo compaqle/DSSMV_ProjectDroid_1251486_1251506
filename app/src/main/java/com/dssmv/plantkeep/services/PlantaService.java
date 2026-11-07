@@ -26,19 +26,15 @@ public class PlantaService {
         return Mapper.listPlantaDTO2listPlanta(dtos);
     }
 
-    // Procura uma planta pelo seu ID
+    // Obtém uma única planta diretamente pelo seu ID no RestDB
     public static Planta obterPlantaPorId(String id) throws Exception {
         if (id == null || id.isEmpty()) {
             return null;
         }
-        List<Planta> plantas = getPlantas();
-        for (int i = 0; i < plantas.size(); i++) {
-            Planta p = plantas.get(i);
-            if (p != null && id.equals(p.getId())) {
-                return p;
-            }
-        }
-        return null;
+        String url = NetworkHandler.BASE + "/planta/" + id;
+        String json = NetworkHandler.getDataInStringFromUrl(url);
+        PlantaDTO dto = JsonHandler.deSerializeJson2PlantaDTO(json);
+        return Mapper.plantaDTO2Planta(dto);
     }
 
     // Guarda uma nova planta na base de dados

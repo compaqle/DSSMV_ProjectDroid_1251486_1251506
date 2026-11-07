@@ -1,7 +1,5 @@
 package com.dssmv.plantkeep.model;
 
-import androidx.annotation.NonNull;
-
 public class CuidadosEspecie {
 
     private final Integer minTemp;
@@ -116,7 +114,6 @@ public class CuidadosEspecie {
         return maxSoilMoist != null && humidade > maxSoilMoist;
     }
 
-    @NonNull
     @Override
     public String toString() {
         return "CuidadosEspecie{" +

@@ -11,7 +11,7 @@ public class MeteorologiaContainer {
         boolean escolherNovo(Meteorologia candidato, Meteorologia atual);
     }
 
-    private List<Meteorologia> previsaoHoraria;
+    private volatile List<Meteorologia> previsaoHoraria;
     private static MeteorologiaContainer instancia;
 
     private MeteorologiaContainer() {
@@ -25,26 +25,26 @@ public class MeteorologiaContainer {
         return instancia;
     }
 
-    public List<Meteorologia> getPrevisaoHoraria() {
+    public synchronized List<Meteorologia> getPrevisaoHoraria() {
         return Collections.unmodifiableList(previsaoHoraria);
     }
 
-    public void setPrevisaoHoraria(List<Meteorologia> previsaoHoraria) {
+    public synchronized void setPrevisaoHoraria(List<Meteorologia> previsaoHoraria) {
         this.previsaoHoraria = (previsaoHoraria != null) ? new ArrayList<>(previsaoHoraria) : new ArrayList<>();
     }
 
     // Devolve o registo mais frio previsto a partir de agora
-    public Meteorologia obterRegistoTemperaturaMinimaPrevista() {
+    public synchronized Meteorologia obterRegistoTemperaturaMinimaPrevista() {
         return procurarExtremo((r, min) -> r.getTemperatura() < min.getTemperatura());
     }
 
     // Devolve o registo mais quente previsto a partir de agora
-    public Meteorologia obterRegistoTemperaturaMaximaPrevista() {
+    public synchronized Meteorologia obterRegistoTemperaturaMaximaPrevista() {
         return procurarExtremo((r, max) -> r.getTemperatura() > max.getTemperatura());
     }
 
     // Devolve o registo com maior humidade do solo prevista a partir de agora
-    public Meteorologia obterRegistoHumidadeSoloMaximaPrevista() {
+    public synchronized Meteorologia obterRegistoHumidadeSoloMaximaPrevista() {
         return procurarExtremo((r, max) -> r.getHumidadeSolo() > max.getHumidadeSolo());
     }
 
@@ -52,7 +52,6 @@ public class MeteorologiaContainer {
     private Meteorologia procurarExtremo(ComparadorRegisto comparador) {
         Date agora = new Date();
         Meteorologia escolhido = null;
-
         for (int i = 0; i < previsaoHoraria.size(); i++) {
             Meteorologia registo = previsaoHoraria.get(i);
             if (registo != null && registo.getDataHora() != null && !registo.getDataHora().before(agora)) {
@@ -65,9 +64,8 @@ public class MeteorologiaContainer {
     }
 
     // Devolve o primeiro registo em que a humidade do solo fica abaixo do mínimo
-    public Meteorologia obterPrimeiroRegistoAbaixoHumidadeMinima(int minSoilMoist, Date aPartirDe) {
+    public synchronized Meteorologia obterPrimeiroRegistoAbaixoHumidadeMinima(int minSoilMoist, Date aPartirDe) {
         Date inicio = (aPartirDe != null) ? new Date(aPartirDe.getTime()) : new Date();
-
         for (int i = 0; i < previsaoHoraria.size(); i++) {
             Meteorologia registo = previsaoHoraria.get(i);
             if (registo != null && registo.getDataHora() != null && !registo.getDataHora().before(inicio)) {

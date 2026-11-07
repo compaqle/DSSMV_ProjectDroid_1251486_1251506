@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public class Mapper {
 
-    private Mapper() {}   // só métodos estáticos, nunca instanciar
+    private Mapper() {} // Só métodos estáticos, nunca instanciar
 
     // Passa RegistoDiarioDTO para o model RegistoDiario
     public static RegistoDiario registoDiarioDTO2RegistoDiario(RegistoDiarioDTO dto) {
@@ -27,13 +27,12 @@ public class Mapper {
         return new RegistoDiarioDTO(registo.getTexto(), registo.getDataHora().getTime(), registo.getFotoBase64());
     }
 
-    // Passa DTO para model (valida o nome)
+    // Passa PlantaDTO para o model Planta
     public static Planta plantaDTO2Planta(PlantaDTO dto) {
         Planta p = new Planta(dto.getNome(), dto.getEspecie());
         p.setId(dto.getId());
         p.setPid(dto.getPid());
         p.setUltimaRega(dto.getUltimaRega());
-
         List<RegistoDiario> registos = new ArrayList<>();
         if (dto.getDiario() != null) {
             List<RegistoDiarioDTO> diario = dto.getDiario();
@@ -48,7 +47,7 @@ public class Mapper {
         return p;
     }
 
-    // Passa model para DTO (para enviar)
+    // Passa model Planta para PlantaDTO
     public static PlantaDTO planta2PlantaDTO(Planta p) {
         List<RegistoDiarioDTO> registosDto = new ArrayList<>();
         if (p.getDiario() != null) {
@@ -63,7 +62,7 @@ public class Mapper {
         return new PlantaDTO(p.getId(), p.getNome(), p.getEspecie(), p.getPid(), p.getUltimaRega(), registosDto);
     }
 
-    // Passa uma lista DTO para uma lista model
+    // Passa uma lista de PlantaDTO para uma lista de Planta
     public static List<Planta> listPlantaDTO2listPlanta(List<PlantaDTO> dtos) {
         List<Planta> plantas = new ArrayList<>();
         if (dtos == null) {
@@ -105,7 +104,7 @@ public class Mapper {
         return previsoes;
     }
 
-    // Converte um EspecieOpb (DTO) para o model Especie
+    // Converte um EspecieOpb para o model Especie
     public static Especie paraModelo(EspecieOpb dto) {
         if (dto == null) {
             return null;
@@ -122,12 +121,11 @@ public class Mapper {
         return new Especie(
                 pid,
                 nomeCientifico,
-                textoSeguro(dto.getAlias()),
-                ""
+                textoSeguro(dto.getAlias())
         );
     }
 
-    // Converte uma lista de EspecieOpb (DTOs) para uma lista de models Especie
+    // Converte uma lista de EspecieOpb para uma lista de Especie
     public static List<Especie> paraListaEspecies(List<EspecieOpb> dtos) {
         List<Especie> especies = new ArrayList<>();
         if (dtos == null) {
@@ -143,33 +141,22 @@ public class Mapper {
         return especies;
     }
 
-    // Converte um DetalheOpb (DTO) para o model CuidadosEspecie
+    // Converte um DetalheOpb para o model CuidadosEspecie
     public static CuidadosEspecie paraModelo(DetalheOpb dto) {
         if (dto == null) {
             return null;
         }
-        Integer minTemp = menorLimite(dto.getMinTemp(), dto.getMaxTemp());
-        Integer maxTemp = maiorLimite(dto.getMinTemp(), dto.getMaxTemp());
-        Integer minEnvHumid = menorLimite(dto.getMinEnvHumid(), dto.getMaxEnvHumid());
-        Integer maxEnvHumid = maiorLimite(dto.getMinEnvHumid(), dto.getMaxEnvHumid());
-        Integer minLightLux = menorLimite(dto.getMinLightLux(), dto.getMaxLightLux());
-        Integer maxLightLux = maiorLimite(dto.getMinLightLux(), dto.getMaxLightLux());
-        Integer minSoilMoist = menorLimite(dto.getMinSoilMoist(), dto.getMaxSoilMoist());
-        Integer maxSoilMoist = maiorLimite(dto.getMinSoilMoist(), dto.getMaxSoilMoist());
-        Integer minSoilEc = menorLimite(dto.getMinSoilEc(), dto.getMaxSoilEc());
-        Integer maxSoilEc = maiorLimite(dto.getMinSoilEc(), dto.getMaxSoilEc());
-
         return new CuidadosEspecie(
-                minTemp,
-                maxTemp,
-                minEnvHumid,
-                maxEnvHumid,
-                minLightLux,
-                maxLightLux,
-                minSoilMoist,
-                maxSoilMoist,
-                minSoilEc,
-                maxSoilEc,
+                dto.getMinTemp(),
+                dto.getMaxTemp(),
+                dto.getMinEnvHumid(),
+                dto.getMaxEnvHumid(),
+                dto.getMinLightLux(),
+                dto.getMaxLightLux(),
+                dto.getMinSoilMoist(),
+                dto.getMaxSoilMoist(),
+                dto.getMinSoilEc(),
+                dto.getMaxSoilEc(),
                 textoSeguro(dto.getCategory()),
                 textoSeguro(dto.getOrigin()),
                 textoSeguro(dto.getImageUrl())
@@ -178,19 +165,5 @@ public class Mapper {
 
     private static String textoSeguro(String valor) {
         return (valor != null) ? valor.trim() : "";
-    }
-
-    private static Integer menorLimite(Integer min, Integer max) {
-        if (min != null && max != null && min > max) {
-            return max;
-        }
-        return min;
-    }
-
-    private static Integer maiorLimite(Integer min, Integer max) {
-        if (min != null && max != null && min > max) {
-            return min;
-        }
-        return max;
     }
 }

@@ -15,9 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.dssmv.plantkeep.model.MedicaoLuz;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Ecrã de medição de luz
  * Faz 3 medições com o sensor de luz
@@ -29,19 +26,17 @@ public class MedirLuzActivity extends AppCompatActivity {
 
     private Button btnFazerMedicao;
     private TextView txtResultado;
-
     private Integer minLux;
     private Integer maxLux;
 
     private SensorManager sensorManager;
     private SensorEventListener listenerLuz;
     private Handler handler;
-    private float maxRange;
-    private int medicaoAtual = 0;
-    private boolean aMedir = false;
 
+    private int medicaoAtual = 0;
+    private int maiorLux = 0;
+    private boolean aMedir = false;
     private final int[] luxMedidos = new int[N_MEDICOES];
-    private final boolean[] saturados = new boolean[N_MEDICOES];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,19 +83,14 @@ public class MedirLuzActivity extends AppCompatActivity {
 
         aMedir = true;
         btnFazerMedicao.setEnabled(false);
-        maxRange = luz.getMaximumRange();
         final int[] maxLido = {0};
-        final boolean[] saturado = {false};
 
         listenerLuz = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
-                float valor = event.values[0];
-                if (valor >= maxRange) {
-                    saturado[0] = true;
-                }
+                int valor = (int) event.values[0];
                 if (valor > maxLido[0]) {
-                    maxLido[0] = (int) valor;
+                    maxLido[0] = valor;
                 }
             }
 
@@ -109,15 +99,16 @@ public class MedirLuzActivity extends AppCompatActivity {
         };
 
         sensorManager.registerListener(listenerLuz, luz, SensorManager.SENSOR_DELAY_NORMAL);
-
         handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
             sensorManager.unregisterListener(listenerLuz);
             listenerLuz = null;
             aMedir = false;
 
-            luxMedidos[medicaoAtual] = saturado[0] ? (int) maxRange : maxLido[0];
-            saturados[medicaoAtual] = saturado[0];
+            luxMedidos[medicaoAtual] = maxLido[0];
+            if (maxLido[0] > maiorLux) {
+                maiorLux = maxLido[0];
+            }
             medicaoAtual++;
 
             if (medicaoAtual >= N_MEDICOES) {
@@ -134,27 +125,33 @@ public class MedirLuzActivity extends AppCompatActivity {
         btnFazerMedicao.setEnabled(false);
         btnFazerMedicao.setText("Medição completa");
 
-        List<Integer> luxList = new ArrayList<>();
-        List<Boolean> satList = new ArrayList<>();
-        for (int i = 0; i < N_MEDICOES; i++) {
-            luxList.add(luxMedidos[i]);
-            satList.add(saturados[i]);
-        }
-        MedicaoLuz medicao = new MedicaoLuz(luxList, satList);
-
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < N_MEDICOES; i++) {
-            String valor = medicao.estaSaturada(i) ? ">= " + medicao.getLux(i) : String.valueOf(medicao.getLux(i));
-            sb.append("Medição ").append(i + 1).append(": ").append(valor).append(" lux\n");
+            sb.append("Medição ").append(i + 1).append(": ").append(luxMedidos[i]).append(" lux\n");
         }
         sb.append("\n");
         if (minLux != null || maxLux != null) {
             sb.append("Ideal: ").append(formatarIntervalo()).append(" lux\n");
         }
-        sb.append(medicao.avaliar(minLux, maxLux));
+
+        MedicaoLuz medicao = new MedicaoLuz(maiorLux);
+        sb.append(obterTextoAvaliacao(medicao.avaliar(minLux, maxLux)));
 
         txtResultado.setText(sb.toString());
         txtResultado.setVisibility(View.VISIBLE);
+    }
+
+    private String obterTextoAvaliacao(MedicaoLuz.Resultado resultado) {
+        if (resultado == MedicaoLuz.Resultado.LUZ_INSUFICIENTE) {
+            return "Luz a menos — este local está MUITO ESCURO para a planta (MAU).";
+        }
+        if (resultado == MedicaoLuz.Resultado.LUZ_EXCESSIVA) {
+            return "Luz a mais — o sol aqui é forte demais para a planta (MAU).";
+        }
+        if (resultado == MedicaoLuz.Resultado.LUZ_ADEQUADA) {
+            return "Luz adequada — este local é BOM para a planta.";
+        }
+        return "Sem intervalo ideal de lux conhecido para esta espécie.";
     }
 
     private String formatarIntervalo() {

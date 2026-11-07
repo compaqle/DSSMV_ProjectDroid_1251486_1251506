@@ -1,7 +1,5 @@
 package com.dssmv.plantkeep.model;
 
-import androidx.annotation.NonNull;
-
 import java.util.Date;
 
 public class Meteorologia {
@@ -55,11 +53,10 @@ public class Meteorologia {
         this.dataHora = new Date(dataHora.getTime());
     }
 
-    @NonNull
     @Override
     public String toString() {
         return "Meteorologia{" +
-                "temperatura=" + temperatura + "°C, " +
+                "temperatura=" + temperatura + " °C, " +
                 "precipitacao=" + precipitacao + "mm, " +
                 "humidadeSolo=" + humidadeSolo + "%, " +
                 "dataHora=" + dataHora + '}';

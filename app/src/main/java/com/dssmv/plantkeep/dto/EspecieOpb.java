@@ -1,15 +1,12 @@
 package com.dssmv.plantkeep.dto;
 
-
 public class EspecieOpb {
 
     private String pid;
     private String displayPid;
     private String alias;
-    private String category;
 
-    public EspecieOpb() {
-    }
+    public EspecieOpb() {}
 
     public String getPid() {
         return pid;
@@ -33,13 +30,5 @@ public class EspecieOpb {
 
     public void setAlias(String alias) {
         this.alias = alias;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 }

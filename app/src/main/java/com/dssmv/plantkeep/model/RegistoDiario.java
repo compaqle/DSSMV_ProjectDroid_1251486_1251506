@@ -1,18 +1,15 @@
 package com.dssmv.plantkeep.model;
 
-import androidx.annotation.NonNull;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
-
 public class RegistoDiario {
 
     private String texto;
     private Date dataHora;
-    private String fotoBase64; // Fotografia codificada em Base64
+    private String fotoBase64;
 
     public RegistoDiario(String texto, Date dataHora, String fotoBase64) {
         setTexto(texto);
@@ -47,21 +44,16 @@ public class RegistoDiario {
     }
 
     public void setFotoBase64(String fotoBase64) {
-        if (fotoBase64 != null) {
-            this.fotoBase64 = fotoBase64;
-        } else {
-            this.fotoBase64 = "";
-        }
+        this.fotoBase64 = (fotoBase64 != null) ? fotoBase64 : "";
     }
 
-    @NonNull
     @Override
     public String toString() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale.getDefault());
         return sdf.format(dataHora) + "\n" + texto;
     }
 
-    // Permite comparar registos pelo momento em que foram criados e pelo conteúdo
+    // Permite comparar registos pela data/hora e pelo conteúdo de texto
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
