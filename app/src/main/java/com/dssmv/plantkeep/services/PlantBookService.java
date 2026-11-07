@@ -23,10 +23,8 @@ import java.util.Map;
 public class PlantBookService {
 
     private static final String BASE = Utils.OPB_BASE;
-
     private static String token;
     private static long tokenExpira;
-
     private static final Map<String, CuidadosEspecie> detalheCache = new HashMap<>();
 
     private PlantBookService() {
@@ -49,7 +47,7 @@ public class PlantBookService {
         return token;
     }
 
-    /** Pesquisa espécies pelo nome/alias. Devolve a lista de model Especie */
+    /** Pesquisa espécies pelo nome/alias. Devolve diretamente a lista de model Especie */
     public static List<Especie> pesquisar(String termo) throws Exception {
         String url = BASE + "/plant/search?alias="
                 + URLEncoder.encode(termo, "UTF-8") + "&limit=20";
@@ -60,10 +58,6 @@ public class PlantBookService {
         // filtra ruído: mantém o topo da API + quem tem o termo como palavra inteira no nome
         listaDtos = filtraRuido(listaDtos, termo);
 
-        // a pesquisa não devolve imagem; obtém-na do detail de cada espécie
-        for (EspecieOpb e : listaDtos) {
-            preencherDetalhe(e);
-        }
         return Mapper.paraListaEspecies(listaDtos);
     }
 
@@ -95,28 +89,6 @@ public class PlantBookService {
             }
         }
         return false;
-    }
-
-    /** Preenche imagem da espécie a partir do detail e atualiza o cache se possível */
-    private static void preencherDetalhe(EspecieOpb e) {
-        try {
-            CuidadosEspecie emCache = detalheCache.get(e.getPid());
-            if (emCache != null) {
-                e.setImageUrl(emCache.getImagemUrl());
-                return;
-            }
-            String url = BASE + "/plant/detail/" + encPath(e.getPid()) + "/";
-            String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
-            JsonHandler.preencherDetalheEspecieOpb(resp, e);
-
-            DetalheOpb dtoDetalhe = JsonHandler.deSerializeJson2DetalheOpb(resp);
-            CuidadosEspecie modeloDetalhe = Mapper.paraModelo(dtoDetalhe);
-            if (modeloDetalhe != null && e.getPid() != null && !e.getPid().isEmpty()) {
-                detalheCache.put(e.getPid(), modeloDetalhe);
-            }
-        } catch (Exception ex) {
-            // sem detail não bloqueamos a lista
-        }
     }
 
     /** Devolve os dados completos de cuidados de uma espécie. Com cache por pid. */

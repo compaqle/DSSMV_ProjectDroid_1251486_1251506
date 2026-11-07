@@ -34,18 +34,12 @@ public class JsonHandler {
                 JSONObject regObj = new JSONObject();
                 regObj.put("texto", r.getTexto());
                 regObj.put("dataHora", r.getDataHora());
-                String fotoBase64;
-                if (r.getFotoBase64() != null) {
-                    fotoBase64 = r.getFotoBase64();
-                } else {
-                    fotoBase64 = "";
-                }
+                String fotoBase64 = (r.getFotoBase64() != null) ? r.getFotoBase64() : "";
                 regObj.put("fotoBase64", fotoBase64);
                 arrDiario.put(regObj);
             }
         }
         o.put("diario", arrDiario);
-
         return o.toString();
     }
 
@@ -55,7 +49,6 @@ public class JsonHandler {
         JSONArray arr = new JSONArray(json);
         for (int i = 0; i < arr.length(); i++) {
             JSONObject o = arr.getJSONObject(i);
-
             List<RegistoDiarioDTO> diario = new ArrayList<>();
             JSONArray arrDiario = o.optJSONArray("diario");
             if (arrDiario != null) {
@@ -71,7 +64,6 @@ public class JsonHandler {
                     }
                 }
             }
-
             PlantaDTO dto = new PlantaDTO(
                     o.optString("_id", null),
                     o.optString("nome", ""),
@@ -88,7 +80,6 @@ public class JsonHandler {
     /** Passa o JSON do Open-Meteo (objeto "hourly") para List<MeteorologiaDTO> */
     public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(String json) throws JSONException {
         List<MeteorologiaDTO> dtos = new ArrayList<>();
-
         JSONObject jsonResponse = new JSONObject(json);
         JSONObject hourlyData = jsonResponse.getJSONObject("hourly");
 
@@ -103,8 +94,8 @@ public class JsonHandler {
             }
             String textoData = times.getString(i);
             double temperatura = temperatures.getDouble(i);
-            double precipitacao = precipitations.getDouble(i);
-            double humidadeSolo = soilMoistures.optDouble(i) * 100.0;
+            double precipitacao = Math.max(0.0, precipitations.optDouble(i, 0.0));
+            double humidadeSolo = soilMoistures.optDouble(i, 0.0) * 100.0;
 
             MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData);
             dtos.add(dto);

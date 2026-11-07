@@ -32,10 +32,10 @@ import com.dssmv.plantkeep.services.PlantaService;
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Ecrã do Diário da Planta: permite reportar o estado de crescimento (texto),
@@ -53,16 +53,18 @@ public class DiarioPlantaActivity extends AppCompatActivity {
 
     private String fotoAtualBase64 = "";
 
-    // Cache em memória para bitmaps descodificados (evita descodificar na Main Thread)
-    private final Map<String, Bitmap> cacheFotos = new HashMap<>();
+    // Cache thread-safe para bitmaps descodificados fora da Main Thread
+    private final Map<String, Bitmap> cacheFotos = new ConcurrentHashMap<>();
 
-    // Abre a camara e fica com a miniatura da foto
+    // Abre a câmara e fica com a miniatura da foto
     private final ActivityResultLauncher<Void> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.TakePicturePreview(),
             bitmap -> {
                 if (bitmap != null) {
                     fotoAtualBase64 = bitmapParaBase64(bitmap);
-                    cacheFotos.put(fotoAtualBase64, bitmap);
+                    if (!fotoAtualBase64.isEmpty()) {
+                        cacheFotos.put(fotoAtualBase64, bitmap);
+                    }
                     if (imgPreview != null) {
                         imgPreview.setImageBitmap(bitmap);
                         imgPreview.setVisibility(View.VISIBLE);
@@ -139,13 +141,13 @@ public class DiarioPlantaActivity extends AppCompatActivity {
     private void adicionarRegisto() {
         String texto = edtRegisto.getText().toString().trim();
 
-        // Se nao escreveu nada nem tirou foto, avisa
+        // Se não escreveu nada nem tirou foto, avisa
         if (texto.isEmpty() && fotoAtualBase64.isEmpty()) {
             Toast.makeText(this, "Escreve o estado de crescimento ou tira uma foto.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // O model nao deixa guardar texto vazio, por isso metemos um texto base se for so foto
+        // O model não deixa guardar texto vazio, por isso metemos um texto se for só foto
         if (texto.isEmpty()) {
             texto = "Foto adicionada";
         }
@@ -189,7 +191,7 @@ public class DiarioPlantaActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Remove o registo no RestDB e atualiza a interface
+    // Remove o registo no RestDB, limpa a foto da cache e atualiza a interface
     private void apagarRegisto(RegistoDiario registo) {
         txtEstadoDiario.setVisibility(View.VISIBLE);
         txtEstadoDiario.setText("A apagar registo...");
@@ -197,6 +199,10 @@ public class DiarioPlantaActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 final Planta pAtualizada = PlantaService.removerRegistoDiario(plantaId, registo);
+                String fotoApagada = registo.getFotoBase64();
+                if (fotoApagada != null && !fotoApagada.isEmpty()) {
+                    cacheFotos.remove(fotoApagada);
+                }
                 predescodificarFotos(pAtualizada.getDiario());
                 runOnUiThread(() -> {
                     Toast.makeText(DiarioPlantaActivity.this, "Registo apagado do diário!", Toast.LENGTH_SHORT).show();
@@ -211,7 +217,7 @@ public class DiarioPlantaActivity extends AppCompatActivity {
         }).start();
     }
 
-    // Descodifica as fotografias Base64 na thread de background antes de enviar para a interface
+    // Descodifica as fotografias Base64 na thread de background antes de atualizar a UI
     private void predescodificarFotos(List<RegistoDiario> registos) {
         if (registos == null) return;
         for (RegistoDiario r : registos) {
@@ -259,7 +265,8 @@ public class DiarioPlantaActivity extends AppCompatActivity {
                     txtData.setText(sdf.format(r.getDataHora()));
                     txtTexto.setText(r.getTexto());
 
-                    Bitmap bmp = cacheFotos.get(r.getFotoBase64());
+                    String base64 = r.getFotoBase64();
+                    Bitmap bmp = (base64 != null && !base64.isEmpty()) ? cacheFotos.get(base64) : null;
                     if (bmp != null) {
                         imgFoto.setImageBitmap(bmp);
                         imgFoto.setVisibility(View.VISIBLE);

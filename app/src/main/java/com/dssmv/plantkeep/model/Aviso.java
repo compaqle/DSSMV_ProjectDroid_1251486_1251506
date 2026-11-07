@@ -66,7 +66,6 @@ public class Aviso {
                     "Frio previsto (%.1f°C, Min: %d°C)", registoMin.getTemperatura(), cuidados.getMinTemp());
             return new Aviso(p, TipoAviso.TEMPERATURA_BAIXA, msg, registoMin.getDataHora());
         }
-
         Meteorologia registoMax = meteo.obterRegistoTemperaturaMaximaPrevista();
         if (registoMax != null && !cuidados.isTemperaturaAdequada(registoMax.getTemperatura())
                 && cuidados.isTemperaturaAcimaDoMaximo(registoMax.getTemperatura())) {
@@ -77,25 +76,12 @@ public class Aviso {
         return null;
     }
 
-    /** Decide se há aviso de humidade do solo */
+    /** Decide se há aviso meteorológico de solo encharcado */
     public static Aviso verificarHumidadeSolo(Planta p, CuidadosEspecie cuidados,
                                               MeteorologiaContainer meteo) {
-        if (cuidados == null || meteo == null) {
+        if (p == null || cuidados == null || meteo == null) {
             return null;
         }
-        if (cuidados.getMinSoilMoist() != null) {
-            long agoraMs = System.currentTimeMillis();
-            // Se foi regada há menos de 3 dias, só procura necessidade de rega após esses 3 dias
-            long fimEfeitoRegaMs = p.getUltimaRega() + EFEITO_REGA_MS;
-            Date procurarAPartirDe = new Date(Math.max(agoraMs, fimEfeitoRegaMs));
-
-            Meteorologia registoRega = meteo.obterPrimeiroRegistoAbaixoHumidadeMinima(
-                    cuidados.getMinSoilMoist(), procurarAPartirDe);
-            if (registoRega != null) {
-                return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", registoRega.getDataHora());
-            }
-        }
-
         Meteorologia registoHumido = meteo.obterRegistoHumidadeSoloMaximaPrevista();
         if (registoHumido != null && cuidados.isHumidadeSoloAcimaDoMaximo(registoHumido.getHumidadeSolo())) {
             String msg = String.format(Locale.ROOT,
@@ -109,11 +95,21 @@ public class Aviso {
     /** Próxima rega recomendada para uma planta */
     public static Aviso obterProximaRega(Planta p, CuidadosEspecie cuidados,
                                          MeteorologiaContainer meteo) {
-        Aviso porMeteo = verificarHumidadeSolo(p, cuidados, meteo);
-        if (porMeteo != null && porMeteo.getTipo() == TipoAviso.HUMIDADE_SOLO_BAIXA) {
-            return porMeteo; // meteorologia prevê seca -> regar nesse dia
+        if (p == null) {
+            return null;
         }
-        // sem seca prevista: próxima rega pela cadência normal (efeito de uma rega = 3 dias)
+        if (cuidados != null && meteo != null && cuidados.getMinSoilMoist() != null) {
+            long agoraMs = System.currentTimeMillis();
+            // Se foi regada há menos de 3 dias, só procura necessidade de rega após esses 3 dias
+            long fimEfeitoRegaMs = p.getUltimaRega() + EFEITO_REGA_MS;
+            Date procurarAPartirDe = new Date(Math.max(agoraMs, fimEfeitoRegaMs));
+            Meteorologia registoRega = meteo.obterPrimeiroRegistoAbaixoHumidadeMinima(
+                    cuidados.getMinSoilMoist(), procurarAPartirDe);
+            if (registoRega != null) {
+                return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", registoRega.getDataHora());
+            }
+        }
+        // Sem seca prevista: próxima rega pela cadência normal (efeito de uma rega = 3 dias)
         long base = p.getUltimaRega();
         long alvo = base + EFEITO_REGA_MS;
         if (base <= 0 || alvo <= System.currentTimeMillis()) {
@@ -129,7 +125,6 @@ public class Aviso {
         }
         // Calcula os dias arredondando para cima (ex: 72 horas = 3 dias)
         long dias = (long) Math.ceil(diffMs / (1000.0 * 60 * 60 * 24));
-
         if (dias <= 0) {
             return "hoje";
         } else if (dias == 1) {
@@ -145,7 +140,6 @@ public class Aviso {
         if (tipo == TipoAviso.HUMIDADE_SOLO_BAIXA) {
             return nomePlanta + " " + formatarData();
         }
-
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM 'às' HH:mm", Locale.getDefault());
         return nomePlanta + " (" + sdf.format(dataHora) + "): " + mensagem;
     }

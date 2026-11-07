@@ -23,7 +23,6 @@ import com.dssmv.plantkeep.services.LocalizacaoProvider;
 import com.dssmv.plantkeep.services.LocalizacaoService;
 import com.dssmv.plantkeep.services.MeteoService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,13 +33,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtEstadoAvisos;
     private ListView lvAvisos;
     private LocalizacaoProvider localizacaoProvider;
-    private boolean aCarregarMeteo = false;
+    private volatile boolean aCarregarMeteo = false;
 
     /** Pedido de permissões de GPS */
     private final ActivityResultLauncher<String[]> launcher = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(),
             result -> {
                 if (result.containsValue(false)) {
+                    txtEstadoAvisos.setVisibility(View.VISIBLE);
                     txtEstadoAvisos.setText("Permissão de GPS negada.");
                     mostraErro("Permissão de GPS negada.");
                 }
@@ -80,7 +80,9 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (!MeteorologiaContainer.getInstance().getPrevisaoHoraria().isEmpty()) {
-            carregarAvisos();
+            if (!aCarregarMeteo) {
+                carregarAvisos();
+            }
         } else if (temPermissaoGPS && !aCarregarMeteo) {
             atualizarMeteorologia();
         }
@@ -94,7 +96,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void atualizarMeteorologia() {
+        if (aCarregarMeteo) {
+            return;
+        }
         aCarregarMeteo = true;
+        txtEstadoAvisos.setVisibility(View.VISIBLE);
         txtEstadoAvisos.setText("A obter localização e meteorologia...");
 
         localizacaoProvider.obterLocalizacao(new LocalizacaoProvider.Callback() {
@@ -105,7 +111,10 @@ public class MainActivity extends AppCompatActivity {
                         MeteoService.carregarMeteorologia(latitude, longitude);
                         carregarAvisos();
                     } catch (Exception e) {
-                        runOnUiThread(() -> txtEstadoAvisos.setText("Erro ao obter dados meteorológicos."));
+                        runOnUiThread(() -> {
+                            txtEstadoAvisos.setVisibility(View.VISIBLE);
+                            txtEstadoAvisos.setText("Erro ao obter dados meteorológicos.");
+                        });
                         mostraErro("Erro ao obter dados meteorológicos");
                     } finally {
                         aCarregarMeteo = false;
@@ -116,43 +125,41 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onErro(String msg) {
                 aCarregarMeteo = false;
-                runOnUiThread(() -> txtEstadoAvisos.setText(msg));
+                runOnUiThread(() -> {
+                    txtEstadoAvisos.setVisibility(View.VISIBLE);
+                    txtEstadoAvisos.setText(msg);
+                });
                 mostraErro(msg);
             }
         });
     }
 
     private void carregarAvisos() {
-        runOnUiThread(() -> txtEstadoAvisos.setText("A verificar avisos meteorológicos..."));
-
+        runOnUiThread(() -> {
+            txtEstadoAvisos.setVisibility(View.VISIBLE);
+            txtEstadoAvisos.setText("A verificar avisos meteorológicos...");
+        });
         new Thread(() -> {
             try {
-                final List<Aviso> todos = AvisoService.obterAvisosAtuais();
-                runOnUiThread(() -> mostrarAvisos(todos));
+                final List<Aviso> avisos = AvisoService.obterAvisosAtuais();
+                runOnUiThread(() -> mostrarAvisos(avisos));
             } catch (Exception e) {
-                runOnUiThread(() -> txtEstadoAvisos.setText("Erro ao verificar avisos: " + e.getMessage()));
+                runOnUiThread(() -> {
+                    txtEstadoAvisos.setVisibility(View.VISIBLE);
+                    txtEstadoAvisos.setText("Erro ao verificar avisos: " + e.getMessage());
+                });
             }
         }).start();
     }
 
-    private void mostrarAvisos(List<Aviso> todos) {
-        List<Aviso> listaMeteorologia = new ArrayList<>();
-
-        if (todos != null) {
-            for (Aviso a : todos) {
-                if (a.getTipo() != Aviso.TipoAviso.HUMIDADE_SOLO_BAIXA) {
-                    listaMeteorologia.add(a);
-                }
-            }
-        }
-
-        if (listaMeteorologia.isEmpty()) {
+    private void mostrarAvisos(List<Aviso> avisos) {
+        if (avisos == null || avisos.isEmpty()) {
             txtEstadoAvisos.setVisibility(View.VISIBLE);
             txtEstadoAvisos.setText("Sem avisos");
             lvAvisos.setAdapter(null);
         } else {
             txtEstadoAvisos.setVisibility(View.GONE);
-            lvAvisos.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listaMeteorologia));
+            lvAvisos.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, avisos));
         }
     }
 

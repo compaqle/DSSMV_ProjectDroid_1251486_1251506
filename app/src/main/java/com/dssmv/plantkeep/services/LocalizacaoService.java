@@ -9,14 +9,19 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
 public class LocalizacaoService implements LocalizacaoProvider {
 
+    private static final long TIMEOUT_GPS_MS = 10000L; // 10 segundos
+
     private final Context context;
     private final LocationManager locationManager;
+    private final Handler timeoutHandler = new Handler(Looper.getMainLooper());
+    private Runnable timeoutRunnable;
     private BroadcastReceiver gpsReceiver;
     private LocationListener locationListener;
     private Callback callbackAtivo;
@@ -50,10 +55,11 @@ public class LocalizacaoService implements LocalizacaoProvider {
         tentarObterLocalizacao(gpsAtivo, redeAtiva);
     }
 
-    /** Interrompe qualquer pedido */
+    /** Interrompe qualquer pedido e limpa recursos */
     @Override
     public void pararObterLocalizacao() {
         this.callbackAtivo = null;
+        cancelarTimeout();
         removerReceiver();
         removerLocationUpdates();
     }
@@ -74,17 +80,10 @@ public class LocalizacaoService implements LocalizacaoProvider {
         context.registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
     }
 
-    /** Tenta obter a localização usando cache, se não houver pede uma localização nova */
+    /** Tenta obter a localização usando cache; se não houver, pede uma nova com timeout */
     @SuppressLint("MissingPermission")
     private void tentarObterLocalizacao(boolean gpsAtivo, boolean redeAtiva) {
-        Location ultimaLocalizacao = null;
-        if (gpsAtivo) {
-            ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        }
-        if (ultimaLocalizacao == null && redeAtiva) {
-            ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        }
-
+        Location ultimaLocalizacao = obterUltimaLocalizacaoConhecida(gpsAtivo, redeAtiva);
         if (ultimaLocalizacao != null) {
             notificarLocalizacaoELimpar(ultimaLocalizacao.getLatitude(), ultimaLocalizacao.getLongitude());
             return;
@@ -106,14 +105,45 @@ public class LocalizacaoService implements LocalizacaoProvider {
             public void onProviderDisabled(@NonNull String provider) {}
         };
 
-        String provider;
-        if (gpsAtivo) {
-            provider = LocationManager.GPS_PROVIDER;
-        } else {
-            provider = LocationManager.NETWORK_PROVIDER;
-        }
-
+        String provider = gpsAtivo ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
         locationManager.requestLocationUpdates(provider, 0, 0, locationListener, Looper.getMainLooper());
+
+        timeoutRunnable = () -> {
+            removerLocationUpdates();
+            Location fallback = obterUltimaLocalizacaoConhecida(
+                    locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER),
+                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+            );
+            if (fallback != null) {
+                notificarLocalizacaoELimpar(fallback.getLatitude(), fallback.getLongitude());
+            } else {
+                Callback cb = callbackAtivo;
+                pararObterLocalizacao();
+                if (cb != null) {
+                    cb.onErro("Não foi possível obter a localização (sinal GPS fraco).");
+                }
+            }
+        };
+        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_GPS_MS);
+    }
+
+    @SuppressLint("MissingPermission")
+    private Location obterUltimaLocalizacaoConhecida(boolean gpsAtivo, boolean redeAtiva) {
+        Location ultimaLocalizacao = null;
+        if (gpsAtivo) {
+            ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        }
+        if (ultimaLocalizacao == null && redeAtiva) {
+            ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+        return ultimaLocalizacao;
+    }
+
+    private void cancelarTimeout() {
+        if (timeoutRunnable != null) {
+            timeoutHandler.removeCallbacks(timeoutRunnable);
+            timeoutRunnable = null;
+        }
     }
 
     private void removerReceiver() {
