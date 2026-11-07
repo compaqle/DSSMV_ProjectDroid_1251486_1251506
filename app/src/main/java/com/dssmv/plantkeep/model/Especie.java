@@ -2,7 +2,6 @@ package com.dssmv.plantkeep.model;
 
 import androidx.annotation.NonNull;
 
-
 public class Especie {
 
     private final String pid;
@@ -32,10 +31,6 @@ public class Especie {
         return nomeCientifico;
     }
 
-    public String getApelido() {
-        return apelido;
-    }
-
     public String getCategoria() {
         return categoria;
     }
@@ -46,7 +41,7 @@ public class Especie {
 
     /**
      * Devolve o nome formatado para exibição na interface:
-     * Nome Científico (Apelido), evitando duplicação caso o apelido seja igual ao nome científico.
+     * Nome Científico (Apelido)
      */
     public String getNomeFormatado() {
         String texto = (nomeCientifico != null && !nomeCientifico.isEmpty()) ? nomeCientifico : pid;

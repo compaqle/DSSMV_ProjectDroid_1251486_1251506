@@ -25,7 +25,6 @@ import com.dssmv.plantkeep.services.MeteoService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Menu principal.
@@ -35,6 +34,19 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtEstadoAvisos;
     private ListView lvAvisos;
     private LocalizacaoProvider localizacaoProvider;
+    private boolean aCarregarMeteo = false;
+
+    /** Pedido de permissões de GPS */
+    private final ActivityResultLauncher<String[]> launcher = registerForActivityResult(
+            new ActivityResultContracts.RequestMultiplePermissions(),
+            result -> {
+                if (result.containsValue(false)) {
+                    txtEstadoAvisos.setText("Permissão de GPS negada.");
+                    mostraErro("Permissão de GPS negada.");
+                }
+                // Se foi concedida, o onResume() é chamado automaticamente a seguir e inicia a meteorologia
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,60 +63,38 @@ public class MainActivity extends AppCompatActivity {
         Button btnVer = findViewById(R.id.btn_ver_plantas);
         btnVer.setOnClickListener(v -> startActivity(new Intent(this, PlantasActivity.class)));
 
-        // Verifica permissões de localizacao
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+        // Pede permissão apenas se ainda não tiver (o onResume trata de carregar os dados)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             launcher.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
             });
-        } else {
-            atualizarMeteorologia();
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         boolean temPermissaoGPS = ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (!MeteorologiaContainer.getInstance().getPrevisaoHoraria().isEmpty()) {
             carregarAvisos();
-        } else if (temPermissaoGPS) {
+        } else if (temPermissaoGPS && !aCarregarMeteo) {
             atualizarMeteorologia();
         }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (localizacaoProvider != null) {
-            localizacaoProvider.pararObterLocalizacao();
-        }
+    protected void onStop() {
+        super.onStop();
+        localizacaoProvider.pararObterLocalizacao();
+        aCarregarMeteo = false;
     }
 
-    /** Pedido de permissões de GPS */
-    private final ActivityResultLauncher<String[]> launcher = registerForActivityResult(
-            new ActivityResultContracts.RequestMultiplePermissions(),
-            result -> {
-                boolean allGranted = true;
-                for (Map.Entry<String, Boolean> entry : result.entrySet()) {
-                    if (!entry.getValue()) {
-                        allGranted = false;
-                    }
-                }
-                if (allGranted) {
-                    atualizarMeteorologia();
-                } else {
-                    txtEstadoAvisos.setText("Permissão de GPS negada.");
-                    mostraErro("Permissão de GPS negada.");
-                }
-            }
-    );
-
     private void atualizarMeteorologia() {
+        aCarregarMeteo = true;
         txtEstadoAvisos.setText("A obter localização e meteorologia...");
 
         localizacaoProvider.obterLocalizacao(new LocalizacaoProvider.Callback() {
@@ -117,12 +107,15 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         runOnUiThread(() -> txtEstadoAvisos.setText("Erro ao obter dados meteorológicos."));
                         mostraErro("Erro ao obter dados meteorológicos");
+                    } finally {
+                        aCarregarMeteo = false;
                     }
                 }).start();
             }
 
             @Override
             public void onErro(String msg) {
+                aCarregarMeteo = false;
                 runOnUiThread(() -> txtEstadoAvisos.setText(msg));
                 mostraErro(msg);
             }
@@ -144,9 +137,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void mostrarAvisos(List<Aviso> todos) {
         List<Aviso> listaMeteorologia = new ArrayList<>();
+
         if (todos != null) {
             for (Aviso a : todos) {
-                // avisos de rega (humidade do solo baixa) agora vivem no ecrã de rega de cada planta
                 if (a.getTipo() != Aviso.TipoAviso.HUMIDADE_SOLO_BAIXA) {
                     listaMeteorologia.add(a);
                 }

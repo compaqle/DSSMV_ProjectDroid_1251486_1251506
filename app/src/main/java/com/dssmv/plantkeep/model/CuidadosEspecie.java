@@ -105,17 +105,6 @@ public class CuidadosEspecie {
         return imagemUrl;
     }
 
-    /** Verifica se o nível de luminosidade está dentro dos limites ideais da espécie */
-    public boolean isLuminosidadeAdequada(int lux) {
-        if (minLightLux != null && lux < minLightLux) {
-            return false;
-        }
-        if (maxLightLux != null && lux > maxLightLux) {
-            return false;
-        }
-        return true;
-    }
-
     /** Verifica se a temperatura está dentro dos limites suportados pela espécie */
     public boolean isTemperaturaAdequada(double temp) {
         return !isTemperaturaAbaixoDoMinimo(temp) && !isTemperaturaAcimaDoMaximo(temp);
@@ -129,21 +118,6 @@ public class CuidadosEspecie {
     /** True se a temperatura estiver estritamente acima do máximo suportado */
     public boolean isTemperaturaAcimaDoMaximo(double temp) {
         return maxTemp != null && temp > maxTemp;
-    }
-
-    /** Verifica se a humidade do solo (%) está dentro dos limites ideais da espécie */
-    public boolean isHumidadeSoloAdequada(int humidade) {
-        return isHumidadeSoloAdequada((double) humidade);
-    }
-
-    /** Verifica se a humidade do solo (%) está dentro dos limites ideais da espécie */
-    public boolean isHumidadeSoloAdequada(double humidade) {
-        return !isHumidadeSoloAbaixoDoMinimo(humidade) && !isHumidadeSoloAcimaDoMaximo(humidade);
-    }
-
-    /** True se a humidade do solo estiver abaixo do mínimo ideal */
-    public boolean isHumidadeSoloAbaixoDoMinimo(double humidade) {
-        return minSoilMoist != null && humidade < minSoilMoist;
     }
 
     /** True se a humidade do solo estiver acima do máximo ideal  */

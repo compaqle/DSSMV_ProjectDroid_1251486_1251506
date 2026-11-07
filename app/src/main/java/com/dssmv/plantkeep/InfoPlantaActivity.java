@@ -32,7 +32,7 @@ public class InfoPlantaActivity extends AppCompatActivity {
     private String pid;
     private String nome;
 
-    // limites de luz (lux) do ideal da espécie, para a verificação de luz
+    // limites de luz do ideal da espécie, para a verificação de luz
     private Integer minLux;
     private Integer maxLux;
 

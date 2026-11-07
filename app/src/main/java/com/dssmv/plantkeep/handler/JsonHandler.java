@@ -98,6 +98,9 @@ public class JsonHandler {
         JSONArray soilMoistures = hourlyData.getJSONArray("soil_moisture_1_to_3cm");
 
         for (int i = 0; i < times.length(); i++) {
+            if (temperatures.isNull(i) || soilMoistures.isNull(i)) {
+                continue;
+            }
             String textoData = times.getString(i);
             double temperatura = temperatures.getDouble(i);
             double precipitacao = precipitations.getDouble(i);
