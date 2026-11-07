@@ -13,14 +13,11 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * O tradutor de JSON
- */
 public class JsonHandler {
 
-    private JsonHandler() {}   // só métodos estáticos, nunca instanciar
+    private JsonHandler() {}
 
-    /** Passa um DTO para JSON (corpo de um POST ou PUT) */
+    // Converte uma PlantaDTO para JSON
     public static String serializePlantaDTO2Json(PlantaDTO dto) throws JSONException {
         JSONObject o = new JSONObject();
         o.put("nome", dto.getNome());
@@ -29,13 +26,17 @@ public class JsonHandler {
         o.put("ultimaRega", dto.getUltimaRega());
 
         JSONArray arrDiario = new JSONArray();
-        if (dto.getDiario() != null) {
-            for (RegistoDiarioDTO r : dto.getDiario()) {
+        List<RegistoDiarioDTO> diario = dto.getDiario();
+        if (diario != null) {
+            for (int i = 0; i < diario.size(); i++) {
+                RegistoDiarioDTO r = diario.get(i);
+                if (r == null) {
+                    continue;
+                }
                 JSONObject regObj = new JSONObject();
                 regObj.put("texto", r.getTexto());
                 regObj.put("dataHora", r.getDataHora());
-                String fotoBase64 = (r.getFotoBase64() != null) ? r.getFotoBase64() : "";
-                regObj.put("fotoBase64", fotoBase64);
+                regObj.put("fotoBase64", r.getFotoBase64() != null ? r.getFotoBase64() : "");
                 arrDiario.put(regObj);
             }
         }
@@ -43,14 +44,16 @@ public class JsonHandler {
         return o.toString();
     }
 
-    /** Passa um JSON (array) para List<PlantaDTO> */
+    // Converte o JSON do RestDB para PlantaDTO
     public static List<PlantaDTO> deSerializeJson2ListPlantaDTO(String json) throws JSONException {
         List<PlantaDTO> dtos = new ArrayList<>();
         JSONArray arr = new JSONArray(json);
+
         for (int i = 0; i < arr.length(); i++) {
             JSONObject o = arr.getJSONObject(i);
             List<RegistoDiarioDTO> diario = new ArrayList<>();
             JSONArray arrDiario = o.optJSONArray("diario");
+
             if (arrDiario != null) {
                 for (int j = 0; j < arrDiario.length(); j++) {
                     JSONObject regObj = arrDiario.optJSONObject(j);
@@ -64,24 +67,23 @@ public class JsonHandler {
                     }
                 }
             }
-            PlantaDTO dto = new PlantaDTO(
+
+            dtos.add(new PlantaDTO(
                     o.optString("_id", null),
                     o.optString("nome", ""),
                     o.optString("especie", ""),
                     o.optString("pid", ""),
                     o.optLong("ultimaRega", 0L),
                     diario
-            );
-            dtos.add(dto);
+            ));
         }
         return dtos;
     }
 
-    /** Passa o JSON do Open-Meteo (objeto "hourly") para List<MeteorologiaDTO> */
+    // Converte o JSON do Open-Meteo para MeteorologiaDTO
     public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(String json) throws JSONException {
         List<MeteorologiaDTO> dtos = new ArrayList<>();
-        JSONObject jsonResponse = new JSONObject(json);
-        JSONObject hourlyData = jsonResponse.getJSONObject("hourly");
+        JSONObject hourlyData = new JSONObject(json).getJSONObject("hourly");
 
         JSONArray times = hourlyData.getJSONArray("time");
         JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
@@ -97,13 +99,12 @@ public class JsonHandler {
             double precipitacao = Math.max(0.0, precipitations.optDouble(i, 0.0));
             double humidadeSolo = soilMoistures.optDouble(i, 0.0) * 100.0;
 
-            MeteorologiaDTO dto = new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData);
-            dtos.add(dto);
+            dtos.add(new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData));
         }
         return dtos;
     }
 
-    /** Extrai o access_token e o expires_in da resposta OAuth do OpenPlantbook */
+    // Lê o token OAuth e o tempo de validade da resposta do OpenPlantbook
     public static String[] deSerializeOpbToken(String json) throws JSONException {
         JSONObject o = new JSONObject(json);
         String token = o.getString("access_token");
@@ -111,11 +112,11 @@ public class JsonHandler {
         return new String[]{token, String.valueOf(expires)};
     }
 
-    /** Passa o JSON de pesquisa do OpenPlantbook para List<EspecieOpb> */
+    // Converte os resultados da pesquisa do OpenPlantbook para lista de EspecieOpb
     public static List<EspecieOpb> deSerializeJson2ListEspecieOpb(String json) throws JSONException {
-        JSONObject root = new JSONObject(json);
-        JSONArray results = root.getJSONArray("results");
+        JSONArray results = new JSONObject(json).getJSONArray("results");
         List<EspecieOpb> lista = new ArrayList<>();
+
         for (int i = 0; i < results.length(); i++) {
             JSONObject r = results.getJSONObject(i);
             EspecieOpb e = new EspecieOpb();
@@ -128,17 +129,10 @@ public class JsonHandler {
         return lista;
     }
 
-    /** Preenche imageUrl num EspecieOpb a partir do JSON de detail */
-    public static void preencherDetalheEspecieOpb(String json, EspecieOpb e) throws JSONException {
-        JSONObject o = new JSONObject(json);
-        e.setImageUrl(o.optString("image_url", ""));
-    }
-
-    /** Passa o JSON de detail do OpenPlantbook para DetalheOpb */
+    // Converte os detalhes de uma espécie do OpenPlantbook para DetalheOpb
     public static DetalheOpb deSerializeJson2DetalheOpb(String json) throws JSONException {
         JSONObject o = new JSONObject(json);
         DetalheOpb d = new DetalheOpb();
-        d.setDisplayPid(o.optString("display_pid", ""));
         d.setCategory(o.optString("category", ""));
         d.setOrigin(o.optString("origin", ""));
         d.setImageUrl(o.optString("image_url", ""));
@@ -155,11 +149,8 @@ public class JsonHandler {
         return d;
     }
 
-    /** Lê um inteiro nullable: null se o campo não existir ou for null. */
+    // Devolve o inteiro do campo JSON ou null se não existir
     private static Integer num(JSONObject o, String campo) {
-        if (o.isNull(campo)) {
-            return null;
-        }
-        return o.optInt(campo);
+        return o.isNull(campo) ? null : o.optInt(campo);
     }
 }

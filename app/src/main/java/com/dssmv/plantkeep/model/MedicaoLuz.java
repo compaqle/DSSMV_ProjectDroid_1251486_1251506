@@ -5,11 +5,9 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Modelo de domínio da medição de luz de uma planta. */
+
 public class MedicaoLuz {
 
-    /** Leituras de lux, uma por medição. Uma leitura saturada guarda o máximo
-     * que o sensor alcançou (a luz real é ">=" a esse valor). */
     private final List<Integer> lux;
     private final List<Boolean> saturado;
 
@@ -23,12 +21,12 @@ public class MedicaoLuz {
         this.lux = new ArrayList<>(lux);
         this.saturado = new ArrayList<>(saturado);
 
-        for (Integer v : lux) {
+        for (int i = 0; i < this.lux.size(); i++) {
+            Integer v = this.lux.get(i);
             if (v == null || v < 0) {
                 throw new IllegalArgumentException("MedicaoLuz: as leituras têm de ser >= 0");
             }
-        }
-        for (Boolean s : saturado) {
+            Boolean s = this.saturado.get(i);
             if (s == null) {
                 throw new IllegalArgumentException("MedicaoLuz: a flag saturado não pode ser nula");
             }
@@ -43,7 +41,7 @@ public class MedicaoLuz {
         return saturado.get(i);
     }
 
-    /** Melhor leitura: o maior lux observado (protocolo das 3 medições) */
+    // Melhor leitura: o maior lux observado (3 medições)
     public int melhorLeitura() {
         int max = 0;
         for (int v = 0; v < lux.size(); v++) {
@@ -55,10 +53,7 @@ public class MedicaoLuz {
         return max;
     }
 
-    /**
-     * Regra de decisão: avalia se o local tem luz boa/má para a espécie,
-     * comparando a melhor leitura com o intervalo ideal (minLux/maxLux).
-     */
+    // Regra de decisão: avalia se o local tem luz boa/má para a espécie
     public String avaliar(Integer minLux, Integer maxLux) {
         if (minLux == null && maxLux == null) {
             return "Sem intervalo ideal de lux conhecido para esta espécie.";

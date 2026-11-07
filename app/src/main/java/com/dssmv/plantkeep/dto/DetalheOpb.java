@@ -1,14 +1,10 @@
 package com.dssmv.plantkeep.dto;
 
-/**
- * Dados completos de uma espécie devolvidos pelo detail do OpenPlantbook.
- */
 public class DetalheOpb {
-    private String displayPid;
+
     private String category;
     private String origin;
     private String imageUrl;
-
     private Integer minTemp;
     private Integer maxTemp;
     private Integer minEnvHumid;
@@ -19,13 +15,6 @@ public class DetalheOpb {
     private Integer maxSoilMoist;
     private Integer minSoilEc;
     private Integer maxSoilEc;
-
-    public DetalheOpb() {
-    }
-
-    public void setDisplayPid(String displayPid) {
-        this.displayPid = displayPid;
-    }
 
     public String getCategory() {
         return category;

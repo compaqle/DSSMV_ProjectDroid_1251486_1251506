@@ -14,6 +14,11 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
+/**
+ * Serviço da localização.
+ * Obtem a localização via GPS ou via Rede/Wifi
+ */
+
 public class LocalizacaoService implements LocalizacaoProvider {
 
     private static final long TIMEOUT_GPS_MS = 10000L; // 10 segundos

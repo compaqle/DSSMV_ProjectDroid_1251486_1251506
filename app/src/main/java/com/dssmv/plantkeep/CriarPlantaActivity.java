@@ -24,8 +24,8 @@ import com.dssmv.plantkeep.services.PlantaService;
 import java.util.List;
 
 /**
- * Ecrã de criar planta.
- * Fluxo: pesquisar espécie no OpenPlantbook -> escolher a espécie -> dar um nome/apelido -> guardar.
+ * Ecrã de criar planta
+ * Permite escolher o nome da espécie e o apelido da planta
  */
 public class CriarPlantaActivity extends AppCompatActivity {
 

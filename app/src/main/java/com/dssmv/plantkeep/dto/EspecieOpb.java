@@ -1,26 +1,14 @@
 package com.dssmv.plantkeep.dto;
 
-/**
- * Uma espécie devolvida pela pesquisa do OpenPlantbook.
- * Só campos e getters/setters. Nada de rede nem JSON.
- */
+
 public class EspecieOpb {
 
-    private String pid;         // id da espécie no OpenPlantbook
-    private String displayPid;  // nome técnico
-    private String alias;       // apelido/filtro de pesquisa
+    private String pid;
+    private String displayPid;
+    private String alias;
     private String category;
-    private String imageUrl;
 
     public EspecieOpb() {
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 
     public String getPid() {

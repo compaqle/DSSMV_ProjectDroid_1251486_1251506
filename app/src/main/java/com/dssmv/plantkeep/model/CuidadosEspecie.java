@@ -2,7 +2,6 @@ package com.dssmv.plantkeep.model;
 
 import androidx.annotation.NonNull;
 
-
 public class CuidadosEspecie {
 
     private final Integer minTemp;
@@ -105,22 +104,14 @@ public class CuidadosEspecie {
         return imagemUrl;
     }
 
-    /** Verifica se a temperatura está dentro dos limites suportados pela espécie */
-    public boolean isTemperaturaAdequada(double temp) {
-        return !isTemperaturaAbaixoDoMinimo(temp) && !isTemperaturaAcimaDoMaximo(temp);
-    }
-
-    /** True se a temperatura estiver estritamente abaixo do mínimo suportado */
     public boolean isTemperaturaAbaixoDoMinimo(double temp) {
         return minTemp != null && temp < minTemp;
     }
 
-    /** True se a temperatura estiver estritamente acima do máximo suportado */
     public boolean isTemperaturaAcimaDoMaximo(double temp) {
         return maxTemp != null && temp > maxTemp;
     }
 
-    /** True se a humidade do solo estiver acima do máximo ideal  */
     public boolean isHumidadeSoloAcimaDoMaximo(double humidade) {
         return maxSoilMoist != null && humidade > maxSoilMoist;
     }

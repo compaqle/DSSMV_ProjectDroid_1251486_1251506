@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Model da planta
- */
+
 public class Planta {
 
     private String id;       // _id restdb

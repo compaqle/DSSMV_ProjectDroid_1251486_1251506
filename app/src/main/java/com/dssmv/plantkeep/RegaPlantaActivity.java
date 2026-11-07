@@ -21,15 +21,13 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Ecrã da rega de uma planta: mostra a última vez que foi regada e a próxima rega
- * prevista, com um botão para a marcar como regada agora.
+ * Ecrã de rega
+ * Mostra a última e a próxima rega e permite regar a planta
  */
 public class RegaPlantaActivity extends AppCompatActivity {
 
     private String id;
-    private String nome;
-
-    private TextView txtTitulo;
+    private Planta plantaAtual;
     private TextView txtUltimaRega;
     private TextView txtProximaRega;
     private TextView txtEstado;
@@ -43,33 +41,27 @@ public class RegaPlantaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_rega_planta);
 
         id = getIntent().getStringExtra("id");
-        nome = getIntent().getStringExtra("nome");
+        String nome = getIntent().getStringExtra("nome");
 
-        txtTitulo = findViewById(R.id.txt_titulo_rega);
+        TextView txtTitulo = findViewById(R.id.txt_titulo_rega);
         txtUltimaRega = findViewById(R.id.txt_ultima_rega);
         txtProximaRega = findViewById(R.id.txt_proxima_rega);
         txtEstado = findViewById(R.id.txt_estado_rega);
         btnRegar = findViewById(R.id.btn_regar_planta);
         Button btnVoltar = findViewById(R.id.btn_voltar_rega);
 
-        if (nome != null && !nome.isEmpty()) {
-            txtTitulo.setText("Rega de " + nome);
-        } else {
-            txtTitulo.setText("Rega da Planta");
-        }
+        txtTitulo.setText(nome != null && !nome.isEmpty() ? "Rega de " + nome : "Rega da Planta");
 
         btnRegar.setOnClickListener(v -> regar());
         btnVoltar.setOnClickListener(v -> finish());
 
-        // edge-to-edge: afasta o conteúdo das barras do sistema (banner em cima, nav em baixo)
+        // Ajusta margens para não sobrepor as barras do sistema
         final LinearLayout llRoot = findViewById(R.id.ll_root_rega);
         final int paddingBase = Math.round(24 * getResources().getDisplayMetrics().density);
         ViewCompat.setOnApplyWindowInsetsListener(llRoot, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(paddingBase + bars.left,
-                    paddingBase + bars.top,
-                    paddingBase + bars.right,
-                    paddingBase + bars.bottom);
+            v.setPadding(paddingBase + bars.left, paddingBase + bars.top,
+                    paddingBase + bars.right, paddingBase + bars.bottom);
             return insets;
         });
 
@@ -79,6 +71,7 @@ public class RegaPlantaActivity extends AppCompatActivity {
     private void carregar() {
         txtEstado.setText("A carregar dados de rega...");
         btnRegar.setEnabled(false);
+
         new Thread(() -> {
             try {
                 final Planta p = PlantaService.obterPlantaPorId(id);
@@ -95,6 +88,7 @@ public class RegaPlantaActivity extends AppCompatActivity {
     }
 
     private void mostrar(Planta p, Aviso proxima) {
+        plantaAtual = p;
         if (p == null) {
             txtEstado.setText("Planta não encontrada.");
             btnRegar.setEnabled(false);
@@ -117,16 +111,19 @@ public class RegaPlantaActivity extends AppCompatActivity {
     }
 
     private void regar() {
+        if (plantaAtual == null) {
+            return;
+        }
         btnRegar.setEnabled(false);
         txtEstado.setText("A guardar rega...");
+
         new Thread(() -> {
             try {
-                Planta alvo = new Planta(nome != null ? nome : "Planta", "");
-                alvo.setId(id);
-                PlantaService.regar(alvo);
+                PlantaService.regar(plantaAtual);
+                final Aviso proxima = AvisoService.obterProximaRega(plantaAtual);
                 runOnUiThread(() -> {
                     Toast.makeText(RegaPlantaActivity.this, "Planta marcada como regada!", Toast.LENGTH_SHORT).show();
-                    carregar();
+                    mostrar(plantaAtual, proxima);
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {

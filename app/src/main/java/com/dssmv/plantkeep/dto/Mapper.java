@@ -13,25 +13,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * O Mapper. Único sítio que converte entre o DTO e o model.
- * Não faz HTTP nem JSON.
- */
 public class Mapper {
 
     private Mapper() {}   // só métodos estáticos, nunca instanciar
 
-    /** Passa RegistoDiarioDTO para o model RegistoDiario */
+    // Passa RegistoDiarioDTO para o model RegistoDiario
     public static RegistoDiario registoDiarioDTO2RegistoDiario(RegistoDiarioDTO dto) {
         return new RegistoDiario(dto.getTexto(), new Date(dto.getDataHora()), dto.getFotoBase64());
     }
 
-    /** Passa model RegistoDiario para RegistoDiarioDTO */
+    // Passa model RegistoDiario para RegistoDiarioDTO
     public static RegistoDiarioDTO registoDiario2RegistoDiarioDTO(RegistoDiario registo) {
         return new RegistoDiarioDTO(registo.getTexto(), registo.getDataHora().getTime(), registo.getFotoBase64());
     }
 
-    /** Passa DTO para model (valida o nome) */
+    // Passa DTO para model (valida o nome)
     public static Planta plantaDTO2Planta(PlantaDTO dto) {
         Planta p = new Planta(dto.getNome(), dto.getEspecie());
         p.setId(dto.getId());
@@ -40,32 +36,41 @@ public class Mapper {
 
         List<RegistoDiario> registos = new ArrayList<>();
         if (dto.getDiario() != null) {
-            for (RegistoDiarioDTO rDto : dto.getDiario()) {
-                registos.add(registoDiarioDTO2RegistoDiario(rDto));
+            List<RegistoDiarioDTO> diario = dto.getDiario();
+            for (int i = 0; i < diario.size(); i++) {
+                RegistoDiarioDTO rDto = diario.get(i);
+                if (rDto != null) {
+                    registos.add(registoDiarioDTO2RegistoDiario(rDto));
+                }
             }
         }
         p.setDiario(registos);
         return p;
     }
 
-    /** Passa model para DTO (para enviar) */
+    // Passa model para DTO (para enviar)
     public static PlantaDTO planta2PlantaDTO(Planta p) {
         List<RegistoDiarioDTO> registosDto = new ArrayList<>();
         if (p.getDiario() != null) {
-            for (RegistoDiario r : p.getDiario()) {
-                registosDto.add(registoDiario2RegistoDiarioDTO(r));
+            List<RegistoDiario> diario = p.getDiario();
+            for (int i = 0; i < diario.size(); i++) {
+                RegistoDiario r = diario.get(i);
+                if (r != null) {
+                    registosDto.add(registoDiario2RegistoDiarioDTO(r));
+                }
             }
         }
         return new PlantaDTO(p.getId(), p.getNome(), p.getEspecie(), p.getPid(), p.getUltimaRega(), registosDto);
     }
 
-    /** Passa uma lista DTO para uma lista model */
+    // Passa uma lista DTO para uma lista model
     public static List<Planta> listPlantaDTO2listPlanta(List<PlantaDTO> dtos) {
         List<Planta> plantas = new ArrayList<>();
         if (dtos == null) {
             return plantas;
         }
-        for (PlantaDTO dto : dtos) {
+        for (int i = 0; i < dtos.size(); i++) {
+            PlantaDTO dto = dtos.get(i);
             if (dto != null) {
                 plantas.add(plantaDTO2Planta(dto));
             }
@@ -73,7 +78,7 @@ public class Mapper {
         return plantas;
     }
 
-    /** Passa um MeteorologiaDTO para o model Meteorologia */
+    // Passa um MeteorologiaDTO para o model Meteorologia
     public static Meteorologia meteorologiaDTO2Meteorologia(MeteorologiaDTO dto) throws ParseException {
         SimpleDateFormat formatador = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.ROOT);
         Date dataHora = formatador.parse(dto.getDataHora());
@@ -85,13 +90,14 @@ public class Mapper {
         );
     }
 
-    /** Passa uma lista de MeteorologiaDTO para uma lista do model Meteorologia */
+    // Passa uma lista de MeteorologiaDTO para uma lista do model Meteorologia
     public static List<Meteorologia> listMeteorologiaDTO2listMeteorologia(List<MeteorologiaDTO> dtos) throws ParseException {
         List<Meteorologia> previsoes = new ArrayList<>();
         if (dtos == null) {
             return previsoes;
         }
-        for (MeteorologiaDTO dto : dtos) {
+        for (int i = 0; i < dtos.size(); i++) {
+            MeteorologiaDTO dto = dtos.get(i);
             if (dto != null) {
                 previsoes.add(meteorologiaDTO2Meteorologia(dto));
             }
@@ -99,7 +105,7 @@ public class Mapper {
         return previsoes;
     }
 
-    /** Converte um EspecieOpb (DTO) para o model Especie  */
+    // Converte um EspecieOpb (DTO) para o model Especie
     public static Especie paraModelo(EspecieOpb dto) {
         if (dto == null) {
             return null;
@@ -117,18 +123,18 @@ public class Mapper {
                 pid,
                 nomeCientifico,
                 textoSeguro(dto.getAlias()),
-                textoSeguro(dto.getCategory()),
-                textoSeguro(dto.getImageUrl())
+                ""
         );
     }
 
-    /** Converte uma lista de EspecieOpb (DTOs) para uma lista de models Especie  */
+    // Converte uma lista de EspecieOpb (DTOs) para uma lista de models Especie
     public static List<Especie> paraListaEspecies(List<EspecieOpb> dtos) {
         List<Especie> especies = new ArrayList<>();
         if (dtos == null) {
             return especies;
         }
-        for (EspecieOpb dto : dtos) {
+        for (int i = 0; i < dtos.size(); i++) {
+            EspecieOpb dto = dtos.get(i);
             Especie modelo = paraModelo(dto);
             if (modelo != null) {
                 especies.add(modelo);
@@ -137,7 +143,7 @@ public class Mapper {
         return especies;
     }
 
-    /** Converte um DetalheOpb (DTO) para o model CuidadosEspecie  */
+    // Converte um DetalheOpb (DTO) para o model CuidadosEspecie
     public static CuidadosEspecie paraModelo(DetalheOpb dto) {
         if (dto == null) {
             return null;

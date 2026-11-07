@@ -1,8 +1,5 @@
 package com.dssmv.plantkeep.dto;
 
-/**
- * DTO de um registo do diário da planta.
- */
 public class RegistoDiarioDTO {
 
     private final String texto;

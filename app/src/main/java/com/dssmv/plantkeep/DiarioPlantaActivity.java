@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Ecrã do Diário da Planta: permite reportar o estado de crescimento (texto),
- * tirar fotografias com a câmara do telemóvel e guardar tudo no RestDB.
+ * Ecrã do Diário da Planta
+ * Permite adicionar registos ao diário e tirar fotografias com a câmara do telemóvel
  */
 public class DiarioPlantaActivity extends AppCompatActivity {
 
@@ -220,7 +220,11 @@ public class DiarioPlantaActivity extends AppCompatActivity {
     // Descodifica as fotografias Base64 na thread de background antes de atualizar a UI
     private void predescodificarFotos(List<RegistoDiario> registos) {
         if (registos == null) return;
-        for (RegistoDiario r : registos) {
+        for (int i = 0; i < registos.size(); i++) {
+            RegistoDiario r = registos.get(i);
+            if (r == null) {
+                continue;
+            }
             String base64 = r.getFotoBase64();
             if (base64 != null && !base64.isEmpty() && !cacheFotos.containsKey(base64)) {
                 Bitmap bmp = base64ParaBitmap(base64);

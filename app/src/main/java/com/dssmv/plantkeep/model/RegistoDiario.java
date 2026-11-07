@@ -7,9 +7,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
-/**
- * Model de um registo no diário da planta (texto, data/hora e fotografia opcional em Base64).
- */
+
 public class RegistoDiario {
 
     private String texto;

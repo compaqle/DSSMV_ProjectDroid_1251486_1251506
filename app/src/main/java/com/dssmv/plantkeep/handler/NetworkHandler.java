@@ -18,39 +18,39 @@ public class NetworkHandler {
     private static final String APIKEY = BuildConfig.RESTDB_APIKEY;
     private static final int TIMEOUT_MS = 15000;
 
-    private NetworkHandler() {}   // só estáticos, nunca instanciar
+    private NetworkHandler() {}
 
-    /** GET: lê os dados da url */
+    // GET: lê os dados da url
     public static String getDataInStringFromUrl(String url) throws IOException {
         return request("GET", url, null, "application/json", null);
     }
 
-    /** GET autenticado com Bearer Token (ex: OpenPlantbook) */
+    // GET autenticado com Bearer Token (ex: OpenPlantbook)
     public static String getDataWithBearerToken(String url, String token) throws IOException {
         return request("GET", url, null, "application/json", "Bearer " + token);
     }
 
-    /** POST: manda um documento (body = JSON) */
+    // POST: manda um documento (body = JSON)
     public static String addDataInStringFromUrl(String url, String json) throws IOException {
         return request("POST", url, json, "application/json", null);
     }
 
-    /** POST form-urlencoded (ex: OAuth token do OpenPlantbook) */
+    // POST form-urlencoded (ex: OAuth token do OpenPlantbook)
     public static String postFormUrlEncoded(String url, String formBody) throws IOException {
         return request("POST", url, formBody, "application/x-www-form-urlencoded", null);
     }
 
-    /** PUT: substitui um documento. */
+    // PUT: substitui um documento.
     public static String updateDataInStringFromUrl(String url, String json) throws IOException {
         return request("PUT", url, json, "application/json", null);
     }
 
-    /** DELETE: apaga um documento. */
+    // DELETE: apaga um documento.
     public static String deleteDataInStringFromUrl(String url) throws IOException {
         return request("DELETE", url, null, "application/json", null);
     }
 
-    /** Descarrega os bytes de um URL (ou devolve null se falhar) */
+    // Descarrega os bytes de um URL (ou devolve null se falhar)
     public static byte[] getBytesFromUrl(String url) {
         if (url == null || url.isEmpty()) {
             return null;

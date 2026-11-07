@@ -16,12 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ecrã que mostra a lista de plantas. Tocar numa planta abre a sua informação.
+ * Ecrã de plantas
+ * Lista as plantas guardadas pelo utilizador
  */
 public class PlantasActivity extends AppCompatActivity {
 
     private ListView lvPlantas;
-    private List<Planta> plantasList;
+    private final List<Planta> plantasList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,21 +30,16 @@ public class PlantasActivity extends AppCompatActivity {
         setContentView(R.layout.activity_plantas);
 
         lvPlantas = findViewById(R.id.lv_plantas);
-        plantasList = new ArrayList<>();
-
         Button btnVoltar = findViewById(R.id.btn_voltar);
-        btnVoltar.setOnClickListener(v -> finish());
 
-        // Tocar numa planta abre a sua informação
-        lvPlantas.setOnItemClickListener((parent, view, position, id) ->
-                abrirInfo(plantasList.get(position)));
+        btnVoltar.setOnClickListener(v -> finish());
+        lvPlantas.setOnItemClickListener((parent, view, position, id) -> abrirInfo(plantasList.get(position)));
     }
 
-    // recarrega sempre que se volta para este ecrã (ex. após apagar uma planta)
     @Override
     protected void onResume() {
         super.onResume();
-        getPlantasFromWS();
+        carregarPlantas();
     }
 
     private void abrirInfo(Planta p) {
@@ -55,31 +51,34 @@ public class PlantasActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    private void getPlantasFromWS() {
-        new Thread() {
-            public void run() {
-                try {
-                    final List<Planta> plantas = PlantaService.getPlantas();
-                    runOnUiThread(() -> atualizaLista(plantas));
-                } catch (Exception e) {
-                    runOnUiThread(() -> Toast.makeText(PlantasActivity.this,
-                            "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                }
+    private void carregarPlantas() {
+        new Thread(() -> {
+            try {
+                final List<Planta> plantas = PlantaService.getPlantas();
+                runOnUiThread(() -> atualizaLista(plantas));
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(PlantasActivity.this,
+                        "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
-        }.start();
+        }).start();
     }
 
     private void atualizaLista(List<Planta> plantas) {
         plantasList.clear();
-        plantasList.addAll(plantas);
+        if (plantas != null) {
+            plantasList.addAll(plantas);
+        }
         List<String> nomes = new ArrayList<>();
-        for (Planta p : plantas) {
-            nomes.add(nomePlanta(p));
+        for (int i = 0; i < plantasList.size(); i++) {
+            nomes.add(formatarNome(plantasList.get(i)));
         }
         lvPlantas.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nomes));
     }
 
-    private String nomePlanta(Planta p) {
+    private String formatarNome(Planta p) {
+        if (p == null) {
+            return "";
+        }
         if (p.getEspecie() != null && !p.getEspecie().isEmpty()) {
             return p.getNome() + " (" + p.getEspecie() + ")";
         }

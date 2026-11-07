@@ -11,13 +11,14 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Serviço das plantas. Controla rede, JSON, DTO e Mapper.
+ * Serviço da planta
+ * Gere as operações das plantas no RestDB
  */
 public class PlantaService {
 
-    private PlantaService() {}   // só estáticos, nunca instanciar
+    private PlantaService() {}
 
-    /** Devolve a lista de plantas (GET). */
+    // Obtém a lista de todas as plantas
     public static List<Planta> getPlantas() throws Exception {
         String url = NetworkHandler.BASE + "/planta";
         String json = NetworkHandler.getDataInStringFromUrl(url);
@@ -25,72 +26,67 @@ public class PlantaService {
         return Mapper.listPlantaDTO2listPlanta(dtos);
     }
 
-    /** Procura e devolve uma planta específica pelo seu ID. */
+    // Procura uma planta pelo seu ID
     public static Planta obterPlantaPorId(String id) throws Exception {
         if (id == null || id.isEmpty()) {
             return null;
         }
         List<Planta> plantas = getPlantas();
-        for (Planta p : plantas) {
-            if (id.equals(p.getId())) {
+        for (int i = 0; i < plantas.size(); i++) {
+            Planta p = plantas.get(i);
+            if (p != null && id.equals(p.getId())) {
                 return p;
             }
         }
         return null;
     }
 
-    /** Cria uma planta (POST). */
+    // Guarda uma nova planta na base de dados
     public static void criar(Planta p) throws Exception {
         String url = NetworkHandler.BASE + "/planta";
         String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
         NetworkHandler.addDataInStringFromUrl(url, json);
     }
 
-    /** Marca uma planta como regada agora e atualiza no RestDB (PUT). */
+    // Atualiza a data da última rega da planta diretamente no RestDB
     public static void regar(Planta p) throws Exception {
         if (p != null && p.getId() != null) {
-            Planta atual = obterPlantaPorId(p.getId());
-            if (atual == null) {
-                atual = p;
-            }
-            atual.setUltimaRega(System.currentTimeMillis());
-            String url = NetworkHandler.BASE + "/planta/" + atual.getId();
-            String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(atual));
-            NetworkHandler.updateDataInStringFromUrl(url, json);
+            p.setUltimaRega(System.currentTimeMillis());
+            atualizarPlantaNoRestDb(p);
         }
     }
 
-    /** Adiciona um novo registo (texto + foto opcional em Base64) ao diário e atualiza no RestDB (PUT). */
+    // Adiciona um registo ao diário da planta e atualiza no RestDB
     public static Planta adicionarRegistoDiario(String plantaId, String texto, String fotoBase64) throws Exception {
         Planta p = obterPlantaPorId(plantaId);
         if (p == null) {
             throw new IllegalArgumentException("Planta não encontrada.");
         }
         p.adicionarRegistoDiario(new RegistoDiario(texto, new Date(), fotoBase64));
-
-        String url = NetworkHandler.BASE + "/planta/" + p.getId();
-        String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
-        NetworkHandler.updateDataInStringFromUrl(url, json);
+        atualizarPlantaNoRestDb(p);
         return p;
     }
 
-    /** Remove um registo do diário e atualiza a planta no RestDB (PUT). */
+    // Remove um registo do diário e atualiza a planta no RestDB
     public static Planta removerRegistoDiario(String plantaId, RegistoDiario registo) throws Exception {
         Planta p = obterPlantaPorId(plantaId);
         if (p == null) {
             throw new IllegalArgumentException("Planta não encontrada.");
         }
         p.removerRegistoDiario(registo);
-
-        String url = NetworkHandler.BASE + "/planta/" + p.getId();
-        String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
-        NetworkHandler.updateDataInStringFromUrl(url, json);
+        atualizarPlantaNoRestDb(p);
         return p;
     }
 
-    /** Apaga uma planta (DELETE). */
+    private static void atualizarPlantaNoRestDb(Planta p) throws Exception {
+        String url = NetworkHandler.BASE + "/planta/" + p.getId();
+        String json = JsonHandler.serializePlantaDTO2Json(Mapper.planta2PlantaDTO(p));
+        NetworkHandler.updateDataInStringFromUrl(url, json);
+    }
+
+    // Apaga uma planta do RestDB
     public static void apagar(Planta p) throws Exception {
-        if (p.getId() != null) {
+        if (p != null && p.getId() != null) {
             String url = NetworkHandler.BASE + "/planta/" + p.getId();
             NetworkHandler.deleteDataInStringFromUrl(url);
         }

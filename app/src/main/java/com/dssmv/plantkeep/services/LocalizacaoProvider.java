@@ -8,6 +8,5 @@ public interface LocalizacaoProvider {
 
     void obterLocalizacao(Callback cb);
 
-    /** Para qualquer pedido ou escuta de localização ativo e liberta os recursos do sistema */
     void pararObterLocalizacao();
 }

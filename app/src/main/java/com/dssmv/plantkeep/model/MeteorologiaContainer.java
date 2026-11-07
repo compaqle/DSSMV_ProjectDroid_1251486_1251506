@@ -7,6 +7,10 @@ import java.util.List;
 
 public class MeteorologiaContainer {
 
+    private interface ComparadorRegisto {
+        boolean escolherNovo(Meteorologia candidato, Meteorologia atual);
+    }
+
     private List<Meteorologia> previsaoHoraria;
     private static MeteorologiaContainer instancia;
 
@@ -26,89 +30,52 @@ public class MeteorologiaContainer {
     }
 
     public void setPrevisaoHoraria(List<Meteorologia> previsaoHoraria) {
-        if (previsaoHoraria != null) {
-            this.previsaoHoraria = new ArrayList<>(previsaoHoraria);
-        } else {
-            this.previsaoHoraria = new ArrayList<>();
-        }
+        this.previsaoHoraria = (previsaoHoraria != null) ? new ArrayList<>(previsaoHoraria) : new ArrayList<>();
     }
 
-    /** Devolve o registo mais frio previsto */
+    // Devolve o registo mais frio previsto a partir de agora
     public Meteorologia obterRegistoTemperaturaMinimaPrevista() {
-        if (previsaoHoraria.isEmpty()) {
-            return null;
-        }
-        Date agora = new Date();
-        Meteorologia registoMin = null;
-
-        for (Meteorologia registo : previsaoHoraria) {
-            if (!registo.getDataHora().before(agora)) {
-                if (registoMin == null || registo.getTemperatura() < registoMin.getTemperatura()) {
-                    registoMin = registo;
-                }
-            }
-        }
-        return registoMin;
+        return procurarExtremo((r, min) -> r.getTemperatura() < min.getTemperatura());
     }
 
-    /** Devolve o registo mais quente previsto */
+    // Devolve o registo mais quente previsto a partir de agora
     public Meteorologia obterRegistoTemperaturaMaximaPrevista() {
-        if (previsaoHoraria.isEmpty()) {
-            return null;
-        }
-        Date agora = new Date();
-        Meteorologia registoMax = null;
+        return procurarExtremo((r, max) -> r.getTemperatura() > max.getTemperatura());
+    }
 
-        for (Meteorologia registo : previsaoHoraria) {
-            if (!registo.getDataHora().before(agora)) {
-                if (registoMax == null || registo.getTemperatura() > registoMax.getTemperatura()) {
-                    registoMax = registo;
+    // Devolve o registo com maior humidade do solo prevista a partir de agora
+    public Meteorologia obterRegistoHumidadeSoloMaximaPrevista() {
+        return procurarExtremo((r, max) -> r.getHumidadeSolo() > max.getHumidadeSolo());
+    }
+
+    // Procura nas previsões futuras o registo que cumpre o critério de comparação
+    private Meteorologia procurarExtremo(ComparadorRegisto comparador) {
+        Date agora = new Date();
+        Meteorologia escolhido = null;
+
+        for (int i = 0; i < previsaoHoraria.size(); i++) {
+            Meteorologia registo = previsaoHoraria.get(i);
+            if (registo != null && registo.getDataHora() != null && !registo.getDataHora().before(agora)) {
+                if (escolhido == null || comparador.escolherNovo(registo, escolhido)) {
+                    escolhido = registo;
                 }
             }
         }
-        return registoMax;
+        return escolhido;
     }
 
-    /**
-     * Devolve o primeiro registo (a partir da data indicada) em que a humidade do solo
-     * cai abaixo do mínimo da planta.
-     */
+    // Devolve o primeiro registo em que a humidade do solo fica abaixo do mínimo
     public Meteorologia obterPrimeiroRegistoAbaixoHumidadeMinima(int minSoilMoist, Date aPartirDe) {
-        if (previsaoHoraria.isEmpty()) {
-            return null;
-        }
-        Date inicio;
-        if (aPartirDe != null) {
-            inicio = new Date(aPartirDe.getTime());
-        } else {
-            inicio = new Date();
-        }
+        Date inicio = (aPartirDe != null) ? new Date(aPartirDe.getTime()) : new Date();
 
-        for (Meteorologia registo : previsaoHoraria) {
-            if (!registo.getDataHora().before(inicio)) {
+        for (int i = 0; i < previsaoHoraria.size(); i++) {
+            Meteorologia registo = previsaoHoraria.get(i);
+            if (registo != null && registo.getDataHora() != null && !registo.getDataHora().before(inicio)) {
                 if (registo.getHumidadeSolo() < minSoilMoist) {
                     return registo;
                 }
             }
         }
         return null;
-    }
-
-    /** Devolve o registo com maior humidade do solo prevista */
-    public Meteorologia obterRegistoHumidadeSoloMaximaPrevista() {
-        if (previsaoHoraria.isEmpty()) {
-            return null;
-        }
-        Date agora = new Date();
-        Meteorologia registoMax = null;
-
-        for (Meteorologia registo : previsaoHoraria) {
-            if (!registo.getDataHora().before(agora)) {
-                if (registoMax == null || registo.getHumidadeSolo() > registoMax.getHumidadeSolo()) {
-                    registoMax = registo;
-                }
-            }
-        }
-        return registoMax;
     }
 }

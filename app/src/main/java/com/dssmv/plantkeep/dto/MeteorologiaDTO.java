@@ -1,8 +1,5 @@
 package com.dssmv.plantkeep.dto;
 
-/**
- * DTO da meteorologia. Recebe os dados da API Open-Meteo.
- */
 public class MeteorologiaDTO {
 
     private final double temperatura;

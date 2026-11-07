@@ -83,8 +83,8 @@ public class PlantBookService {
             return false;
         }
         String[] tokens = nome.toLowerCase().split("[^a-z0-9]+");
-        for (String t : tokens) {
-            if (t.equals(q)) {
+        for (int i = 0; i < tokens.length; i++) {
+            if (tokens[i].equals(q)) {
                 return true;
             }
         }

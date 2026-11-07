@@ -19,9 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ecrã de verificação de luz da planta.
- * O utilizador carrega 3 vezes no botão e faz 3 medições de lux no local;
- * no fim mostram-se os valores medidos e se a luz é boa ou má para a espécie.
+ * Ecrã de medição de luz
+ * Faz 3 medições com o sensor de luz
  */
 public class MedirLuzActivity extends AppCompatActivity {
 
@@ -31,17 +30,16 @@ public class MedirLuzActivity extends AppCompatActivity {
     private Button btnFazerMedicao;
     private TextView txtResultado;
 
-    // limites de lux (lux) do ideal da espécie (-1 = desconhecido)
-    private Integer minLux = -1;
-    private Integer maxLux = -1;
+    private Integer minLux;
+    private Integer maxLux;
 
     private SensorManager sensorManager;
     private SensorEventListener listenerLuz;
     private Handler handler;
     private float maxRange;
-
     private int medicaoAtual = 0;
     private boolean aMedir = false;
+
     private final int[] luxMedidos = new int[N_MEDICOES];
     private final boolean[] saturados = new boolean[N_MEDICOES];
 
@@ -55,16 +53,8 @@ public class MedirLuzActivity extends AppCompatActivity {
 
         int min = getIntent().getIntExtra("minLux", -1);
         int max = getIntent().getIntExtra("maxLux", -1);
-        if (min > 0) {
-            minLux = min;
-        } else {
-            minLux = null;
-        }
-        if (max > 0) {
-            maxLux = max;
-        } else {
-            maxLux = null;
-        }
+        minLux = (min > 0) ? min : null;
+        maxLux = (max > 0) ? max : null;
 
         btnFazerMedicao.setOnClickListener(v -> iniciarMedicao());
     }
@@ -72,7 +62,6 @@ public class MedirLuzActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // desliga o sensor se sair do ecrã a meio de uma medição
         if (sensorManager != null && listenerLuz != null) {
             sensorManager.unregisterListener(listenerLuz);
             listenerLuz = null;
@@ -83,9 +72,7 @@ public class MedirLuzActivity extends AppCompatActivity {
         aMedir = false;
     }
 
-    /**
-     * Mede o lux uma vez: regista o sensor de luz durante ~1,2 s, guarda o valor máximo e trata a saturação
-     */
+    // Lê o sensor de luz durante 1,2 segundos e guarda o valor máximo registado
     private void iniciarMedicao() {
         if (aMedir) {
             return;
@@ -118,10 +105,9 @@ public class MedirLuzActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                // sem uso
-            }
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {}
         };
+
         sensorManager.registerListener(listenerLuz, luz, SensorManager.SENSOR_DELAY_NORMAL);
 
         handler = new Handler(Looper.getMainLooper());
@@ -130,14 +116,7 @@ public class MedirLuzActivity extends AppCompatActivity {
             listenerLuz = null;
             aMedir = false;
 
-            // se saturou (luz >= teto do sensor), guarda o teto — a luz real é ">="
-            int valorLido;
-            if (saturado[0]) {
-                valorLido = (int) maxRange;
-            } else {
-                valorLido = maxLido[0];
-            }
-            luxMedidos[medicaoAtual] = valorLido;
+            luxMedidos[medicaoAtual] = saturado[0] ? (int) maxRange : maxLido[0];
             saturados[medicaoAtual] = saturado[0];
             medicaoAtual++;
 
@@ -150,12 +129,11 @@ public class MedirLuzActivity extends AppCompatActivity {
         }, DURACAO_MEDICAO_MS);
     }
 
-    /** Mostra as 3 medições e a classificacao (bom/mau)  */
+    // Mostra os valores das 3 medições e a avaliação final
     private void mostrarResultados() {
         btnFazerMedicao.setEnabled(false);
         btnFazerMedicao.setText("Medição completa");
 
-        // recolhe as leituras e constrói o modelo de domínio
         List<Integer> luxList = new ArrayList<>();
         List<Boolean> satList = new ArrayList<>();
         for (int i = 0; i < N_MEDICOES; i++) {
@@ -166,27 +144,19 @@ public class MedirLuzActivity extends AppCompatActivity {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < N_MEDICOES; i++) {
-            String valor;
-            if (medicao.estaSaturada(i)) {
-                valor = "≥ " + medicao.getLux(i);
-            } else {
-                valor = String.valueOf(medicao.getLux(i));
-            }
+            String valor = medicao.estaSaturada(i) ? ">= " + medicao.getLux(i) : String.valueOf(medicao.getLux(i));
             sb.append("Medição ").append(i + 1).append(": ").append(valor).append(" lux\n");
         }
-
         sb.append("\n");
         if (minLux != null || maxLux != null) {
             sb.append("Ideal: ").append(formatarIntervalo()).append(" lux\n");
         }
-        // a regra de decisão (bom/mau)
         sb.append(medicao.avaliar(minLux, maxLux));
 
         txtResultado.setText(sb.toString());
         txtResultado.setVisibility(View.VISIBLE);
     }
 
-    /** Formata o intervalo ideal "min - max" (só apresentação). */
     private String formatarIntervalo() {
         if (minLux != null && maxLux != null) {
             return minLux + " - " + maxLux;

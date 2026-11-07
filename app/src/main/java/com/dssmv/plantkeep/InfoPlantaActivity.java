@@ -22,17 +22,18 @@ import com.dssmv.plantkeep.services.PlantBookService;
 import com.dssmv.plantkeep.services.PlantaService;
 
 /**
- * Ecrã com as informações relevantes de uma planta (vindas do OpenPlantbook),
+ * Ecrã da informação da planta
+ * Permite ver os detalhes de uma planta e aceder às funcionalidades da planta
  */
 public class InfoPlantaActivity extends AppCompatActivity {
 
     private LinearLayout llInfo;
     private ImageView imgInfo;
+
     private String id;
     private String pid;
     private String nome;
 
-    // limites de luz do ideal da espécie, para a verificação de luz
     private Integer minLux;
     private Integer maxLux;
 
@@ -54,28 +55,20 @@ public class InfoPlantaActivity extends AppCompatActivity {
         String especie = getIntent().getStringExtra("especie");
         pid = getIntent().getStringExtra("pid");
 
-        String textoTitulo;
-        if (especie != null && !especie.isEmpty()) {
-            textoTitulo = nome + " (" + especie + ")";
-        } else {
-            textoTitulo = nome;
-        }
-        titulo.setText(textoTitulo);
+        titulo.setText(especie != null && !especie.isEmpty() ? nome + " (" + especie + ")" : nome);
 
         btnDiario.setOnClickListener(v -> abrirDiario());
         btnApagar.setOnClickListener(v -> confirmarApagar());
         btnVerificarLuz.setOnClickListener(v -> abrirVerificacaoLuz());
         btnRega.setOnClickListener(v -> abrirRega());
 
-        // edge-to-edge: afasta o conteúdo das barras do sistema (banner em cima, nav em baixo)
+        // Ajusta margens para não sobrepor as barras do sistema
         final LinearLayout llRoot = findViewById(R.id.ll_root);
         final int paddingBase = Math.round(24 * getResources().getDisplayMetrics().density);
         ViewCompat.setOnApplyWindowInsetsListener(llRoot, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(paddingBase + bars.left,
-                    paddingBase + bars.top,
-                    paddingBase + bars.right,
-                    paddingBase + bars.bottom);
+            v.setPadding(paddingBase + bars.left, paddingBase + bars.top,
+                    paddingBase + bars.right, paddingBase + bars.bottom);
             return insets;
         });
 
@@ -98,10 +91,8 @@ public class InfoPlantaActivity extends AppCompatActivity {
 
     private void abrirVerificacaoLuz() {
         Intent i = new Intent(this, MedirLuzActivity.class);
-        int valorMinLux = (minLux != null) ? minLux : -1;
-        i.putExtra("minLux", valorMinLux);
-        int valorMaxLux = (maxLux != null) ? maxLux : -1;
-        i.putExtra("maxLux", valorMaxLux);
+        i.putExtra("minLux", minLux != null ? minLux : -1);
+        i.putExtra("maxLux", maxLux != null ? maxLux : -1);
         startActivity(i);
     }
 
@@ -119,16 +110,14 @@ public class InfoPlantaActivity extends AppCompatActivity {
             Toast.makeText(this, "Sem id para apagar", Toast.LENGTH_SHORT).show();
             return;
         }
-        String nomePlanta = (nome != null) ? nome : "planta";
-        final Planta p = new Planta(nomePlanta, "");
+        final Planta p = new Planta(nome != null ? nome : "planta", "");
         p.setId(id);
 
         new Thread(() -> {
             try {
                 PlantaService.apagar(p);
                 runOnUiThread(() -> {
-                    Toast.makeText(InfoPlantaActivity.this,
-                            "Planta apagada!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(InfoPlantaActivity.this, "Planta apagada!", Toast.LENGTH_SHORT).show();
                     finish();
                 });
             } catch (Exception e) {
@@ -158,11 +147,9 @@ public class InfoPlantaActivity extends AppCompatActivity {
         if (cuidados == null) {
             return;
         }
-        // guarda os limites de luz para a verificação de luz
         minLux = cuidados.getMinLightLux();
         maxLux = cuidados.getMaxLightLux();
 
-        // imagem (só se existir)
         final String url = cuidados.getImagemUrl();
         if (url != null && !url.isEmpty()) {
             new Thread(() -> {
@@ -175,21 +162,18 @@ public class InfoPlantaActivity extends AppCompatActivity {
             imgInfo.setVisibility(View.GONE);
         }
 
-        // dados de cuidados: só as linhas que têm valor
-        adicionarLinha("Temperatura", intervalo(cuidados.getMinTemp(), cuidados.getMaxTemp()) + " °C");
-        adicionarLinha("Humidade do ar", intervalo(cuidados.getMinEnvHumid(), cuidados.getMaxEnvHumid()) + " %");
-        adicionarLinha("Humidade do solo", intervalo(cuidados.getMinSoilMoist(), cuidados.getMaxSoilMoist()) + " %");
-        adicionarLinha("Luz", intervalo(cuidados.getMinLightLux(), cuidados.getMaxLightLux()) + " lux");
-        adicionarLinha("Condutividade do solo", intervalo(cuidados.getMinSoilEc(), cuidados.getMaxSoilEc()) + " µS/cm");
+        adicionarLinha("Temperatura", intervalo(cuidados.getMinTemp(), cuidados.getMaxTemp(), " °C"));
+        adicionarLinha("Humidade do ar", intervalo(cuidados.getMinEnvHumid(), cuidados.getMaxEnvHumid(), " %"));
+        adicionarLinha("Humidade do solo", intervalo(cuidados.getMinSoilMoist(), cuidados.getMaxSoilMoist(), " %"));
+        adicionarLinha("Luz", intervalo(cuidados.getMinLightLux(), cuidados.getMaxLightLux(), " lux"));
+        adicionarLinha("Condutividade do solo", intervalo(cuidados.getMinSoilEc(), cuidados.getMaxSoilEc(), " µS/cm"));
         adicionarLinha("Categoria", cuidados.getCategoria());
         adicionarLinha("Origem", cuidados.getOrigem());
     }
 
-    /** Adiciona uma linha "rotulo: valor" se o valor não for vazio. */
+    // Adiciona uma linha de texto ao ecrã apenas se o valor não estiver vazio
     private void adicionarLinha(String rotulo, String valor) {
-        if (valor == null || valor.trim().isEmpty() || valor.startsWith("null")
-                || valor.trim().equals("°C") || valor.trim().equals("%")
-                || valor.trim().equals("lux") || valor.trim().equals("µS/cm")) {
+        if (valor == null || valor.trim().isEmpty()) {
             return;
         }
         TextView row = new TextView(this);
@@ -199,17 +183,17 @@ public class InfoPlantaActivity extends AppCompatActivity {
         llInfo.addView(row);
     }
 
-    /** Formata um intervalo "min - max" (ou só o valor, se só um existir). */
-    private String intervalo(Integer min, Integer max) {
+    // Formata um intervalo "min - max" com a respetiva unidade
+    private String intervalo(Integer min, Integer max, String unidade) {
         if (min == null && max == null) {
             return "";
         }
         if (min == null) {
-            return String.valueOf(max);
+            return max + unidade;
         }
         if (max == null) {
-            return String.valueOf(min);
+            return min + unidade;
         }
-        return min + " - " + max;
+        return min + " - " + max + unidade;
     }
 }
