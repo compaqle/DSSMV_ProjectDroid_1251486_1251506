@@ -1,0 +1,15 @@
+@startuml
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam ArrowColor #000000
+skinparam sequenceArrowColor #000000
+actor "Utilizador" as u
+participant "Sistema\n(PlantKeep)" as s
+u -> s : 1. O utilizador abre o ecrã principal
+s --> u : 2. O sistema obtém a localização e a previsão meteorológica
+s --> u : 3. O sistema compara a previsão com os limites de cada espécie
+s --> u : 4. O sistema apresenta a lista de avisos das plantas
+alt [Sem avisos ou valores dentro do intervalo]
+    s --> u : 4.1. O sistema mostra "Sem avisos"
+end
+@enduml

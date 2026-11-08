@@ -1,5 +1,7 @@
 @startuml
 skinparam classAttributeIconSize 0
+skinparam linetype ortho
+left to right direction
 
 class Planta {
   - id: int

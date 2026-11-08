@@ -1,0 +1,13 @@
+@startuml
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam ArrowColor #000000
+skinparam sequenceArrowColor #000000
+actor "Utilizador" as u
+participant "Sistema\n(PlantKeep)" as s
+u -> s : 1. O utilizador pede para ver a próxima rega de uma planta
+s --> u : 2. O sistema calcula e apresenta a data da próxima rega recomendada
+alt [Sem previsão disponível]
+    s --> u : 2.1. O sistema usa apenas a cadência da espécie (3 em 3 dias)
+end
+@enduml

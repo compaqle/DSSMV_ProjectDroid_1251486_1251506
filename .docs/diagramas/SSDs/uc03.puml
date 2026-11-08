@@ -1,0 +1,13 @@
+@startuml
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam ArrowColor #000000
+skinparam sequenceArrowColor #000000
+actor "Utilizador" as u
+participant "Sistema\n(PlantKeep)" as s
+u -> s : 1. O utilizador seleciona uma planta para ver os seus detalhes
+s --> u : 2. O sistema apresenta os cuidados da espécie (limites e imagem)
+alt [Sem rede ou API indisponível]
+    s --> u : 2.1. O sistema mostra uma mensagem de erro
+end
+@enduml

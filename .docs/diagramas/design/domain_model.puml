@@ -1,0 +1,62 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+left to right direction
+hide circle
+hide methods
+
+class Planta {
+  - id
+  - nome
+  - especie
+  - pid
+  - ultimaRega
+}
+
+class Especie {
+  - nomeCientifico
+  - pid
+}
+
+class CuidadosEspecie {
+  - tempMin
+  - tempMax
+  - humMin
+  - humMax
+  - minLightLux
+  - maxLightLux
+  - imagemUrl
+  - categoria
+  - origem
+}
+
+class Aviso {
+  - tipo
+  - mensagem
+  - dataHora
+}
+
+class MedicaoLuz {
+  - lux
+  - adequacao
+}
+
+class Meteorologia {
+  - temperatura
+  - humidadeSolo
+  - dataHora
+}
+
+class RegistoDiario {
+  - data
+  - texto
+}
+
+Planta "1" -- "1" Especie : pertence a
+Especie "1" -- "1" CuidadosEspecie : define
+Planta "1" -- "0..*" RegistoDiario : gera
+Aviso ..> Planta : reporta-se a
+Aviso ..> CuidadosEspecie : compara com
+Aviso ..> Meteorologia : usa
+MedicaoLuz ..> CuidadosEspecie : avalia
+@enduml

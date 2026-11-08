@@ -14,6 +14,25 @@
 \usepackage{amssymb}
 \usepackage{enumitem}
 \setlist[itemize]{noitemsep, topsep=3pt, parsep=0pt, partopsep=0pt}
+\usepackage{tabularx}
+
+\newcommand{\ucspec}[7]{
+\begin{center}
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.1}
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \textbf{Actor} & #1 \\ \hline
+        \textbf{Use case name} & #2 \\ \hline
+        \textbf{Description} & #3 \\ \hline
+        \textbf{Precondition} & #4 \\ \hline
+        \textbf{Postcondition} & #5 \\ \hline
+        \textbf{Main flow} & #6 \\ \hline
+        \textbf{Alternative path} & #7 \\ \hline
+    \end{tabularx}
+\end{center}
+}
 
 \renewcommand{\refname}{Bibliografia}
 
@@ -190,8 +209,126 @@ em Java Android e os testes realizados.
         características do dispositivo (sensor de luz, GPS e notificações).
 \end{itemize}
 
+\subsection{Especificações de Casos de Uso}
+
+Esta subsecção especifica os casos de uso mais relevantes da aplicação, com a
+descrição, pré-condições, pós-condições, fluxos principais e alternativos.
+
+\subsubsection{UC1: Registar Planta}
+
+\ucspec{Utilizador}{Registar Planta}{O utilizador regista uma nova planta,
+indicando o nome e a espécie.}{A aplicação está aberta no menu principal.}{A
+planta é criada e guardada na base de dados restdb.io.}{1. O utilizador inicia
+o registo de uma nova planta. \newline 2. O sistema pede o nome e o pid da
+espécie. \newline 3. O utilizador introduz o nome e escolhe a espécie. \newline
+4. O sistema valida o nome (mínimo de 3 caracteres). \newline 5. O sistema cria
+a planta, guarda-a na restdb.io e apresenta-a na lista.}{3.a. Nome inválido:
+\newline 1. O sistema mostra uma mensagem de erro e pede novamente o nome.}
+
+\subsubsection{UC3: Consultar Informação da Espécie}
+
+\ucspec{Utilizador}{Consultar Informação da Espécie}{O utilizador consulta a
+informação da espécie de uma planta (limites de temperatura e humidade, e
+imagem), obtida da API OpenPlantbook.}{Existe uma planta registada.}{A
+informação da espécie é apresentada ao utilizador.}{1. O utilizador seleciona
+uma planta. \newline 2. O sistema chama o PlantBookService numa Thread. \newline
+3. O NetworkHandler obtém o JSON da OpenPlantbook pelo pid. \newline 4. O
+JsonHandler converte o JSON em DTO e o Mapper cria a Especie. \newline 5. O
+sistema apresenta os limites e a imagem.}{3.a. Sem rede ou API falha: \newline
+1. O sistema mostra uma mensagem de erro, sem corromper os restantes dados.}
+
+\subsubsection{UC4: Calcular Próxima Rega}
+
+\ucspec{Utilizador}{Calcular Próxima Rega}{O sistema calcula e apresenta a
+próxima rega recomendada de uma planta, com base na previsão meteorológica e
+na última rega.}{Existe uma planta registada e uma previsão meteorológica
+disponível.}{A próxima rega recomendada é apresentada.}{1. O utilizador
+seleciona uma planta. \newline 2. O sistema obtém a previsão meteorológica e
+os cuidados da espécie. \newline 3. O Aviso.obterProximaRega calcula a data da
+próxima rega. \newline 4. O sistema apresenta a data recomendada.}{3.a. Sem
+previsão: \newline 1. O sistema usa apenas a cadência da espécie.}
+
+\subsubsection{UC6: Produzir Avisos de Temperatura e Humidade}
+
+\ucspec{Utilizador}{Produzir Avisos de Temperatura e Humidade}{O sistema gera
+avisos quando a temperatura ou a humidade do solo previstas saem do intervalo
+adequado à espécie.}{Existe uma planta registada e a previsão meteorológica do
+local.}{São gerados os avisos adequados e, quando aplicável, emitidas
+notificações.}{1. O sistema obtém a previsão e os cuidados da espécie. \newline
+2. O Aviso.verificarTemperatura compara com o intervalo da espécie. \newline 3.
+O Aviso.verificarHumidadeSolo compara com o intervalo da espécie. \newline 4. O
+sistema apresenta os avisos e emite notificações.}{2.a. Temperatura dentro do
+intervalo: \newline 1. Não é gerado aviso de temperatura.}
+
+\subsubsection{UC8: Medir Luminosidade}
+
+\ucspec{Utilizador}{Medir Luminosidade}{O utilizador mede a luminosidade
+ambiente através do sensor de luz e o sistema avalia se é adequada à
+espécie.}{Existe uma planta registada e o dispositivo tem sensor de luz.}{A
+medição e a avaliação da adequação são apresentadas.}{1. O utilizador inicia a
+medição. \newline 2. O sistema lê o valor do sensor de luz (MedicaoLuz). \newline
+3. O MedicaoLuz.avaliar compara com a luz adequada à espécie. \newline 4. O
+sistema apresenta o resultado.}{3.a. Sem sensor de luz: \newline 1. O sistema
+informa que o dispositivo não suporta a medição.}
+
+\subsection{Diagramas de Sequência do Sistema (SSD)}
+
+As figuras seguintes apresentam os diagramas de sequência do sistema (SSD)
+para os casos de uso mais relevantes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/SSDs/uc01.png}
+    \caption{SSD — UC1: Registar Planta}
+    \label{fig:ssd_uc01}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/SSDs/uc03.png}
+    \caption{SSD — UC3: Consultar Informação da Espécie}
+    \label{fig:ssd_uc03}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/SSDs/uc04.png}
+    \caption{SSD — UC4: Calcular Próxima Rega}
+    \label{fig:ssd_uc04}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/SSDs/uc06.png}
+    \caption{SSD — UC6: Produzir Avisos}
+    \label{fig:ssd_uc06}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/SSDs/uc08.png}
+    \caption{SSD — UC8: Medir Luminosidade}
+    \label{fig:ssd_uc08}
+\end{figure}
+
+% -------------------------------------------------------------
+\section{Modelação de Domínio}
+
+A figura~\ref{fig:domain_model} apresenta o modelo de domínio da aplicação,
+com as entidades centrais (Planta, Especie, CuidadosEspecie, Aviso,
+MedicaoLuz, Meteorologia, RegistoDiario) e as relações entre elas.
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.85\textwidth]{diagramas/design/domain_model.png}}
+    \caption{Modelo de Domínio}
+    \label{fig:domain_model}
+\end{figure}
+
 % -------------------------------------------------------------
 \section{Design de Software}
+
+\subsection{Arquitetura Física}
 
 \begin{figure}[H]
     \centering
@@ -200,12 +337,16 @@ em Java Android e os testes realizados.
     \label{fig:physical_architecture}
 \end{figure}
 
+\subsection{Arquitetura Lógica}
+
 \begin{figure}[H]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=0.75\textwidth]{diagramas/design/logical_architecture.png}}
     \caption{Diagrama de Arquitetura Lógica}
     \label{fig:logical_architecture}
 \end{figure}
+
+\subsection{Organização do Código}
 
 \begin{figure}[H]
     \centering
@@ -214,17 +355,19 @@ em Java Android e os testes realizados.
     \label{fig:code_organization}
 \end{figure}
 
+\subsection{Diagramas de Classes}
+
 \begin{figure}[H]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=0.9\textwidth]{diagramas/design/model_class_diagram.png}}
-    \caption{Diagrama de Classes do Modelo (Design Class Diagram)}
+    \caption{Diagrama de Classes do Modelo}
     \label{fig:model_class_diagram}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=0.85\textwidth]{diagramas/design/services_handlers_class_diagram.png}}
-    \caption{Diagrama de Classes dos Services e Handler}
+    \caption{Diagrama de Classes dos Services e Handlers}
     \label{fig:services_handlers_class_diagram}
 \end{figure}
 
@@ -235,62 +378,29 @@ em Java Android e os testes realizados.
     \label{fig:dtos_mappers_class_diagram}
 \end{figure}
 
-\subsection{Padrão Model-View-Controller (MVC)}
+\subsection{Arquitetura em Camadas}
 
-O sistema foi dividido em camadas usando o padrão Model-View-Controller com
-Services, Handler, DTOs e Mapper adicionados:
+O sistema está dividido em camadas. O Model contém as entidades do domínio
+(Planta, Especie, CuidadosEspecie, Aviso, MedicaoLuz, Meteorologia,
+RegistoDiario). A View é a interface com o utilizador, implementada nas
+Activities. Os services (PlantaService, PlantBookService, MeteoService,
+LocalizacaoService, AvisoService) orquestram as operações. Os handlers
+(JsonHandler, NetworkHandler) tratam do JSON e do HTTP. Os DTOs (PlantaDTO,
+EspecieOpb, DetalheOpb, MeteorologiaDTO, RegistoDiarioDTO) transportam dados
+entre a rede e o domínio, e o Mapper converte os DTOs em Model.
 
-\begin{enumerate}
-    \item Model: Tem as classes de dados (Planta, Especie, CuidadosEspecie,
-        Aviso, MedicaoLuz, Meteorologia, MeteorologiaContainer,
-        RegistoDiario). Estas classes são as entidades do domínio e não
-        conhecem a parte da View.
-    \item View: Responsável pelas interações com o utilizador. Inclui as
-        Activities MainActivity, PlantasActivity, CriarPlantaActivity,
-        InfoPlantaActivity, RegaPlantaActivity, MedirLuzActivity e
-        DiarioPlantaActivity.
-    \item Controller: Nos serviços (PlantaService, PlantBookService,
-        MeteoService, LocalizacaoService, AvisoService) está a orquestração
-        das operações: recebem os pedidos das Activities, delegam a
-        comunicação aos Handler e deixam as regras de negócio ao Model.
-    \item Handler: As classes JsonHandler (converte JSON em DTO) e
-        NetworkHandler (comunicação HTTP com as APIs) isolam o acesso à rede
-        das restantes camadas.
-    \item DTO: Estruturas de transferência (PlantaDTO, EspecieOpb, DetalheOpb,
-        MeteorologiaDTO, RegistoDiarioDTO) transportam dados entre a rede e o
-        domínio sem expor o Model à representação em JSON.
-    \item Mapper: A classe dto/Mapper converte os DTOs em objetos do Model
-        (Planta, Especie, CuidadosEspecie, Meteorologia, RegistoDiario),
-        isolando o Modelo dos formatos de rede.
-\end{enumerate}
-
-Por exemplo o fluxo de uma operação típica é: View apanha o input, chama o Service
-numa Thread, o Service usa os Handler para comunicar com a API, o Mapper converte o
-DTO em Model, a decisão é tomada no Model, e o resultado regressa à View para
-apresentar.
+O fluxo de uma operação típica é: a View apanha o input, chama o service numa
+Thread, o service usa o handler para comunicar com a API, o Mapper converte o
+DTO em Model, a decisão é tomada no Model e o resultado volta à View.
 
 \subsection{Padrões de Desenho Aplicados (GRASP)}
-Exemplos de classes onde usamos certos padrões de desenho:
 
-\begin{itemize}
-    \item Expert: A classe que detém a informação é a que decide. As comparações
-        de temperatura e humidade vivem no model (Aviso, CuidadosEspecie,
-        MedicaoLuz), não nas Activities nem nos serviços. O
-        MeteorologiaContainer também é Expert: detém a lista de previsões e
-        responde a consultas sobre os extremos e a primeira rega.
-    \item Controller: O padrão Controller é implementado pelos serviços
-        (AvisoService, PlantaService, MeteoService, PlantBookService,
-        LocalizacaoService), que orquestram as operações e delegam a
-        comunicação aos Handler.
-    \item Creator: O padrão Creator é aplicado no dto/Mapper, que cria os
-        objetos do Model (Planta, Especie, CuidadosEspecie, Meteorologia,
-        RegistoDiario) a partir dos DTOs obtidos da rede.
-    \item Singleton: O padrão Singleton é usado no MeteorologiaContainer (método
-        getInstance()), partilhado em toda a aplicação para evitar repetir o
-        pedido de meteorologia em cada ecrã.
-    \item Pure Fabrication / Indirection: O Mapper (dto) isola o Model dos DTOs
-        e os handler isolam o JSON/HTTP das restantes camadas.
-\end{itemize}
+Expert: as comparações de temperatura e humidade vivem no Model (Aviso,
+CuidadosEspecie, MedicaoLuz). Controller: os services orquestram as operações.
+Creator: o dto/Mapper cria os objetos do Model a partir dos DTOs. Singleton: o
+MeteorologiaContainer usa getInstance() para partilhar a previsão na aplicação.
+Pure Fabrication e Indirection: o Mapper e os handlers isolam o Model do
+JSON/HTTP.
 
 \subsection{Interface de Utilizador}
 
