@@ -92,7 +92,6 @@ public class JsonHandler {
         JSONObject hourlyData = new JSONObject(json).getJSONObject("hourly");
         JSONArray times = hourlyData.getJSONArray("time");
         JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
-        JSONArray precipitations = hourlyData.getJSONArray("precipitation");
         JSONArray soilMoistures = hourlyData.getJSONArray("soil_moisture_1_to_3cm");
 
         for (int i = 0; i < times.length(); i++) {
@@ -101,9 +100,8 @@ public class JsonHandler {
             }
             String textoData = times.getString(i);
             double temperatura = temperatures.getDouble(i);
-            double precipitacao = Math.max(0.0, precipitations.optDouble(i, 0.0));
             double humidadeSolo = soilMoistures.optDouble(i, 0.0) * 100.0;
-            dtos.add(new MeteorologiaDTO(temperatura, precipitacao, humidadeSolo, textoData));
+            dtos.add(new MeteorologiaDTO(temperatura, humidadeSolo, textoData));
         }
         return dtos;
     }

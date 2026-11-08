@@ -83,7 +83,6 @@ public class Mapper {
         Date dataHora = formatador.parse(dto.getDataHora());
         return new Meteorologia(
                 dto.getTemperatura(),
-                dto.getPrecipitacao(),
                 dto.getHumidadeSolo(),
                 dataHora
         );

@@ -39,7 +39,7 @@ public class AvisoTest {
         long baseTime = System.currentTimeMillis() + 3600000L; // 1 hora no futuro
         for (int i = 0; i < temperaturas.length; i++) {
             Date dataHora = new Date(baseTime + (i * 3600000L));
-            lista.add(new Meteorologia(temperaturas[i], 0.0, 30.0, dataHora));
+            lista.add(new Meteorologia(temperaturas[i], 30.0, dataHora));
         }
         return lista;
     }

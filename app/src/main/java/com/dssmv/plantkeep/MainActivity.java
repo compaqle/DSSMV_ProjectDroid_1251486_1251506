@@ -25,7 +25,11 @@ import com.dssmv.plantkeep.services.MeteoService;
 
 import java.util.List;
 
-// Ecrã principal com a lista de avisos meteorológicos
+/**
+ * Ecrã principal
+ * Tem a lista de avisos meteorológicos
+ * Botões para Criar planta e ver lista de plantas
+ */
 public class MainActivity extends AppCompatActivity {
 
     private TextView txtEstadoAvisos;

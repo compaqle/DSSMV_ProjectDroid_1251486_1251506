@@ -5,13 +5,11 @@ import java.util.Date;
 public class Meteorologia {
 
     private double temperatura;
-    private double precipitacao;
     private double humidadeSolo;
     private Date dataHora;
 
-    public Meteorologia(double temperatura, double precipitacao, double humidadeSolo, Date dataHora) {
+    public Meteorologia(double temperatura, double humidadeSolo, Date dataHora) {
         setTemperatura(temperatura);
-        setPrecipitacao(precipitacao);
         setHumidadeSolo(humidadeSolo);
         setDataHora(dataHora);
     }
@@ -22,13 +20,6 @@ public class Meteorologia {
 
     public void setTemperatura(double temperatura) {
         this.temperatura = temperatura;
-    }
-
-    public void setPrecipitacao(double precipitacao) {
-        if (precipitacao < 0) {
-            throw new IllegalArgumentException("Meteorologia: precipitação não pode ser negativa");
-        }
-        this.precipitacao = precipitacao;
     }
 
     public double getHumidadeSolo() {
@@ -57,7 +48,6 @@ public class Meteorologia {
     public String toString() {
         return "Meteorologia{" +
                 "temperatura=" + temperatura + " °C, " +
-                "precipitacao=" + precipitacao + "mm, " +
                 "humidadeSolo=" + humidadeSolo + "%, " +
                 "dataHora=" + dataHora + '}';
     }

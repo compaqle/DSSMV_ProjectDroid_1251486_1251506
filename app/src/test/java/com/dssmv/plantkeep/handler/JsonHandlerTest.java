@@ -130,17 +130,12 @@ public class JsonHandlerTest {
         assertEquals("Planta " + total, resultado.get(total - 1).getNome());
     }
 
-    // =========================================================================
-    // TESTES DE DESSERIALIZAÇÃO METEOROLÓGICA (Open-Meteo)
-    // =========================================================================
-
     @Test
     public void deSerializeJsonMeteo_comDadosValidos_deveConverterHorasEHumidadePercentual() throws JSONException {
         String json = "{\n" +
                 "  \"hourly\": {\n" +
                 "    \"time\": [\"2026-11-07T12:00\", \"2026-11-07T13:00\"],\n" +
                 "    \"temperature_2m\": [18.5, 21.0],\n" +
-                "    \"precipitation\": [0.0, 1.5],\n" +
                 "    \"soil_moisture_1_to_3cm\": [0.28, 0.35]\n" +
                 "  }\n" +
                 "}";
@@ -153,13 +148,11 @@ public class JsonHandlerTest {
         MeteorologiaDTO hora1 = resultado.get(0);
         assertEquals("2026-11-07T12:00", hora1.getDataHora());
         assertEquals(18.5, hora1.getTemperatura(), 0.001);
-        assertEquals(0.0, hora1.getPrecipitacao(), 0.001);
         assertEquals("Humidade do solo deve ser convertida de m³/m³ para percentagem (*100)", 28.0, hora1.getHumidadeSolo(), 0.001);
 
         MeteorologiaDTO hora2 = resultado.get(1);
         assertEquals("2026-11-07T13:00", hora2.getDataHora());
         assertEquals(21.0, hora2.getTemperatura(), 0.001);
-        assertEquals(1.5, hora2.getPrecipitacao(), 0.001);
         assertEquals(35.0, hora2.getHumidadeSolo(), 0.001);
     }
 
@@ -169,7 +162,6 @@ public class JsonHandlerTest {
                 "  \"hourly\": {\n" +
                 "    \"time\": [\"2026-11-07T10:00\", \"2026-11-07T11:00\", \"2026-11-07T12:00\"],\n" +
                 "    \"temperature_2m\": [19.0, null, 20.0],\n" +
-                "    \"precipitation\": [0.0, 0.0, 0.0],\n" +
                 "    \"soil_moisture_1_to_3cm\": [0.25, 0.30, null]\n" +
                 "  }\n" +
                 "}";
@@ -189,7 +181,6 @@ public class JsonHandlerTest {
                 "  \"hourly\": {\n" +
                 "    \"time\": [],\n" +
                 "    \"temperature_2m\": [],\n" +
-                "    \"precipitation\": [],\n" +
                 "    \"soil_moisture_1_to_3cm\": []\n" +
                 "  }\n" +
                 "}";
@@ -210,20 +201,17 @@ public class JsonHandlerTest {
         int totalHoras = 168; // 7 dias * 24 horas
         JSONArray times = new JSONArray();
         JSONArray temps = new JSONArray();
-        JSONArray precips = new JSONArray();
         JSONArray soils = new JSONArray();
 
         for (int i = 0; i < totalHoras; i++) {
             times.put(String.format("2026-11-%02dT%02d:00", (i / 24) + 1, i % 24));
             temps.put(15.0 + (i % 10));
-            precips.put(0.0);
             soils.put(0.30);
         }
 
         JSONObject hourly = new JSONObject();
         hourly.put("time", times);
         hourly.put("temperature_2m", temps);
-        hourly.put("precipitation", precips);
         hourly.put("soil_moisture_1_to_3cm", soils);
 
         JSONObject root = new JSONObject();
