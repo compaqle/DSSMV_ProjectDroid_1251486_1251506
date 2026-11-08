@@ -39,6 +39,18 @@ public class Aviso {
         this.dataHora = new Date(dataHora.getTime());
     }
 
+    public String getNomePlanta() {
+        return nomePlanta;
+    }
+
+    public TipoAviso getTipo() {
+        return tipo;
+    }
+
+    public String getMensagem() {
+        return mensagem;
+    }
+
     public Date getDataHora() {
         return new Date(dataHora.getTime());
     }

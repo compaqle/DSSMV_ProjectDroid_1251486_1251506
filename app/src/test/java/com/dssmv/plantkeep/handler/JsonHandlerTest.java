@@ -16,15 +16,9 @@ import org.junit.Test;
 import java.util.List;
 
 /**
- * Testes unitários para a desserialização de dados (JsonHandler):
- * - Plantas e Diário (RestDB)
- * - Previsões Meteorológicas (Open-Meteo)
+ * Testes para a desserialização das Plantas e Diário e Previsões Meteorológicas
  */
 public class JsonHandlerTest {
-
-    // =========================================================================
-    // TESTES DE DESSERIALIZAÇÃO DE PLANTAS (RestDB)
-    // =========================================================================
 
     @Test
     public void deSerializeJson_comPlantasEDiarioValidos_deveCriarListaComAtributosCompletos() throws JSONException {
