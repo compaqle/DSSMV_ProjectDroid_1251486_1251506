@@ -1,0 +1,39 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class PlantaDTO {
+  - id: int
+  - nome: String
+}
+
+class EspecieOpb {
+  - id: String
+  - nome: String
+}
+
+class DetalheOpb {
+  - pid: String
+  - cuidados: CuidadosEspecie
+}
+
+class MeteorologiaDTO {
+  - temperatura: double
+  - humidade: double
+}
+
+class RegistoDiarioDTO {
+  - data: String
+  - texto: String
+}
+
+class Mapper {
+  + paraModelo(dto): model
+  + paraDto(model): dto
+}
+
+Mapper ..> PlantaDTO
+Mapper ..> EspecieOpb
+Mapper ..> DetalheOpb
+Mapper ..> MeteorologiaDTO
+Mapper ..> RegistoDiarioDTO
+@enduml

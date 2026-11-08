@@ -1,0 +1,60 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Planta {
+  - id: int
+  - nome: String
+  - especie: Especie
+  - ultimaRega: LocalDateTime
+  + obterCuidados(): CuidadosEspecie
+}
+
+class Especie {
+  - nome: String
+  - cuidados: CuidadosEspecie
+}
+
+class CuidadosEspecie {
+  - regarIntervaloDias: int
+  - regarQuantidadeAgua: double
+  + emIntervalo(temp, hum): boolean
+}
+
+class Aviso {
+  - tipo: String
+  - mensagem: String
+  + verificarTemperatura(prev, especie): Aviso
+  + verificarHumidadeSolo(prev, especie): Aviso
+  + obterProximaRega(planta, prev): Aviso
+}
+
+class MedicaoLuz {
+  - lux: int
+  + avaliar(lux, especie): MedicaoLuz
+}
+
+class Meteorologia {
+  - temperatura: double
+  - humidadeSolo: double
+  - precip: double
+}
+
+class MeteorologiaContainer {
+  - {static} instancia
+  + {static} getInstance(): MeteorologiaContainer
+  + obterPrevisao(): List<Meteorologia>
+}
+
+class RegistoDiario {
+  - data: LocalDateTime
+  - texto: String
+  - foto: Bitmap
+}
+
+Planta "1" --> "1" Especie
+Especie "1" --> "1" CuidadosEspecie
+Planta "1" --> "0..*" RegistoDiario
+MeteorologiaContainer "1" --> "*" Meteorologia
+Aviso ..> Planta
+Aviso ..> CuidadosEspecie
+@enduml

@@ -8,6 +8,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -32,23 +33,51 @@
 \maketitle
 
 \begin{abstract}
-Este relatório documenta o desenvolvimento do PlantKeep, uma aplicação Android em Java para a gestão de plantas de vaso e hortas urbanas. A aplicação combina dados das APIs públicas \textit{OpenPlantbook} e \textit{Open-Meteo}/\textit{IPMA} com características do dispositivo (sensor de luz ambiente, GPS e notificações) e uma base de dados remota \textit{restdb.io}, com cache local \textit{Room}. O documento apresenta a análise de requisitos (user stories, requisitos funcionais e não funcionais segundo FURPS+), o design de software em camadas (model/dto/handler/services) e a implementação em Java Android.
+Este relatório documenta o desenvolvimento do PlantKeep, uma aplicação Android em
+Java para a gestão de plantas em pequenas hortas e jardins. A aplicação combina dados
+das APIs públicas OpenPlantbook e Open-Meteo com
+características do dispositivo (sensor de luz ambiente, GPS e notificações) e uma
+base de dados remota restdb.io. O documento
+apresenta a análise de requisitos (user stories, requisitos funcionais e não
+funcionais segundo FURPS+), o design de software em camadas (model/dto/handler/
+services) e a implementação em Java Android.
 \\[2mm]
-\textbf{Palavras-chave:} Android, Java, REST, OpenPlantbook, Open-Meteo, IPMA, Sensor de Luz, Arquitetura em Camadas, FURPS+.
+Palavras-chave: Android, Java, REST, OpenPlantbook, Open-Meteo, IPMA,
+Sensor de Luz, Arquitetura em Camadas, FURPS+.
 \end{abstract}
 
 % -------------------------------------------------------------
 \section{Contexto}
 
-O objetivo deste projeto é criar uma aplicação Android, para a gestão de plantas numa horta ou jardim. Quem cultiva plantas em casa encontra dificuldades: saber quando regar, saber se a temperatura ou a humidade do solo são adequadas à espécie, e acompanhar a evolução de cada planta ao longo do tempo. A aplicação centraliza toda esta informação e transformá-la em decisões práticas e automáticas.
+O objetivo deste projeto é criar uma aplicação Android, para a gestão de plantas
+numa horta ou jardim. Quem cultiva plantas em casa encontra dificuldades: saber
+quando regar, saber se a temperatura ou a humidade do solo são adequadas à espécie,
+e acompanhar a evolução de cada planta ao longo do tempo. A aplicação centraliza
+toda esta informação e transformá-la em decisões práticas e automáticas.
 
-O utilizador pode registar cada uma das suas plantas, indicando a espécie, e consultar a informação dessa espécie obtida da API OpenPlantbook  (ex: limites de temperatura e de humidade do solo recomendados, uma fotografia de referência). A aplicação combina esses limites com a previsão meteorológica para criar avisos: temperatura mínima ou máxima fora do intervalo previsto, humidade do solo abaixo do necessário (altura de regar) ou solo encharcado. Para cada planta é também determinada a próxima rega recomendada, tendo em conta a previsão de seca e o efeito de uma rega manual.
+O utilizador pode registar cada uma das suas plantas, indicando a espécie, e
+consultar a informação dessa espécie obtida da API OpenPlantbook (por exemplo:
+limites de
+temperatura e de humidade do solo recomendados, uma fotografia de referência). A
+aplicação combina esses limites com a previsão meteorológica para criar avisos:
+temperatura mínima ou máxima fora do intervalo previsto, humidade do solo abaixo do
+necessário (altura de regar) ou solo encharcado. Para cada planta é também
+determinada a próxima rega recomendada, tendo em conta a previsão de seca e o
+efeito de uma rega manual.
 
-A aplicação utiliza características do telemóvel: o sensor de luz ambiente permite ao utilizador medir a luminosidade do local onde a planta está e verificar se é adequada à espécie. A localização (GPS) é usada para obter a previsão meteorológica correta para o localização.
+A aplicação utiliza características do telemóvel: o sensor de luz ambiente permite
+ao utilizador medir a luminosidade do local onde a planta está e verificar se é
+adequada à espécie. A localização (GPS) é usada para obter a previsão
+meteorológica correta para o localização.
 
-A persistência está dividida em duas camadas: os dados do utilizador (plantas, registos do diário) são guardados na base de dados remota restdb.io, os dados meteorológicos e de espécie são externos, obtidos das APIs Open-Meteo e OpenPlantbook, respetivamente.
+A persistência está dividida em duas camadas: os dados do utilizador (plantas,
+registos do diário) são guardados na base de dados remota restdb.io, os dados
+meteorológicos e de espécie são externos, obtidos das APIs Open-Meteo e
+OpenPlantbook, respetivamente.
 
-Este relatório documenta o contexto, a análise de requisitos, o design de software (arquitetura em camadas com separação model,dto,handler,service), a implementação em Java Android e os testes realizados.
+Este relatório documenta o contexto, a análise de requisitos, o design de software
+(arquitetura em camadas com separação model,dto,handler,service), a implementação
+em Java Android e os testes realizados.
 
 % -------------------------------------------------------------
 \section{Análise}
@@ -56,74 +85,221 @@ Este relatório documenta o contexto, a análise de requisitos, o design de soft
 \subsection{User Stories}
 
 \begin{itemize}
-    \item \textbf{US01:} Como utilizador, eu quero registar uma nova planta (nome e espécie) para a poder acompanhar no futuro.
-    \item \textbf{US02:} Como utilizador, eu quero consultar a lista das minhas plantas para ver rapidamente o estado de cada uma.
-    \item \textbf{US03:} Como utilizador, eu quero consultar informação da espécie de uma planta (limites de temperatura e de humidade do solo, e uma imagem) para saber como a cuidar.
-    \item \textbf{US04:} Como utilizador, eu quero saber a próxima rega recomendada de cada planta para saber quando a devo regar.
-    \item \textbf{US05:} Como utilizador, eu quero registar manualmente uma rega para atualizar o histórico de cada planta.
-    \item \textbf{US06:} Como utilizador, eu quero receber avisos quando a temperatura prevista sair do intervalo adequado à espécie para a proteger do frio ou do calor.
-    \item \textbf{US07:} Como utilizador, eu quero receber avisos quando a humidade do solo prevista sair do intervalo adequado (seca ou solo encharcado) para saber se devo regar ou se o solo está saturado.
-    \item \textbf{US08:} Como utilizador, eu quero medir a luminosidade ambiente do local onde está a planta e saber se é adequada à espécie para a colocar no sítio certo.
-    \item \textbf{US09:} Como utilizador, eu quero manter um diário por planta, com observações e fotografias, para acompanhar a sua evolução ao longo do tempo.
-    \item \textbf{US10:} Como utilizador, eu quero que a aplicação funcione com os dados em cache mesmo sem ligação à Internet.
+    \item US01: Como utilizador, eu quero registar uma nova planta (nome
+        e espécie) para a poder acompanhar no futuro.
+    \item US02: Como utilizador, eu quero consultar a lista das minhas
+        plantas para ver rapidamente o estado de cada uma.
+    \item US03: Como utilizador, eu quero consultar informação da espécie
+        de uma planta (limites de temperatura e de humidade do solo, e uma imagem)
+        para saber como a cuidar.
+    \item US04: Como utilizador, eu quero saber a próxima rega recomendada
+        de cada planta para saber quando a devo regar.
+    \item US05: Como utilizador, eu quero registar manualmente uma rega
+        para atualizar o histórico de cada planta.
+    \item US06: Como utilizador, eu quero receber avisos quando a
+        temperatura prevista sair do intervalo adequado à espécie para a proteger
+        do frio ou do calor.
+    \item US07: Como utilizador, eu quero receber avisos quando a humidade
+        do solo prevista sair do intervalo adequado (seca ou solo encharcado) para
+        saber se devo regar ou se o solo está saturado.
+    \item US08: Como utilizador, eu quero medir a luminosidade ambiente do
+        local onde está a planta e saber se é adequada à espécie para a colocar no
+        sítio certo.
+    \item US09: Como utilizador, eu quero manter um diário por planta, com
+        observações e fotografias, para acompanhar a sua evolução ao longo do tempo.
 \end{itemize}
 
 \subsection{Requisitos Funcionais (RF)}
 
 \begin{itemize}
-    \item \textbf{RF01:} O sistema deve permitir criar uma nova planta com um nome (mínimo de 3 caracteres) e indicar a sua espécie.
-    \item \textbf{RF02:} O sistema deve listar todas as plantas registadas pelo utilizador.
-    \item \textbf{RF03:} O sistema deve obter da API pública \textit{OpenPlantbook} a informação da espécie (limites de temperatura e de humidade do solo, e imagem), identificada pelo seu \texttt{pid}.
-    \item \textbf{RF04:} O sistema deve calcular a próxima rega recomendada para cada planta, com base na previsão meteorológica e no efeito de uma rega manual.
-    \item \textbf{RF05:} O sistema deve registar a última rega manual de cada planta.
-    \item \textbf{RF06:} O sistema deve produzir avisos de temperatura quando a previsão sair do intervalo [mín, máx] da espécie.
-    \item \textbf{RF07:} O sistema deve produzir avisos de humidade do solo quando a previsão sair do intervalo [mín, máx] da espécie (seca ou solo encharcado).
-    \item \textbf{RF08:} O sistema deve medir a luminosidade ambiente através do sensor de luz do dispositivo e avaliar a sua adequação à espécie.
-    \item \textbf{RF09:} O sistema deve permitir adicionar registos ao diário de uma planta, incluindo fotografias.
-    \item \textbf{RF10:} O sistema deve guardar os dados do utilizador na base de dados remota \textit{restdb.io}.
-    \item \textbf{RF11:} O sistema deve manter uma cache local (\textit{Room}) para permitir o funcionamento offline.
-    \item \textbf{RF12:} O sistema deve emitir notificações quando um aviso é disparado.
+    \item RF01: O sistema deve permitir criar uma nova planta com um nome
+        (mínimo de 3 caracteres) e indicar a sua espécie.
+    \item RF02: O sistema deve listar todas as plantas registadas pelo
+        utilizador.
+    \item RF03: O sistema deve obter da API pública OpenPlantbook
+        a informação da espécie (limites de temperatura e de humidade do solo, e
+        imagem), identificada pelo seu pid.
+    \item RF04: O sistema deve calcular a próxima rega recomendada para
+        cada planta, com base na previsão meteorológica e no efeito de uma rega
+        manual.
+    \item RF05: O sistema deve registar a última rega manual de cada
+        planta.
+    \item RF06: O sistema deve produzir avisos de temperatura quando a
+        previsão sair do intervalo [mín, máx] da espécie.
+    \item RF07: O sistema deve produzir avisos de humidade do solo quando
+        a previsão sair do intervalo [mín, máx] da espécie (seca ou solo encharcado).
+    \item RF08: O sistema deve medir a luminosidade ambiente através do
+        sensor de luz do dispositivo e avaliar a sua adequação à espécie.
+    \item RF09: O sistema deve permitir adicionar registos ao diário de
+        uma planta, incluindo fotografias.
+    \item RF10: O sistema deve guardar os dados do utilizador na base de
+        dados remota restdb.io.
+    \item RF11: O sistema deve emitir notificações quando um aviso é
+        disparado.
 \end{itemize}
 
 \subsection{Requisitos Não Funcionais (FURPS+)}
 
 \subsubsection{Functionality (F)}
 \begin{itemize}
-    \item \textbf{RNF01 (Persistência):} Os dados do utilizador (plantas, registos do diário, limiares e preferências) devem ser guardados na base de dados \textit{restdb.io}, com uma cache local \textit{Room} como falha de segurança para funcionamento offline.
+    \item RNF01 (Persistência): Os dados do utilizador (plantas, registos
+        do diário, limiares e preferências) devem ser guardados na base de dados
+        restdb.io.
 \end{itemize}
 
 \subsubsection{Usability (U)}
 \begin{itemize}
-    \item \textbf{RNF02 (Interface):} A aplicação deve apresentar uma interface gráfica simples e intuitiva, em ecrãs dedicados (criar planta, lista, informação, rega, diário, luz), navegáveis a partir de um menu principal.
+    \item RNF02 (Interface): A aplicação deve apresentar uma interface
+        gráfica simples e intuitiva, em ecrãs dedicados (criar planta, lista,
+        informação, rega, diário, luz), navegáveis a partir de um menu principal.
 \end{itemize}
 
 \subsubsection{Reliability (R)}
 \begin{itemize}
-    \item \textbf{RNF03 (Funcionamento offline):} A aplicação deve continuar a mostrar os dados previamente obtidos quando não há ligação à Internet, usando a cache local.
-    \item \textbf{RNF04 (Robustez):} Uma falha de rede ou de API numa planta não deve bloquear o cálculo dos avisos das restantes plantas.
-    \item \textbf{RNF05 (Validação):} O sistema deve validar os dados introduzidos pelo utilizador e recusar entradas inválidas (ex.: nome com menos de 3 caracteres).
+    \item RNF03 (Robustez): Uma falha de rede ou de API numa planta não
+        deve bloquear o cálculo dos avisos das restantes plantas.
+    \item RNF04 (Validação): O sistema deve validar os dados introduzidos
+        pelo utilizador e recusar entradas inválidas (ex.: nome com menos de 3
+        caracteres).
 \end{itemize}
 
 \subsubsection{Performance (P)}
 \begin{itemize}
-    \item \textbf{RNF06 (Responsividade):} As operações de rede devem ser executadas em segundo plano (numa \texttt{Thread}), para que a interface responda de imediato às interações do utilizador.
+    \item RNF05 (Responsividade): As operações de rede devem ser executadas
+        em segundo plano (numa Thread), para que a interface responda de
+        imediato às interações do utilizador.
 \end{itemize}
 
 \subsubsection{Supportability (S)}
 \begin{itemize}
-    \item \textbf{RNF07 (Portabilidade/Build):} O projeto deve ser compilável com \textit{Gradle} (AGP) num ambiente de desenvolvimento Android padrão.
+    \item RNF06 (Portabilidade/Build): O projeto deve ser compilável com
+        Gradle (AGP) num ambiente de desenvolvimento Android padrão.
 \end{itemize}
 
 \subsubsection{+ (Restrições de Implementação)}
 \begin{itemize}
-    \item \textbf{RNF08 (Linguagem):} A aplicação deve ser nativa para Android, escrita em \textbf{Java}.
-    \item \textbf{RNF09 (Arquitetura):} O código deve seguir uma arquitetura em camadas, com separação \texttt{model}/\texttt{dto}/\texttt{handler}/\texttt{services}, em que o \texttt{model} é puro (sem rede, JSON ou dependências Android).
-    \item \textbf{RNF10 (Comunicação com o exterior):} A aplicação deve comunicar com APIs externas via \textit{REST} (\textit{restdb.io}, \textit{OpenPlantbook}, \textit{Open-Meteo}/\textit{IPMA}) e explorar características do dispositivo (sensor de luz, GPS e notificações).
+    \item RNF07 (Linguagem): A aplicação deve ser nativa para Android,
+        escrita em Java.
+    \item RNF08 (Arquitetura): O código deve seguir uma arquitetura em
+        camadas, com separação
+        model/dto/handler/services, em que o
+        model é puro (sem rede, JSON ou dependências Android).
+    \item RNF09 (Comunicação com o exterior): A aplicação deve comunicar
+        com APIs externas via REST (restdb.io,
+        OpenPlantbook, Open-Meteo/IPMA) e explorar
+        características do dispositivo (sensor de luz, GPS e notificações).
 \end{itemize}
 
 % -------------------------------------------------------------
-\section{Design}
+\section{Design de Software}
 
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.9\textwidth]{diagramas/design/physical_architecture.png}}
+    \caption{Diagrama de Arquitetura Física}
+    \label{fig:physical_architecture}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.75\textwidth]{diagramas/design/logical_architecture.png}}
+    \caption{Diagrama de Arquitetura Lógica}
+    \label{fig:logical_architecture}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.95\textwidth]{diagramas/design/code_organization.png}}
+    \caption{Organização do Código}
+    \label{fig:code_organization}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.9\textwidth]{diagramas/design/model_class_diagram.png}}
+    \caption{Diagrama de Classes do Modelo (Design Class Diagram)}
+    \label{fig:model_class_diagram}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.85\textwidth]{diagramas/design/services_handlers_class_diagram.png}}
+    \caption{Diagrama de Classes dos Services e Handler}
+    \label{fig:services_handlers_class_diagram}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.7\textwidth]{diagramas/design/dtos_mappers_class_diagram.png}}
+    \caption{Diagrama de DTOs e Mapper}
+    \label{fig:dtos_mappers_class_diagram}
+\end{figure}
+
+\subsection{Padrão Model-View-Controller (MVC)}
+
+O sistema foi dividido em camadas usando o padrão Model-View-Controller com
+Services, Handler, DTOs e Mapper adicionados:
+
+\begin{enumerate}
+    \item Model: Tem as classes de dados (Planta, Especie, CuidadosEspecie,
+        Aviso, MedicaoLuz, Meteorologia, MeteorologiaContainer,
+        RegistoDiario). Estas classes são as entidades do domínio e não
+        conhecem a parte da View.
+    \item View: Responsável pelas interações com o utilizador. Inclui as
+        Activities MainActivity, PlantasActivity, CriarPlantaActivity,
+        InfoPlantaActivity, RegaPlantaActivity, MedirLuzActivity e
+        DiarioPlantaActivity.
+    \item Controller: Nos serviços (PlantaService, PlantBookService,
+        MeteoService, LocalizacaoService, AvisoService) está a orquestração
+        das operações: recebem os pedidos das Activities, delegam a
+        comunicação aos Handler e deixam as regras de negócio ao Model.
+    \item Handler: As classes JsonHandler (converte JSON em DTO) e
+        NetworkHandler (comunicação HTTP com as APIs) isolam o acesso à rede
+        das restantes camadas.
+    \item DTO: Estruturas de transferência (PlantaDTO, EspecieOpb, DetalheOpb,
+        MeteorologiaDTO, RegistoDiarioDTO) transportam dados entre a rede e o
+        domínio sem expor o Model à representação em JSON.
+    \item Mapper: A classe dto/Mapper converte os DTOs em objetos do Model
+        (Planta, Especie, CuidadosEspecie, Meteorologia, RegistoDiario),
+        isolando o Modelo dos formatos de rede.
+\end{enumerate}
+
+Por exemplo o fluxo de uma operação típica é: View apanha o input, chama o Service
+numa Thread, o Service usa os Handler para comunicar com a API, o Mapper converte o
+DTO em Model, a decisão é tomada no Model, e o resultado regressa à View para
+apresentar.
+
+\subsection{Padrões de Desenho Aplicados (GRASP)}
+Exemplos de classes onde usamos certos padrões de desenho:
+
+\begin{itemize}
+    \item Expert: A classe que detém a informação é a que decide. As comparações
+        de temperatura e humidade vivem no model (Aviso, CuidadosEspecie,
+        MedicaoLuz), não nas Activities nem nos serviços. O
+        MeteorologiaContainer também é Expert: detém a lista de previsões e
+        responde a consultas sobre os extremos e a primeira rega.
+    \item Controller: O padrão Controller é implementado pelos serviços
+        (AvisoService, PlantaService, MeteoService, PlantBookService,
+        LocalizacaoService), que orquestram as operações e delegam a
+        comunicação aos Handler.
+    \item Creator: O padrão Creator é aplicado no dto/Mapper, que cria os
+        objetos do Model (Planta, Especie, CuidadosEspecie, Meteorologia,
+        RegistoDiario) a partir dos DTOs obtidos da rede.
+    \item Singleton: O padrão Singleton é usado no MeteorologiaContainer (método
+        getInstance()), partilhado em toda a aplicação para evitar repetir o
+        pedido de meteorologia em cada ecrã.
+    \item Pure Fabrication / Indirection: O Mapper (dto) isola o Model dos DTOs
+        e os handler isolam o JSON/HTTP das restantes camadas.
+\end{itemize}
+
+\subsection{Interface de Utilizador}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=0.55\textwidth]{diagramas/design/ui_navigation.png}}
+    \caption{Árvore de Navegação da Interface de Utilizador}
+    \label{fig:ui_navigation}
+\end{figure}
 
 % -------------------------------------------------------------
 \section{Implementação}

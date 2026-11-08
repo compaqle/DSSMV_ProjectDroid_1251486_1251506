@@ -1,0 +1,44 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "com.dssmv.plantkeep" {
+  package "Activities" {
+    [MainActivity] as a1
+    [PlantasActivity] as a2
+    [CriarPlantaActivity] as a3
+    [InfoPlantaActivity] as a4
+    [RegaPlantaActivity] as a5
+    [MedirLuzActivity] as a6
+    [DiarioPlantaActivity] as a7
+  }
+  package "services" {
+    [PlantBookService] as s1
+    [PlantaService] as s2
+    [MeteoService] as s3
+    [LocalizacaoService] as s4
+    [AvisoService] as s5
+  }
+  package "handler" {
+    [JsonHandler] as h1
+    [NetworkHandler] as h2
+  }
+  package "dto" {
+    [PlantaDTO] as d1
+    [EspecieOpb] as d2
+    [DetalheOpb] as d3
+    [MeteorologiaDTO] as d4
+    [RegistoDiarioDTO] as d5
+    [Mapper] as d6
+  }
+  package "model" {
+    [Planta] as m1
+    [Especie] as m2
+    [CuidadosEspecie] as m3
+    [Aviso] as m4
+    [MedicaoLuz] as m5
+    [Meteorologia] as m6
+    [MeteorologiaContainer] as m7
+    [RegistoDiario] as m8
+  }
+}
+@enduml

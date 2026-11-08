@@ -1,0 +1,29 @@
+@startuml
+skinparam componentStyle rectangle
+left to right direction
+
+package "Dispositivo Android" {
+  [App PlantKeep\nActivities (View)] as app
+  [Sensor de Luz] as lux
+  [GPS] as gps
+  [Notificações] as notif
+  [restdb.io\n(dados do utilizador)] as rest
+}
+
+package "Internet" {
+  [HTTP/JSON] as http
+}
+
+cloud "APIs Públicas" {
+  [OpenPlantbook\n(espécies) ] as opb
+  [Open-Meteo / IPMA\n(meteorologia) ] as om
+}
+
+app --> lux
+app --> gps
+app --> notif
+app --> rest
+app --> http
+http --> opb
+http --> om
+@enduml

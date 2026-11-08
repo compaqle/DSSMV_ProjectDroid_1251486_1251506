@@ -1,0 +1,10 @@
+@startuml
+[*] --> MainActivity
+MainActivity --> CriarPlantaActivity
+MainActivity --> PlantasActivity
+PlantasActivity --> InfoPlantaActivity
+InfoPlantaActivity --> RegaPlantaActivity
+InfoPlantaActivity --> MedirLuzActivity
+InfoPlantaActivity --> DiarioPlantaActivity
+DiarioPlantaActivity --> InfoPlantaActivity
+@enduml

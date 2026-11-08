@@ -1,0 +1,63 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class PlantBookService {
+  + obterEspecie(nome, pid): Especie
+  - detalheCache: Map<String, DetalheOpb>
+}
+
+class PlantaService {
+  + listar(): List<Planta>
+  + adicionar(planta): Planta
+}
+
+class MeteoService {
+  + obterMeteorologia(lat, lon): List<Meteorologia>
+}
+
+class LocalizacaoService {
+  + obterLocalizacao(cb: Callback): void
+  + pararObterLocalizacao(): void
+}
+
+interface LocalizacaoProvider {
+  + obterLocalizacao(cb: Callback): void
+  + pararObterLocalizacao(): void
+}
+
+interface Callback {
+  + onLocalizacao(lat, lon): void
+  + onErro(msg): void
+}
+
+LocalizacaoProvider ..> Callback : usa
+
+class AvisoService {
+  + gerarAvisosPlanta(planta): List<Aviso>
+}
+
+class JsonHandler {
+  + deJson(texto, classe): T
+}
+
+class NetworkHandler {
+  + obterHttp(url): String
+}
+
+class Mapper {
+  + paraModelo(dto): model
+  + paraDto(model): dto
+}
+
+PlantBookService --> JsonHandler
+PlantBookService --> NetworkHandler
+MeteoService --> JsonHandler
+MeteoService --> NetworkHandler
+AvisoService --> PlantBookService
+AvisoService --> PlantaService
+PlantaService --> JsonHandler
+PlantaService --> NetworkHandler
+PlantBookService ..> Mapper
+PlantaService ..> Mapper
+LocalizacaoService ..|> LocalizacaoProvider
+@enduml

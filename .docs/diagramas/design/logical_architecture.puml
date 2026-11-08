@@ -1,0 +1,18 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam defaultFontSize 13
+
+package "Arquitetura Lógica (em camadas)" {
+  [Activities\n(apresentação / View)] as v
+  [services\n(orquestração) ] as s
+  [handler\n(JSON e HTTP) ] as h
+  [dto + Mapper\n(transferência) ] as d
+  [model\n(domínio puro) ] as m
+}
+
+v --> s : chama (em Thread)
+s --> h : envia/obtém texto
+h --> d : converte
+d --> m : instancia
+s --> m : decisões de negócio
+@enduml
