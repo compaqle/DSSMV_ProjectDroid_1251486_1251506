@@ -25,10 +25,7 @@ import com.dssmv.plantkeep.services.MeteoService;
 
 import java.util.List;
 
-/**
- * Ecrã principal
- * Tem lista de avisos meteorológicos
- */
+// Ecrã principal com a lista de avisos meteorológicos
 public class MainActivity extends AppCompatActivity {
 
     private TextView txtEstadoAvisos;
@@ -36,15 +33,15 @@ public class MainActivity extends AppCompatActivity {
     private LocalizacaoProvider localizacaoProvider;
     private volatile boolean aCarregarMeteo = false;
 
-    // Gere o pedido de permissões de localização
+    // Gere o pedido de permissões de localização (aceita exata ou aproximada)
     private final ActivityResultLauncher<String[]> launcher = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(),
             result -> {
-                if (result.containsValue(false)) {
+                if (result.containsValue(true)) {
+                    atualizarMeteorologia();
+                } else {
                     mostrarEstado("Permissão de GPS negada.");
                     mostraErro("Permissão de GPS negada.");
-                } else {
-                    atualizarMeteorologia();
                 }
             }
     );
@@ -64,8 +61,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnVer = findViewById(R.id.btn_ver_plantas);
         btnVer.setOnClickListener(v -> startActivity(new Intent(this, PlantasActivity.class)));
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (!temPermissaoLocalizacao()) {
             launcher.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
@@ -81,8 +77,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!MeteorologiaContainer.getInstance().getPrevisaoHoraria().isEmpty()) {
             carregarAvisos();
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        } else if (temPermissaoLocalizacao()) {
             atualizarMeteorologia();
         }
     }
@@ -94,12 +89,19 @@ public class MainActivity extends AppCompatActivity {
         aCarregarMeteo = false;
     }
 
+    // Verifica se temos pelo menos permissão de localização aproximada ou exata
+    private boolean temPermissaoLocalizacao() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
     private void atualizarMeteorologia() {
         if (aCarregarMeteo) {
             return;
         }
         aCarregarMeteo = true;
         mostrarEstado("A obter localização e meteorologia...");
+
         localizacaoProvider.obterLocalizacao(new LocalizacaoProvider.Callback() {
             @Override
             public void onLocalizacao(double latitude, double longitude) {
@@ -127,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void carregarAvisos() {
         runOnUiThread(() -> mostrarEstado("A verificar avisos meteorológicos..."));
+
         new Thread(() -> {
             try {
                 final List<Aviso> avisos = AvisoService.obterAvisosAtuais();

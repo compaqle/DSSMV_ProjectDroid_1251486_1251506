@@ -11,6 +11,7 @@ import com.dssmv.plantkeep.model.CuidadosEspecie;
 import com.dssmv.plantkeep.model.Especie;
 
 import java.net.URLEncoder;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,6 @@ public class PlantBookService {
         String body = "grant_type=client_credentials"
                 + "&client_id=" + URLEncoder.encode(BuildConfig.OPB_CLIENT_ID, "UTF-8")
                 + "&client_secret=" + URLEncoder.encode(BuildConfig.OPB_CLIENT_SECRET, "UTF-8");
-
         String resp = NetworkHandler.postFormUrlEncoded(BASE + "/token/", body);
         String[] tokenInfo = JsonHandler.deSerializeOpbToken(resp);
         token = tokenInfo[0];
@@ -49,46 +49,52 @@ public class PlantBookService {
 
     // Pesquisa espécies pelo nome ou apelido e devolve a lista de modelos
     public static List<Especie> pesquisar(String termo) throws Exception {
+        if (termo == null || termo.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        String termoLimpo = normalizarTexto(termo);
+        String queryApi = termoLimpo.isEmpty() ? termo.trim() : termoLimpo;
         String url = BASE + "/plant/search?alias="
-                + URLEncoder.encode(termo, "UTF-8") + "&limit=20";
+                + URLEncoder.encode(queryApi, "UTF-8") + "&limit=20";
         String resp = NetworkHandler.getDataWithBearerToken(url, getToken());
         List<EspecieOpb> listaDtos = JsonHandler.deSerializeJson2ListEspecieOpb(resp);
-        listaDtos = filtraRuido(listaDtos, termo);
+        listaDtos = filtraRuido(listaDtos, termoLimpo);
         return Mapper.paraListaEspecies(listaDtos);
     }
 
-    // Mantém o primeiro resultado e todos os que contêm as palavras pesquisadas
-    private static List<EspecieOpb> filtraRuido(List<EspecieOpb> lista, String termo) {
-        if (lista.size() <= 1) {
+    // Mantém o primeiro resultado e todos os que correspondem à pesquisa
+    private static List<EspecieOpb> filtraRuido(List<EspecieOpb> lista, String termoNorm) {
+        if (lista == null || lista.size() <= 1 || termoNorm == null || termoNorm.isEmpty()) {
             return lista;
         }
-        String q = (termo == null) ? "" : termo.trim().toLowerCase();
         List<EspecieOpb> out = new ArrayList<>();
         out.add(lista.get(0));
         for (int i = 1; i < lista.size(); i++) {
             EspecieOpb e = lista.get(i);
-            if (temPalavra(q, e.getDisplayPid()) || temPalavra(q, e.getAlias())) {
+            if (temPalavra(termoNorm, e.getDisplayPid()) || temPalavra(termoNorm, e.getAlias())) {
                 out.add(e);
             }
         }
         return out;
     }
 
-    // Verifica se todas as palavras da pesquisa aparecem como palavras inteiras no nome
-    private static boolean temPalavra(String q, String nome) {
-        if (q.isEmpty() || nome == null) {
+    // Verifica se as palavras pesquisadas existem (ou são prefixo) no nome da espécie
+    private static boolean temPalavra(String qNorm, String nome) {
+        String nomeNorm = normalizarTexto(nome);
+        if (qNorm == null || qNorm.isEmpty() || nomeNorm.isEmpty()) {
             return false;
         }
-        String[] palavrasPesquisa = q.split("[^a-z0-9]+");
-        String[] tokensNome = nome.toLowerCase().split("[^a-z0-9]+");
-        if (palavrasPesquisa.length == 0) {
-            return false;
-        }
+        String[] palavrasPesquisa = qNorm.split(" ");
+        String[] tokensNome = nomeNorm.split(" ");
 
         for (int i = 0; i < palavrasPesquisa.length; i++) {
+            String p = palavrasPesquisa[i];
+            if (p.isEmpty()) {
+                continue;
+            }
             boolean encontrou = false;
             for (int j = 0; j < tokensNome.length; j++) {
-                if (tokensNome[j].equals(palavrasPesquisa[i])) {
+                if (tokensNome[j].startsWith(p)) {
                     encontrou = true;
                     break;
                 }
@@ -100,8 +106,22 @@ public class PlantBookService {
         return true;
     }
 
+    // Remove acentos, passa a minúsculas e limpa símbolos para facilitar a pesquisa
+    private static String normalizarTexto(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        String semAcentos = Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return semAcentos.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
     // Devolve os cuidados de uma espécie usando cache por pid
     public static CuidadosEspecie detalhe(String pid) throws Exception {
+        if (pid == null || pid.trim().isEmpty()) {
+            return null;
+        }
+        pid = pid.trim();
         CuidadosEspecie emCache = detalheCache.get(pid);
         if (emCache != null) {
             return emCache;

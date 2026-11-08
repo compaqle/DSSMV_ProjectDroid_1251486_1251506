@@ -2,6 +2,7 @@ package com.dssmv.plantkeep.model;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -86,29 +87,47 @@ public class Aviso {
         long agora = System.currentTimeMillis();
         long fimEfeitoRegaMs = p.getUltimaRega() + EFEITO_REGA_MS;
 
-        if (cuidados != null && meteo != null && cuidados.getMinSoilMoist() != null) {
+        // Se temos previsão meteorológica e limite de humidade, decidimos com base no solo
+        if (cuidados != null && cuidados.getMinSoilMoist() != null
+                && meteo != null && !meteo.getPrevisaoHoraria().isEmpty()) {
             Date procurarAPartirDe = new Date(Math.max(agora, fimEfeitoRegaMs));
             Meteorologia registoRega = meteo.obterPrimeiroRegistoAbaixoHumidadeMinima(
                     cuidados.getMinSoilMoist(), procurarAPartirDe);
             if (registoRega != null) {
                 return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", registoRega.getDataHora());
             }
+            // Solo mantém-se húmido nos próximos dias (ex: chuva prevista)
+            return null;
         }
 
-        // Se nunca foi regada ou já passou o efeito da última rega, precisa de água hoje
+        // Sem meteorologia disponível, usa a regra simples de regar a cada 3 dias
         if (p.getUltimaRega() <= 0 || fimEfeitoRegaMs <= agora) {
             return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", new Date(agora));
         }
         return new Aviso(p, TipoAviso.HUMIDADE_SOLO_BAIXA, "", new Date(fimEfeitoRegaMs));
     }
 
+    // Formata a distância em dias de calendário (hoje, em 1 dia, em X dias)
     public String formatarData() {
-        long diffMs = dataHora.getTime() - System.currentTimeMillis();
+        long hojeMeiaNoite = inicioDoDiaMs(new Date());
+        long dataAvisoMeiaNoite = inicioDoDiaMs(dataHora);
+        long diffMs = dataAvisoMeiaNoite - hojeMeiaNoite;
+
         if (diffMs <= 0) {
             return "hoje";
         }
-        long dias = (long) Math.ceil(diffMs / (1000.0 * 60 * 60 * 24));
+        long dias = Math.round(diffMs / (1000.0 * 60 * 60 * 24));
         return (dias == 1) ? "em 1 dia" : "em " + dias + " dias";
+    }
+
+    private static long inicioDoDiaMs(Date data) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(data);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
     }
 
     @Override

@@ -30,7 +30,7 @@ public class AvisoService {
         List<Planta> plantas = PlantaService.getPlantas();
         for (int i = 0; i < plantas.size(); i++) {
             Planta p = plantas.get(i);
-            if (p == null || p.getPid() == null || p.getPid().isEmpty()) {
+            if (p == null || p.getPid() == null || p.getPid().trim().isEmpty()) {
                 continue;
             }
             try {
@@ -65,8 +65,11 @@ public class AvisoService {
         }
         MeteorologiaContainer meteo = MeteorologiaContainer.getInstance();
         CuidadosEspecie cuidados = null;
-        if (p.getPid() != null && !p.getPid().isEmpty()) {
-            cuidados = PlantBookService.detalhe(p.getPid());
+        if (p.getPid() != null && !p.getPid().trim().isEmpty()) {
+            try {
+                cuidados = PlantBookService.detalhe(p.getPid());
+            } catch (Exception ignored) {
+            }
         }
         return Aviso.obterProximaRega(p, cuidados, meteo);
     }

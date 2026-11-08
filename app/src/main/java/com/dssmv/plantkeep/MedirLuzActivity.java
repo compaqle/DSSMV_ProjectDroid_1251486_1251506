@@ -26,16 +26,17 @@ public class MedirLuzActivity extends AppCompatActivity {
 
     private Button btnFazerMedicao;
     private TextView txtResultado;
+
     private Integer minLux;
     private Integer maxLux;
 
     private SensorManager sensorManager;
     private SensorEventListener listenerLuz;
     private Handler handler;
-
     private int medicaoAtual = 0;
     private int maiorLux = 0;
     private boolean aMedir = false;
+
     private final int[] luxMedidos = new int[N_MEDICOES];
 
     @Override
@@ -48,8 +49,8 @@ public class MedirLuzActivity extends AppCompatActivity {
 
         int min = getIntent().getIntExtra("minLux", -1);
         int max = getIntent().getIntExtra("maxLux", -1);
-        minLux = (min > 0) ? min : null;
-        maxLux = (max > 0) ? max : null;
+        minLux = (min >= 0) ? min : null;
+        maxLux = (max >= 0) ? max : null;
 
         btnFazerMedicao.setOnClickListener(v -> iniciarMedicao());
     }
@@ -99,6 +100,7 @@ public class MedirLuzActivity extends AppCompatActivity {
         };
 
         sensorManager.registerListener(listenerLuz, luz, SensorManager.SENSOR_DELAY_NORMAL);
+
         handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
             sensorManager.unregisterListener(listenerLuz);

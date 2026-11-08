@@ -1,10 +1,12 @@
 package com.dssmv.plantkeep.services;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 
 /**
  * Serviço da localização.
@@ -36,7 +39,7 @@ public class LocalizacaoService implements LocalizacaoProvider {
         this.locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
     }
 
-    /** Usa GPS e Network para obter a localização */
+    // Usa GPS ou Rede para obter a localização conforme as permissões
     @SuppressLint("MissingPermission")
     @Override
     public void obterLocalizacao(Callback listener) {
@@ -48,8 +51,13 @@ public class LocalizacaoService implements LocalizacaoProvider {
             return;
         }
 
-        boolean gpsAtivo = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean redeAtiva = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if (!temPermissaoFine() && !temPermissaoCoarse()) {
+            notificarErro("Permissão de GPS negada.");
+            return;
+        }
+
+        boolean gpsAtivo = podeUsarGps();
+        boolean redeAtiva = podeUsarRede();
 
         if (!gpsAtivo && !redeAtiva) {
             notificarErro("Por favor, ative a localização do telemóvel.");
@@ -60,7 +68,7 @@ public class LocalizacaoService implements LocalizacaoProvider {
         tentarObterLocalizacao(gpsAtivo, redeAtiva);
     }
 
-    /** Interrompe qualquer pedido e limpa recursos */
+    // Interrompe qualquer pedido e limpa recursos
     @Override
     public void pararObterLocalizacao() {
         this.callbackAtivo = null;
@@ -69,13 +77,13 @@ public class LocalizacaoService implements LocalizacaoProvider {
         removerLocationUpdates();
     }
 
-    /** Regista um BroadcastReceiver que fica à espera que o utilizador ligue a localização */
+    // Fica à espera que o utilizador ligue a localização no telemóvel
     private void esperarGpsEObterLocalizacao() {
         gpsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context ctx, Intent intent) {
-                boolean gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                boolean rede = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                boolean gps = podeUsarGps();
+                boolean rede = podeUsarRede();
                 if (gps || rede) {
                     removerReceiver();
                     tentarObterLocalizacao(gps, rede);
@@ -85,10 +93,11 @@ public class LocalizacaoService implements LocalizacaoProvider {
         context.registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
     }
 
-    /** Tenta obter a localização usando cache; se não houver, pede uma nova com timeout */
+    // Tenta obter localização em cache; se não houver, pede uma nova com timeout
     @SuppressLint("MissingPermission")
     private void tentarObterLocalizacao(boolean gpsAtivo, boolean redeAtiva) {
         Location ultimaLocalizacao = obterUltimaLocalizacaoConhecida(gpsAtivo, redeAtiva);
+
         if (ultimaLocalizacao != null) {
             notificarLocalizacaoELimpar(ultimaLocalizacao.getLatitude(), ultimaLocalizacao.getLongitude());
             return;
@@ -115,10 +124,7 @@ public class LocalizacaoService implements LocalizacaoProvider {
 
         timeoutRunnable = () -> {
             removerLocationUpdates();
-            Location fallback = obterUltimaLocalizacaoConhecida(
-                    locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER),
-                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-            );
+            Location fallback = obterUltimaLocalizacaoConhecida(podeUsarGps(), podeUsarRede());
             if (fallback != null) {
                 notificarLocalizacaoELimpar(fallback.getLatitude(), fallback.getLongitude());
             } else {
@@ -142,6 +148,30 @@ public class LocalizacaoService implements LocalizacaoProvider {
             ultimaLocalizacao = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
         return ultimaLocalizacao;
+    }
+
+    // Só pode usar GPS se o hardware estiver ativo e tiver permissão FINE
+    private boolean podeUsarGps() {
+        return locationManager != null
+                && temPermissaoFine()
+                && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    // Pode usar Rede se estiver ativa e tiver permissão FINE ou COARSE
+    private boolean podeUsarRede() {
+        return locationManager != null
+                && (temPermissaoFine() || temPermissaoCoarse())
+                && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+    private boolean temPermissaoFine() {
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean temPermissaoCoarse() {
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     private void cancelarTimeout() {

@@ -7,12 +7,12 @@ import java.util.List;
 
 public class Planta {
 
-    private String id;       // _id restdb
-    private String nome;     // nome/apelido dado pelo utilizador
-    private String especie;  // espécie tal como aparece no OpenPlantbook
-    private String pid;      // id da espécie no OpenPlantbook
-    private long ultimaRega; // timestamp (ms) da última vez que foi regada (0 se nunca)
-    private List<RegistoDiario> diario; // registos do diário da planta
+    private String id;
+    private String nome;
+    private String especie;
+    private String pid;
+    private long ultimaRega;
+    private List<RegistoDiario> diario;
 
     private boolean isNomeValid(String nome) {
         return nome != null && nome.trim().length() >= 3;
