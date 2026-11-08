@@ -18,12 +18,14 @@ rectangle "PlantKeep (Android)" {
     component "Handler (Json Network)" as Handler
 
     UI -(0- Services
+    UI -(0- Model
     Services -(0- Model
     Services -(0- Helper
     Services -(0- Handler
+    Services -(0- DTO
     Handler -(0- DTO
 }
 
-ExtHTTP -up- Handler
+Handler -(0- ExtHTTP
 
 @enduml
