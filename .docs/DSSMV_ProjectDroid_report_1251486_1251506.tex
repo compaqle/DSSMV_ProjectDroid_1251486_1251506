@@ -610,7 +610,137 @@ public static List<Aviso> verificarTemperatura(Planta p, CuidadosEspecie cuidado
 \end{lstlisting}
 
 % -------------------------------------------------------------
+% -------------------------------------------------------------
 \section{Testes}
 
+Os testes unitários cobrem a lógica pura da aplicação: as regras de validação
+do modelo (Planta) e do negócio (Aviso) e a conversão de JSON em DTOs
+(JsonHandler). Optámos por testar apenas estas classes porque são as que
+contêm as regras de negócio; as Activities são testáveis apenas em
+instrumented tests (necessitam do emulador/dispositivo) e a camada de rede
+(NetworkHandler) exige respostas HTTP simuladas, pelo que ficam fora do âmbito
+desta secção.
+
+Correm-no com o JUnit 4 do Gradle: \texttt{gradlew testDebugUnitTest}.
+No total são 28 testes, todos verdes.
+
+\subsection{PlantaTest (11 testes)}
+
+Verificam a validação do modelo Planta: construção com nome válido (incluindo
+o limite exato de três caracteres e o trim dos espaços), e rejeição com
+IllegalArgumentException de nome nulo, nome curto e nome só de espaços;
+atualização por setNome com valor válido e inválido; setUltimaRega com
+timestamp negativo (rejeitado) e válido; adicionar um RegistoDiario nulo ao
+diário (rejeitado); e a imutabilidade da lista devolvida por getDiario
+(attempta de modificação direta lança UnsupportedOperationException).
+
+\begin{lstlisting}[caption={PlantaTest -- validacao do limite do nome},label=lst:plnttest]
+@Test
+public void criarPlanta_comNomeNoLimiteDeTresCaracteres_deveCriarComSucesso() {
+    Planta p = new Planta("Paz", "Spathiphyllum");
+    assertEquals("Paz", p.getNome());
+}
+
+@Test
+public void criarPlanta_comNomeMenorQueTresCaracteres_deveLancarIllegalArgumentException() {
+    assertThrows(IllegalArgumentException.class,
+        () -> new Planta("ab", "Especie"));
+}
+\end{lstlisting}
+
+\subsection{AvisoTest (6 testes)}
+
+Verificam as regras de geração de avisos de temperatura, o núcleo do UC6,
+usando um MeteorologiaContainer alimentado com uma previsão construída nos
+testes (helper criarPrevisao) e cuidados da espécie com limites conhecidos:
+
+\begin{itemize}
+  \item temperatura prevista abaixo do mínimo -- gera um aviso
+        TEMPERATURA\_BAIXA com a mensagem de frio correta;
+  \item temperatura prevista acima do máximo -- gera um aviso
+        TEMPERATURA\_ALTA;
+  \item todas as temperaturas dentro do intervalo -- não gera avisos;
+  \item previsão com frio e calor em simultâneo -- gera ambos os avisos,
+        pela ordem esperada;
+  \item espécie sem limites (null) -- não gera avisos;
+  \item previsão vazia ou parâmetros nulos -- devolve uma lista vazia,
+        sem lançar exceção.
+\end{itemize}
+
+\begin{lstlisting}[caption={AvisoTest -- aviso de frio com mensagem exata},label=lst:avisotest]
+@Test
+public void verificarTemperatura_temperaturaAbaixoDoMinimo_deveGerarAvisoFrio() {
+    CuidadosEspecie cuidados = criarCuidados(12, 28);
+    meteo.setPrevisaoHoraria(criarPrevisao(15.0, 6.5, 18.0));
+
+    List<Aviso> avisos = Aviso.verificarTemperatura(planta, cuidados, meteo);
+
+    assertEquals(1, avisos.size());
+    assertEquals(Aviso.TipoAviso.TEMPERATURA_BAIXA, avisos.get(0).getTipo());
+    assertEquals("Frio previsto (6.5  graus C, Min: 12  graus C)",
+                 avisos.get(0).getMensagem());
+}
+\end{lstlisting}
+
+\subsection{JsonHandlerTest (11 testes)}
+
+Verificam a conversão de JSON em DTOs para duas fontes:
+a lista de plantas do restdb.io e a previsão horária do Open-Meteo.
+Para as plantas, valida-se a leitura completa de um objeto (id, nome, espécie,
+pid, ultimaRega e o diário aninhado), a tolerância a campos em falta (planta
+sem campo diário fica com lista vazia, não nula), a filtragem de registos de
+diário com texto vazio, a resposta a um array vazio, a exceção
+JSONException para JSON inválido, e um teste de volume (uma lista grande de
+plantas é toda convertida). Para a meteorologia, valida-se a conversão de
+horas ISO e a conversão da humidade do solo de fração volumétrica
+(m³/m³) para percentagem (x100), o descarte de registos com valores nulos
+(o Open-Meteo devolve null em algumas horas), o objeto "hourly" em falta
+(lança JSONException) e o caso de sete dias de previsão (168 horas).
+
+\begin{lstlisting}[caption={JsonHandlerTest -- conversao da humidade do solo},label=lst:jsonhtest]
+@Test
+public void deSerializeJsonMeteo_comDadosValidos_deveConverterHorasEHumidadePercentual()
+        throws JSONException {
+    String json = "{\"hourly\": {"
+            + "\"time\": [\"2026-11-07T12:00\", \"2026-11-07T13:00\"], "
+            + "\"temperature_2m\": [18.5, 21.0], "
+            + "\"soil_moisture_1_to_3cm\": [0.28, 0.35]}}";
+
+    List<MeteorologiaDTO> resultado =
+            JsonHandler.deSerializeJson2ListMeteorologiaDTO(json);
+
+    assertEquals(2, resultado.size());
+    // 0.28 m3/m3 -> 28 % de humidade do solo
+    assertEquals(28.0, resultado.get(0).getHumidadeSolo(), 0.001);
+}
+\end{lstlisting}
+
+\subsection{Execução}
+
+A execução dos testes unitários com \texttt{gradlew testDebugUnitTest}
+devolve o resultado da tabela~\ref{tab:testes}: 28 testes, 0 falhas,
+0 erros.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \textbf{Classe de teste} & \textbf{Resultado} \\ \hline
+        PlantaTest & 11 testes, 0 falharam, 0 erros \\ \hline
+        AvisoTest & 6 testes, 0 falharam, 0 erros \\ \hline
+        JsonHandlerTest & 11 testes, 0 falharam, 0 erros \\ \hline
+        \textbf{Total} & \textbf{28 testes, 0 falharam, 0 erros} \\ \hline
+    \end{tabularx}
+    \caption{Resultado da execução dos testes unitários
+             (\texttt{gradlew testDebugUnitTest})}
+    \label{tab:testes}
+\end{table}
+
+Além dos testes unitários, a aplicação foi testada manualmente no dispositivo
+físico (OPPO CPH2603): registo de planta com pesquisa na OpenPlantbook,
+verificação da lista, rega, medição da luminosidade com o sensor real,
+diário com fotografia e a recepção de avisos meteorológicos no ecrã
+principal.
 
 \end{document}
