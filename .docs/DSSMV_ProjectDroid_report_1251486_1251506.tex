@@ -1,4 +1,4 @@
-% Documento: DSSMV_ProjectDroid_report_1251486_1251506
+﻿% Documento: DSSMV_ProjectDroid_report_1251486_1251506
 % Relatório final do projeto PlantKeep (DSSMV, ISEP LETI)
 % Turma 2DD, grupo #8 — Tiago Santos (1251486), Tomás Bastos (1251506)
 % Template mandatória: SurveyFormat (llncs.cls + typeinst.tex)
@@ -72,7 +72,7 @@
 Este relatório documenta o desenvolvimento do PlantKeep, uma aplicação Android em
 Java para a gestão de plantas em pequenas hortas e jardins. A aplicação combina dados
 das APIs públicas OpenPlantbook e Open-Meteo com
-características do dispositivo (sensor de luz ambiente, GPS e notificações) e uma
+características do dispositivo (sensor de luz ambiente e GPS) e uma
 base de dados remota restdb.io. O documento
 apresenta a análise de requisitos (user stories, requisitos funcionais e não
 funcionais segundo FURPS+), o design de software em camadas (model/dto/handler/
@@ -170,8 +170,8 @@ em Java Android e os testes realizados.
         uma planta, incluindo fotografias.
     \item RF10: O sistema deve guardar os dados do utilizador na base de
         dados remota restdb.io.
-    \item RF11: O sistema deve emitir notificações quando um aviso é
-        gerado.
+    \item RF11: O sistema deve apresentar os avisos gerados na interface do
+        utilizador.
 \end{itemize}
 
 \subsection{Requisitos Não Funcionais (FURPS+)}
@@ -223,7 +223,7 @@ em Java Android e os testes realizados.
     \item RNF09 (Comunicação com o exterior): A aplicação deve comunicar
         com APIs externas via REST (restdb.io,
         OpenPlantbook, Open-Meteo) e explorar
-        características do dispositivo (sensor de luz, GPS e notificações).
+        características do dispositivo (sensor de luz e GPS).
 \end{itemize}
 
 \subsection{Especificações de Casos de Uso}
@@ -250,9 +250,10 @@ imagem), obtida da API OpenPlantbook.}{Existe uma planta registada.}{A
 informação da espécie é apresentada ao utilizador.}{1. O utilizador seleciona
 uma planta. \newline 2. O sistema chama o PlantBookService numa Thread. \newline
 3. O NetworkHandler obtém o JSON da OpenPlantbook pelo pid. \newline 4. O
-JsonHandler converte o JSON em DTO e o Mapper cria a Especie. \newline 5. O
-sistema apresenta os limites e a imagem.}{3.a. Sem rede ou API falha: \newline
-1. O sistema mostra uma mensagem de erro, sem corromper os restantes dados.}
+JsonHandler converte o JSON no DTO DetalheOpb e o Mapper cria CuidadosEspecie. 
+\newline 5. O sistema apresenta os limites e a imagem.}{3.a. Sem rede ou API 
+falha: \newline 1. O sistema mostra uma mensagem de erro, sem corromper os
+ restantes dados.}
 
 \subsubsection{UC4: Calcular Próxima Rega}
 
@@ -270,11 +271,11 @@ previsão: \newline 1. O sistema usa apenas a cadência da espécie.}
 \ucspec{Utilizador}{Produzir Avisos de Temperatura e Humidade}{O sistema gera
 avisos quando a temperatura ou a humidade do solo previstas saem do intervalo
 adequado à espécie.}{Existe uma planta registada e a previsão meteorológica do
-local.}{São gerados os avisos adequados e, quando aplicável, emitidas
-notificações.}{1. O sistema obtém a previsão e os cuidados da espécie. \newline
+local.}{São gerados os avisos adequados e apresentados na interface do utilizador.}
+{1. O sistema obtém a previsão e os cuidados da espécie. \newline
 2. O Aviso.verificarTemperatura compara com o intervalo da espécie. \newline 3.
 O Aviso.verificarHumidadeSolo compara com o intervalo da espécie. \newline 4. O
-sistema apresenta os avisos e emite notificações.}{2.a. Temperatura dentro do
+sistema apresenta os avisos na interface do utilizador.}{2.a. Temperatura dentro do
 intervalo: \newline 1. Não é gerado aviso de temperatura.}
 
 \subsubsection{UC8: Medir Luminosidade}
@@ -646,7 +647,7 @@ IllegalArgumentException de nome nulo, nome curto e nome só de espaços;
 atualização por setNome com valor válido e inválido; setUltimaRega com
 timestamp negativo (rejeitado) e válido; adicionar um RegistoDiario nulo ao
 diário (rejeitado); e a imutabilidade da lista devolvida por getDiario
-(attempt de modificação direta lança UnsupportedOperationException).
+(tentativa de modificação direta lança UnsupportedOperationException).
 
 \begin{lstlisting}[caption={PlantaTest -- validacao do limite do nome},label=lst:plnttest, xleftmargin=-2cm, xrightmargin=-2cm]
 @Test
@@ -655,10 +656,9 @@ public void criarPlanta_comNomeNoLimiteDeTresCaracteres_deveCriarComSucesso() {
     assertEquals("Paz", p.getNome());
 }
 
-@Test
+@Test(expected = IllegalArgumentException.class)
 public void criarPlanta_comNomeMenorQueTresCaracteres_deveLancarIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class,
-        () -> new Planta("ab", "Especie"));
+    new Planta("Ab", "Especie Teste");
 }
 \end{lstlisting}
 
@@ -691,8 +691,7 @@ public void verificarTemperatura_temperaturaAbaixoDoMinimo_deveGerarAvisoFrio() 
 
     assertEquals(1, avisos.size());
     assertEquals(Aviso.TipoAviso.TEMPERATURA_BAIXA, avisos.get(0).getTipo());
-    assertEquals("Frio previsto (6.5  graus C, Min: 12  graus C)",
-                 avisos.get(0).getMensagem());
+    assertEquals("Frio previsto (6.5 °C, Min: 12 °C)", aviso.getMensagem());
 }
 \end{lstlisting}
 
