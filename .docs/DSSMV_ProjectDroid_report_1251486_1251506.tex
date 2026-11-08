@@ -286,10 +286,11 @@ medição. \newline 2. O sistema lê o valor do sensor de luz (MedicaoLuz). \new
 sistema apresenta o resultado.}{3.a. Sem sensor de luz: \newline 1. O sistema
 informa que o dispositivo não suporta a medição.}
 
-\subsection{Diagramas de Sequência do Sistema (SSD)}
+% -------------------------------------------------------------
+\subsection{SSD}
 
-As figuras seguintes apresentam os diagramas de sequência do sistema (SSD)
-para os casos de uso mais relevantes.
+Os SSDs dos casos de uso especificados atrás são apresentados nas figuras
+seguintes.
 
 \begin{figure}[H]
     \centering
@@ -327,7 +328,7 @@ para os casos de uso mais relevantes.
 \end{figure}
 
 % -------------------------------------------------------------
-\section{Modelação de Domínio}
+\subsection{Modelação de Domínio}
 
 A figura~\ref{fig:domain_model} apresenta o modelo de domínio da aplicação,
 com as entidades centrais (Planta, Especie, CuidadosEspecie, Aviso,
@@ -343,34 +344,34 @@ MedicaoLuz, Meteorologia, RegistoDiario) e as relações entre elas.
 % -------------------------------------------------------------
 \section{Design de Software}
 
-\subsection{Arquitetura Física}
+\subsection{Diagrama de Deployment}
 
 \begin{figure}[H]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=0.9\textwidth]{diagramas/design/physical_architecture.png}}
-    \caption{Diagrama de Arquitetura Física}
+    \caption{Diagrama de Deployment}
     \label{fig:physical_architecture}
 \end{figure}
 
-\subsection{Arquitetura Lógica}
+\subsection{Diagrama de Componentes}
 
 \begin{figure}[H]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=0.75\textwidth]{diagramas/design/logical_architecture.png}}
-    \caption{Diagrama de Arquitetura Lógica}
+    \caption{Diagrama de Componentes}
     \label{fig:logical_architecture}
 \end{figure}
 
-\subsection{Organização do Código}
+\subsection{Diagrama de Pacotes}
 
 \begin{figure}[H]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=0.95\textwidth]{diagramas/design/code_organization.png}}
-    \caption{Organização do Código}
+    \caption{Diagrama de Pacotes}
     \label{fig:code_organization}
 \end{figure}
 
-\subsection{Diagramas de Classes}
+\subsection{Diagrama de Classes}
 
 \begin{figure}[H]
     \centering
@@ -393,37 +394,45 @@ MedicaoLuz, Meteorologia, RegistoDiario) e as relações entre elas.
     \label{fig:dtos_mappers_class_diagram}
 \end{figure}
 
-\subsection{Arquitetura em Camadas}
+\subsection{Diagrama de Sequência}
 
-O sistema está dividido em camadas. O Model contém as entidades do domínio
-(Planta, Especie, CuidadosEspecie, Aviso, MedicaoLuz, Meteorologia,
-RegistoDiario). A View é a interface com o utilizador, implementada nas
-Activities. Os services (PlantaService, PlantBookService, MeteoService,
-LocalizacaoService, AvisoService) orquestram as operações. Os handlers
-(JsonHandler, NetworkHandler) tratam do JSON e do HTTP. Os DTOs (PlantaDTO,
-EspecieOpb, DetalheOpb, MeteorologiaDTO, RegistoDiarioDTO) transportam dados
-entre a rede e o domínio, e o Mapper converte os DTOs em Model.
-
-O fluxo de uma operação típica é: a View apanha o input, chama o service numa
-Thread, o service usa o handler para comunicar com a API, o Mapper converte o
-DTO em Model, a decisão é tomada no Model e o resultado volta à View.
-
-\subsection{Padrões de Desenho Aplicados (GRASP)}
-
-Expert: as comparações de temperatura e humidade vivem no Model (Aviso,
-CuidadosEspecie, MedicaoLuz). Controller: os services orquestram as operações.
-Creator: o dto/Mapper cria os objetos do Model a partir dos DTOs. Singleton: o
-MeteorologiaContainer usa getInstance() para partilhar a previsão na aplicação.
-Pure Fabrication e Indirection: o Mapper e os handlers isolam o Model do
-JSON/HTTP.
-
-\subsection{Interface de Utilizador}
+Para cada caso de uso com SSD na análise, apresenta-se o diagrama de
+sequência do sistema, já com a decomposição pelos objetos da aplicação
+(Activity, Services, Handlers, classes do model).
 
 \begin{figure}[H]
     \centering
-    \makebox[\textwidth][c]{\includegraphics[width=0.55\textwidth]{diagramas/design/ui_navigation.png}}
-    \caption{Árvore de Navegação da Interface de Utilizador}
-    \label{fig:ui_navigation}
+    \includegraphics[width=0.95\textwidth]{diagramas/SSDs/seq_uc01.png}
+    \caption{Diagrama de Sequência — UC1: Registar Planta}
+    \label{fig:seq_uc01}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{diagramas/SSDs/seq_uc03.png}
+    \caption{Diagrama de Sequência — UC3: Consultar Informação da Espécie}
+    \label{fig:seq_uc03}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{diagramas/SSDs/seq_uc04.png}
+    \caption{Diagrama de Sequência — UC4: Calcular Próxima Rega}
+    \label{fig:seq_uc04}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{diagramas/SSDs/seq_uc06.png}
+    \caption{Diagrama de Sequência — UC6: Produzir Avisos}
+    \label{fig:seq_uc06}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{diagramas/SSDs/seq_uc08.png}
+    \caption{Diagrama de Sequência — UC8: Medir Luminosidade}
+    \label{fig:seq_uc08}
 \end{figure}
 
 % -------------------------------------------------------------

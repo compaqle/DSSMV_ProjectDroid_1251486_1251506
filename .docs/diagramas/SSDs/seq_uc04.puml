@@ -1,0 +1,27 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+actor "Utilizador" as u
+participant "RegaPlanta\nActivity" as act
+participant "AvisoService" as asv
+participant "Meteorologia\nContainer" as mc
+participant "Aviso\n(model)" as av
+activate act
+u -> act : 1. pede a próxima rega da planta
+act -> asv : 2. obterProximaRega(p)
+activate asv
+asv -> mc : 3. obterPrimeiroAbaixoHumidadeMinima(min, aPartirDe)
+activate mc
+mc --> asv : 4. Meteorologia
+deactivate mc
+asv -> av : 5. obterProximaRega(p, c, m)
+activate av
+av --> asv : 6. Aviso (data da próxima rega)
+deactivate av
+asv --> act : 7. Aviso
+deactivate asv
+act --> u : 8. apresenta a data recomendada
+deactivate act
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+actor "Utilizador" as u
+participant "MedirLuz\nActivity" as act
+participant "SensorManager\n(sensor de luz)" as sm
+participant "MedicaoLuz\n(model)" as ml
+activate act
+u -> act : 1. inicia a medição da luz
+act -> sm : 2. registerListener(listener)
+activate sm
+loop 3 medições (N_MEDICOES)
+    sm --> act : 3. onSensorChanged(lux)
+end
+act -> ml : 4. new MedicaoLuz(maiorLux)
+activate ml
+ml -> ml : 5. avaliar(minLux, maxLux)
+ml --> act : 6. Resultado
+deactivate ml
+act --> u : 7. apresenta a avaliação
+deactivate act
+deactivate sm
+@enduml

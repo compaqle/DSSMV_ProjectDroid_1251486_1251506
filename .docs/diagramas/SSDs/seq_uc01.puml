@@ -1,0 +1,45 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+actor "Utilizador" as u
+participant "CriarPlanta\nActivity" as act
+participant "PlantBook\nService" as pbs
+participant "Plant\nService" as ps
+participant "JsonHandler" as jh
+participant "Network\nHandler" as nh
+
+activate act
+u -> act : 1. escreve o nome da espécie e toca "Pesquisar"
+activate act
+act -> pbs : 2. pesquisar(termo)
+activate pbs
+pbs -> nh : 3. getDataWithBearerToken(url, token)
+activate nh
+nh --> pbs : 4. json (lista de espécies)
+deactivate nh
+pbs -> jh : 5. deSerializeJson2ListEspecieOpb(json)
+activate jh
+jh --> pbs : 6. List<EspecieOpb>
+deactivate jh
+pbs -> pbs : 7. Mapper.paraModelo(dto)
+pbs --> act : 8. List<Especie>
+deactivate pbs
+act --> u : 9. mostra a lista de espécies
+u -> act : 10. escolhe a espécie e escreve o nome da planta
+act -> ps : 11. criar(planta)
+activate ps
+ps -> jh : 12. serializePlantaDTO2Json(dto)
+activate jh
+jh --> ps : 13. json
+deactivate jh
+ps -> nh : 14. addDataInStringFromUrl(url, json)
+activate nh
+nh --> ps : 15. resposta
+deactivate nh
+ps --> act : 16. planta guardada
+deactivate ps
+act --> u : 17. confirma o registo
+deactivate act
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+actor "Utilizador" as u
+participant "MainActivity" as act
+participant "Localizacao\nService" as loc
+participant "MeteoService" as ms
+participant "AvisoService" as asv
+participant "Aviso\n(model)" as av
+activate act
+u -> act : 1. abre o ecrã principal
+act -> loc : 2. obterLocalizacao(cb)
+activate loc
+loc --> act : 3. onLocalizacao(lat, lon)
+deactivate loc
+act -> ms : 4. carregarMeteorologia(lat, lon)
+activate ms
+ms --> act : 5. previsão carregada
+deactivate ms
+act -> asv : 6. obterAvisosAtuais()
+activate asv
+asv -> av : 7. verificarTemperatura(p, c, m)
+activate av
+av --> asv : 8. List<Aviso> (temperatura)
+deactivate av
+asv -> av : 9. verificarHumidadeSolo(p, c, m)
+activate av
+av --> asv : 10. Aviso (humidade do solo)
+deactivate av
+asv --> act : 11. List<Aviso>
+deactivate asv
+act --> u : 12. apresenta a lista de avisos
+@enduml

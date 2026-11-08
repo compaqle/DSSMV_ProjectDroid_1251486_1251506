@@ -1,0 +1,33 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+actor "Utilizador" as u
+participant "InfoPlanta\nActivity" as act
+participant "PlantBook\nService" as pbs
+participant "JsonHandler" as jh
+participant "Network\nHandler" as nh
+
+activate act
+u -> act : 1. abre o detalhe da planta
+act -> pbs : 2. detalhe(pid)
+activate pbs
+pbs -> jh : 3. deSerializeJson2DetalheOpb(json)
+activate jh
+jh --> pbs : 4. DetalheOpb
+deactivate jh
+pbs -> pbs : 5. Mapper.paraModelo(dto)
+pbs --> act : 6. CuidadosEspecie
+deactivate pbs
+act -> pbs : 7. obterImagemBytes(url)
+activate pbs
+pbs -> nh : 8. getBytesFromUrl(url)
+activate nh
+nh --> pbs : 9. byte[]
+deactivate nh
+pbs --> act : 10. byte[] (imagem)
+deactivate pbs
+act --> u : 11. apresenta limites e imagem
+deactivate act
+@enduml

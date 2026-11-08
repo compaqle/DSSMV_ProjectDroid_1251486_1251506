@@ -1,63 +1,85 @@
 @startuml
+skinparam monochrome true
+skinparam shadowing false
 skinparam classAttributeIconSize 0
+hide circle
+skinparam linetype ortho
+left to right direction
 
 class PlantBookService {
-  + obterEspecie(nome, pid): Especie
-  - detalheCache: Map<String, DetalheOpb>
+  + {static} pesquisar(termo): List<Especie>
+  + {static} detalhe(pid): CuidadosEspecie
+  + {static} obterImagemBytes(url): byte[]
+  - {static} detalheCache: Map<String, CuidadosEspecie>
+  - {static} getToken(): String
 }
 
 class PlantaService {
-  + listar(): List<Planta>
-  + adicionar(planta): Planta
+  + {static} getPlantas(): List<Planta>
+  + {static} criar(p): void
+  + {static} regar(p): void
+  + {static} adicionarRegistoDiario(id, texto, foto): Planta
+  + {static} removerRegistoDiario(id, registo): Planta
+  + {static} apagar(p): void
 }
 
 class MeteoService {
-  + obterMeteorologia(lat, lon): List<Meteorologia>
+  + {static} carregarMeteorologia(lat, lon): void
+  + {static} obterDadosMeteorologicos(lat, lon): List<Meteorologia>
+}
+
+class AvisoService {
+  + {static} obterAvisosAtuais(): List<Aviso>
+  + {static} gerarAvisosPlanta(p, c, m): List<Aviso>
+  + {static} obterProximaRega(p): Aviso
+}
+
+class LocalizacaoProvider {
+  + obterLocalizacao(cb): void
+  + pararObterLocalizacao(): void
 }
 
 class LocalizacaoService {
-  + obterLocalizacao(cb: Callback): void
+  + obterLocalizacao(cb): void
   + pararObterLocalizacao(): void
-}
-
-interface LocalizacaoProvider {
-  + obterLocalizacao(cb: Callback): void
-  + pararObterLocalizacao(): void
-}
-
-interface Callback {
-  + onLocalizacao(lat, lon): void
-  + onErro(msg): void
-}
-
-LocalizacaoProvider ..> Callback : usa
-
-class AvisoService {
-  + gerarAvisosPlanta(planta): List<Aviso>
 }
 
 class JsonHandler {
-  + deJson(texto, classe): T
+  + {static} serializePlantaDTO2Json(dto): String
+  + {static} deSerializeJson2ListPlantaDTO(json): List<PlantaDTO>
+  + {static} deSerializeJson2ListMeteorologiaDTO(json): List<MeteorologiaDTO>
+  + {static} deSerializeJson2ListEspecieOpb(json): List<EspecieOpb>
+  + {static} deSerializeJson2DetalheOpb(json): DetalheOpb
 }
 
 class NetworkHandler {
-  + obterHttp(url): String
+  + {static} getDataInStringFromUrl(url): String
+  + {static} getDataWithBearerToken(url, token): String
+  + {static} addDataInStringFromUrl(url, json): String
+  + {static} updateDataInStringFromUrl(url, json): String
+  + {static} deleteDataInStringFromUrl(url): String
+  + {static} getBytesFromUrl(url): byte[]
 }
 
 class Mapper {
-  + paraModelo(dto): model
-  + paraDto(model): dto
+  + {static} plantaDTO2Planta(dto): Planta
+  + {static} planta2PlantaDTO(p): PlantaDTO
+  + {static} listPlantaDTO2listPlanta(dtos): List<Planta>
+  + {static} meteorologiaDTO2Meteorologia(dto): Meteorologia
+  + {static} paraModelo(dto): CuidadosEspecie
 }
 
-PlantBookService --> JsonHandler
-PlantBookService --> NetworkHandler
-MeteoService --> JsonHandler
-MeteoService --> NetworkHandler
-AvisoService --> PlantBookService
-AvisoService --> PlantaService
-PlantaService --> JsonHandler
-PlantaService --> NetworkHandler
+PlantBookService ..> JsonHandler
+PlantBookService ..> NetworkHandler
 PlantBookService ..> Mapper
+PlantaService ..> JsonHandler
+PlantaService ..> NetworkHandler
 PlantaService ..> Mapper
+MeteoService ..> JsonHandler
+MeteoService ..> NetworkHandler
+MeteoService ..> Mapper
+AvisoService ..> PlantBookService
+AvisoService ..> PlantaService
+AvisoService ..> MeteorologiaContainer
 LocalizacaoService ..|> LocalizacaoProvider
 @enduml

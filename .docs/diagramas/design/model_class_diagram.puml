@@ -1,62 +1,88 @@
 @startuml
+skinparam monochrome true
+skinparam shadowing false
 skinparam classAttributeIconSize 0
+hide circle
 skinparam linetype ortho
 left to right direction
 
 class Planta {
-  - id: int
+  - id: String
   - nome: String
-  - especie: Especie
-  - ultimaRega: LocalDateTime
-  + obterCuidados(): CuidadosEspecie
+  - especie: String
+  - pid: String
+  - ultimaRega: long
+  - diario: List<RegistoDiario>
+  + setNome(nome): void
+  + setUltimaRega(ms): void
+  + addRegisto(r): void
 }
 
 class Especie {
-  - nome: String
-  - cuidados: CuidadosEspecie
+  - pid: String
+  - nomeCientifico: String
+  - apelido: String
+  + getNomeFormatado(): String
 }
 
 class CuidadosEspecie {
-  - regarIntervaloDias: int
-  - regarQuantidadeAgua: double
-  + emIntervalo(temp, hum): boolean
+  - minTemp: Integer
+  - maxTemp: Integer
+  - minSoilMoist: Integer
+  - maxSoilMoist: Integer
+  - minLightLux: Integer
+  - maxLightLux: Integer
+  - minEnvHumid: Integer
+  - maxEnvHumid: Integer
+  - categoria: String
+  - origem: String
+  - imagemUrl: String
 }
 
 class Aviso {
-  - tipo: String
+  - nomePlanta: String
+  - tipo: TipoAviso
   - mensagem: String
-  + verificarTemperatura(prev, especie): Aviso
-  + verificarHumidadeSolo(prev, especie): Aviso
-  + obterProximaRega(planta, prev): Aviso
+  - dataHora: Date
+  + verificarTemperatura(p, c, m): List<Aviso>
+  + verificarHumidadeSolo(p, c, m): Aviso
+  + obterProximaRega(p, c, m): Aviso
+  + formatarData(): String
 }
 
 class MedicaoLuz {
-  - lux: int
-  + avaliar(lux, especie): MedicaoLuz
+  - maiorLux: int
+  + avaliar(minLux, maxLux): Resultado
 }
 
 class Meteorologia {
   - temperatura: double
   - humidadeSolo: double
-  - precip: double
+  - dataHora: Date
 }
 
 class MeteorologiaContainer {
-  - {static} instancia
+  - {static} instancia: MeteorologiaContainer
+  - previsaoHoraria: List<Meteorologia>
   + {static} getInstance(): MeteorologiaContainer
-  + obterPrevisao(): List<Meteorologia>
+  + obterTemperaturaMinimaPrevista(): Meteorologia
+  + obterTemperaturaMaximaPrevista(): Meteorologia
+  + obterHumidadeSoloMaximaPrevista(): Meteorologia
+  + obterPrimeiroAbaixoHumidadeMinima(min, aPartirDe): Meteorologia
 }
 
 class RegistoDiario {
-  - data: LocalDateTime
   - texto: String
-  - foto: Bitmap
+  - dataHora: Date
+  - fotoBase64: String
 }
 
 Planta "1" --> "1" Especie
-Especie "1" --> "1" CuidadosEspecie
 Planta "1" --> "0..*" RegistoDiario
+Especie "1" --> "1" CuidadosEspecie
 MeteorologiaContainer "1" --> "*" Meteorologia
 Aviso ..> Planta
 Aviso ..> CuidadosEspecie
+Aviso ..> MeteorologiaContainer
+MedicaoLuz ..> CuidadosEspecie
 @enduml

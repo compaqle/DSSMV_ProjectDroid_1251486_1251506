@@ -1,19 +1,27 @@
 @startuml
-skinparam componentStyle rectangle
-skinparam defaultFontSize 13
+skinparam monochrome true
+skinparam shadowing false
 left to right direction
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
 
-package "Arquitetura Lógica (em camadas)" {
-  [Activities\n(apresentação / View)] as v
-  [services\n(orquestração) ] as s
-  [handler\n(JSON e HTTP) ] as h
-  [dto + Mapper\n(transferência) ] as d
-  [model\n(domínio puro) ] as m
+rectangle "PlantKeep (Android)" {
+    component "UI\n(Activities)" as UI
+    component "Services" as Services
+    component "Model" as Model
+    component "Helper" as Helper
+    component "DTO + Mapper" as DTO
+    component "Handler\n(Json/Network)" as Handler
 
-  v --> s : chama (em Thread)
-  s --> h : envia/obtém texto
-  h --> d : converte
-  d --> m : instancia
-  s --> m : decisões de negócio
+    UI -(0- Services : servicos
+    Services -(0- Model : dados
+    Services -(0- DTO : dados
+    Services -(0- Helper
+    DTO -(0- Handler : transporte
 }
+
+interface "HTTP/JSON(externo)" as ExtHTTP
+ExtHTTP -(0- Handler
+
 @enduml

@@ -1,39 +1,65 @@
 @startuml
+skinparam monochrome true
+skinparam shadowing false
 skinparam classAttributeIconSize 0
+hide circle
+skinparam linetype ortho
+left to right direction
 
 class PlantaDTO {
-  - id: int
-  - nome: String
-}
-
-class EspecieOpb {
   - id: String
   - nome: String
+  - especie: String
+  - pid: String
+  - ultimaRega: long
+  - diario: List<RegistoDiarioDTO>
 }
 
-class DetalheOpb {
-  - pid: String
-  - cuidados: CuidadosEspecie
+class RegistoDiarioDTO {
+  - texto: String
+  - dataHora: long
+  - fotoBase64: String
 }
 
 class MeteorologiaDTO {
   - temperatura: double
-  - humidade: double
+  - humidadeSolo: double
+  - dataHora: String
 }
 
-class RegistoDiarioDTO {
-  - data: String
-  - texto: String
+class EspecieOpb {
+  - pid: String
+  - displayPid: String
+  - alias: String
+}
+
+class DetalheOpb {
+  - pid: String
+  - minTemp: Integer
+  - maxTemp: Integer
+  - minSoilMoist: Integer
+  - maxSoilMoist: Integer
+  - minLightLux: Integer
+  - maxLightLux: Integer
+  - categoria: String
+  - imagemAberta: String
 }
 
 class Mapper {
-  + paraModelo(dto): model
-  + paraDto(model): dto
+  + {static} plantaDTO2Planta(dto): Planta
+  + {static} planta2PlantaDTO(p): PlantaDTO
+  + {static} listPlantaDTO2listPlanta(dtos): List<Planta>
+  + {static} meteorologiaDTO2Meteorologia(dto): Meteorologia
+  + {static} listMeteorologiaDTO2listMeteorologia(dtos): List<Meteorologia>
+  + {static} registoDiarioDTO2RegistoDiario(dto): RegistoDiario
+  + {static} paraModelo(dto): CuidadosEspecie
+  + {static} paraModelo(dto): Especie
 }
 
 Mapper ..> PlantaDTO
+Mapper ..> RegistoDiarioDTO
+Mapper ..> MeteorologiaDTO
 Mapper ..> EspecieOpb
 Mapper ..> DetalheOpb
-Mapper ..> MeteorologiaDTO
-Mapper ..> RegistoDiarioDTO
+PlantaDTO "1" *-- "0..*" RegistoDiarioDTO
 @enduml

@@ -1,29 +1,30 @@
 @startuml
-skinparam componentStyle rectangle
+skinparam componentStyle uml1
+skinparam shadowing false
+skinparam backgroundColor transparent
+skinparam RoundCorner 0
+skinparam node {
+    BackgroundColor white
+    BorderColor black
+    LineThickness 1.5
+    FontColor black
+}
+skinparam component {
+    BackgroundColor white
+    BorderColor black
+    LineThickness 1.5
+    FontColor black
+}
+skinparam defaultFontSize 13
 left to right direction
 
-package "Dispositivo Android" {
-  [App PlantKeep\nActivities (View)] as app
-  [Sensor de Luz] as lux
-  [GPS] as gps
-  [Notificações] as notif
-  [restdb.io\n(dados do utilizador)] as rest
+node "<u>Dispositivo Android</u>" as android {
+    component "App PlantKeep" as app
 }
 
-package "Internet" {
-  [HTTP/JSON] as http
+node "<u>Servidor restdb.io</u>" as rest {
+    component "restdb.io API + BD" as restapi
 }
 
-cloud "APIs Públicas" {
-  [OpenPlantbook\n(espécies) ] as opb
-  [Open-Meteo / IPMA\n(meteorologia) ] as om
-}
-
-app --> lux
-app --> gps
-app --> notif
-app --> rest
-app --> http
-http --> opb
-http --> om
+android -- rest : HTTPS/JSON
 @enduml
