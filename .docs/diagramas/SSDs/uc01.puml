@@ -9,7 +9,5 @@ u -> s : 1. O utilizador introduz o nome da espécie e pede a pesquisa
 s --> u : 2. O sistema mostra a lista de espécies encontradas
 u -> s : 3. O utilizador escolhe a espécie e introduz o nome da planta
 s --> u : 4. O sistema cria e guarda a planta na restdb.io
-alt [Nome inválido ou falha ao guardar]
-    s --> u : 4.1. O sistema mostra uma mensagem de erro e não guarda a planta
-end
+s --> u : 4.1. O sistema mostra uma mensagem de erro e não guarda a planta
 @enduml
