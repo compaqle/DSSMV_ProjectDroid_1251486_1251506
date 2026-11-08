@@ -74,12 +74,12 @@ apresenta a análise de requisitos (user stories, requisitos funcionais e não
 funcionais segundo FURPS+), o design de software em camadas (model/dto/handler/
 services) e a implementação em Java Android.
 \\[2mm]
-Palavras-chave: Android, Java, REST, OpenPlantbook, Open-Meteo,
+Palavras-chave: Android, Java, REST, GPS, OpenPlantbook, Open-Meteo,
 Sensor de Luz, Arquitetura em Camadas, FURPS+.
 \end{abstract}
 
 % -------------------------------------------------------------
-\section{Contexto}
+\section{Introdução e Contexto}
 
 O objetivo deste projeto é criar uma aplicação Android para a gestão de plantas
 numa horta ou jardim. Quem cultiva plantas em casa encontra dificuldades: saber
@@ -260,7 +260,7 @@ disponível.}{A próxima rega recomendada é apresentada.}{1. O utilizador
 seleciona uma planta. \newline 2. O sistema obtém a previsão meteorológica e
 os cuidados da espécie. \newline 3. O Aviso.obterProximaRega calcula a data da
 próxima rega. \newline 4. O sistema apresenta a data recomendada.}{3.a. Sem
-previsão: \newline 1. O sistema usa apenas a cadência da espécie.}
+previsão: \newline 1. O sistema aplica a regra de contingência do sistema: a próxima rega é a última rega mais 3 dias.}
 
 \subsubsection{UC6: Produzir Avisos de Temperatura e Humidade}
 
@@ -270,9 +270,12 @@ adequado à espécie.}{Existe uma planta registada e a previsão meteorológica 
 local.}{São gerados os avisos adequados e apresentados na interface do utilizador.}
 {1. O sistema obtém a previsão e os cuidados da espécie. \newline
 2. O Aviso.verificarTemperatura compara com o intervalo da espécie. \newline 3.
-O Aviso.verificarHumidadeSolo compara com o intervalo da espécie. \newline 4. O
-sistema apresenta os avisos na interface do utilizador.}{2.a. Temperatura dentro do
-intervalo: \newline 1. Não é gerado aviso de temperatura.}
+O Aviso.verificarHumidadeSolo compara com o máximo da espécie (solo
+encharcado). \newline 4. O sistema apresenta os avisos na interface do
+utilizador.}{2.a. Temperatura dentro do intervalo: \newline 1. Não é gerado
+aviso de temperatura. \newline 3.a. Humidade abaixo do mínimo: \newline
+1. Não é gerado aviso de encharcamento; a seca determina a data da próxima
+rega (UC4).}
 
 \subsubsection{UC8: Medir Luminosidade}
 
@@ -704,7 +707,8 @@ plantas é toda convertida). Para a meteorologia, valida-se a conversão de
 horas ISO e a conversão da humidade do solo de fração volumétrica
 (m³/m³) para percentagem (x100), o descarte de registos com valores nulos
 (o Open-Meteo devolve null em algumas horas), o objeto "hourly" em falta
-(lança JSONException) e o caso de sete dias de previsão (168 horas).
+(lança JSONException), o caso de sete dias de previsão (168 horas), e os
+arrays horários vazios (devolvem uma lista vazia, sem exceção).
 
 \begin{lstlisting}[caption={JsonHandlerTest -- conversao da humidade do solo},label=lst:jsonhtest, xleftmargin=-2cm, xrightmargin=-2cm]
 @Test
@@ -757,7 +761,7 @@ Parte-se do menu principal; toca-se "Criar Planta"; escreve-se o nome da
 espécie (strawberry) e a OpenPlantbook devolve os resultados; escolhe-se a
 espécie, escreve-se o nome da planta e guarda-se. Ao voltar à lista, o
 Morangueiro (Fragaria x ananassa) passa a aparecer no meio das registadas
-(Figura~\ref{fig:uc1}).
+(Figura~\ref{fig:uc1_b}).
 
 \begin{figure}[H]
     \centering
@@ -785,9 +789,9 @@ Morangueiro (Fragaria x ananassa) passa a aparecer no meio das registadas
 
 Ao abrir a aplicação, o ecrã principal obtém a localização e a previsão do
 Open-Meteo e compara-a com os limites de cada espécie registada. A
-Figura~\ref{fig:uc6} mostra os três avisos de frio gerados no próprio menu
-(6.5 °C previstos contra os mínimos de 8/10/10 °C), com a planta e a hora a
-que o valor previsto será atingido.
+Figura~\ref{fig:uc6} mostra os avisos de frio gerados no próprio menu
+(6.5 °C previstos contra os mínimos de 10/8/10/10 °C), com a planta e a hora
+a que o valor previsto será atingido.
 
 \begin{figure}[H]
     \centering
@@ -802,7 +806,7 @@ que o valor previsto será atingido.
 Do menu (Figura~\ref{fig:uc8}, à esq.), toca-se "Ver Plantas", escolhe-se a
 planta e entra-se em "Verificar luz" (Figura~\ref{fig:uc8}, à dir.). Toca-se
 "Fazer Medição" três vezes; na terceira o resultado apresenta as três medidas
-reais do sensor (27 lux) e o veredicto MAU do MedicaoLuz.avaliar contra o
+reais do sensor (23 lux) e o veredicto MAU do MedicaoLuz.avaliar contra o
 intervalo 4000--130000 lux da espécie (Figura~\ref{fig:uc8_c}).
 
 \begin{figure}[H]
@@ -819,16 +823,17 @@ intervalo 4000--130000 lux da espécie (Figura~\ref{fig:uc8_c}).
     \centering
     \makebox[\textwidth][c]{%
         \includegraphics[width=0.46\textwidth]{screenshots/path_lux.png}}
-    \caption{UC8: três medições reais do sensor (27 lux) e veredicto MAU}
+    \caption{UC8: três medições reais do sensor (23 lux) e veredicto MAU}
     \label{fig:uc8_c}
 \end{figure}
 
 \subsubsection{UC5: Registar Rega}
 
-Do menu, na lista toca-se a planta Tomate 1 e entra-se em "Rega da Planta"
+Do menu, na lista toca-se a planta Tomate 1 (abre-se o ecrã de detalhes InfoPlanta) e toca-se "Rega da Planta"
 (Figura~\ref{fig:uc5_a}, à esq.). Toca-se "REGAR PLANTA" e a gravação é escrita na
 restdb.io; a linha "Última rega" passa a mostrar a data/hora da execução do
-teste (08/11/2026 às 17:36) (Figura~\ref{fig:uc5_a}, à dir.).
+teste (08/11/2026 às 18:12). Na imagem da esquerda a última rega ainda era
+a anterior (08/11/2026 às 17:36). (Figura~\ref{fig:uc5_a}.)
 
 \begin{figure}[H]
     \centering
@@ -852,7 +857,7 @@ real (Figura~\ref{fig:uc9}).
         \includegraphics[width=0.46\textwidth]{screenshots/path_diario_texto.png}\hfill
         \includegraphics[width=0.46\textwidth]{screenshots/path_diario.png}}
     \caption{UC9: registo de texto a ser escrito (esq.); histórico do diário
-    com o registo gravado, 08/11/2026 às 17:37 (dir.)}
+    com o registo "folhas" gravado, 08/11/2026 às 18:12 (dir.)}
     \label{fig:uc9}
 \end{figure}
 
