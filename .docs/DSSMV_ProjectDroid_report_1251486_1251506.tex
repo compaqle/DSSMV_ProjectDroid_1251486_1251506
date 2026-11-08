@@ -1,4 +1,4 @@
-﻿% Documento: DSSMV_ProjectDroid_report_1251486_1251506
+% Documento: DSSMV_ProjectDroid_report_1251486_1251506
 % Relatório final do projeto PlantKeep (DSSMV, ISEP LETI)
 % Turma 2DD, grupo #8 — Tiago Santos (1251486), Tomás Bastos (1251506)
 % Template mandatória: SurveyFormat (llncs.cls + typeinst.tex)
@@ -830,9 +830,9 @@ intervalo 4000--130000 lux da espécie (Figura~\ref{fig:uc8_c}).
 \subsubsection{UC5: Registar Rega}
 
 Do menu, na lista toca-se a planta Tomate 1 e entra-se em "Rega da Planta"
-(Figura~\ref{fig:uc5_a}). Toca-se "REGAR PLANTA" e a gravação é escrita na
+(Figura~\ref{fig:uc5_a}, à esq.). Toca-se "REGAR PLANTA" e a gravação é escrita na
 restdb.io; a linha "Última rega" passa a mostrar a data/hora da execução do
-teste (08/11/2026 às 17:36) (Figura~\ref{fig:uc5_b}).
+teste (08/11/2026 às 17:36) (Figura~\ref{fig:uc5_a}, à dir.).
 
 \begin{figure}[H]
     \centering
@@ -859,5 +859,34 @@ real (Figura~\ref{fig:uc9}).
     com o registo gravado, 08/11/2026 às 17:37 (dir.)}
     \label{fig:uc9}
 \end{figure}
+
+
+% -------------------------------------------------------------
+\section{Conclusão}
+
+
+
+A aplicação PlantKeep encontra-se concluída e funcional, cumprindo todos os
+requisitos definidos na análise. As funcionalidades previstas desde o registo
+de plantas e consulta da espécie ao diário com fotografias, controlo de regas,
+medição de luz e geração de avisos meteorológicos foram todas implementadas. 
+
+Durante o desenvolvimento, uma das principais dificuldades residiu na gestão de
+concorrência e do ciclo de vida das \textit{Activities}. Como o sistema depende
+de três APIs externas (RestDB.io, OpenPlantbook e Open-Meteo), foi
+necessário executar todas as chamadas de rede em \textit{threads} secundárias
+para não bloquear a interface e sincronizar o retorno na \textit{UI Thread},
+garantindo que uma falha num pedido não impedia o carregamento das restantes
+plantas.
+
+A integração do GPS também exigiu cuidado adicional devido à latência na
+obtenção de sinal. Foi preciso gerir as permissões de localização em tempo 
+de execução, definir \textit{timeouts} e encadear a leitura das coordenadas 
+com o pedido à API meteorológica sem provocar erros ou bloqueios no 
+arranque.
+
+Por fim, o \textit{parsing} no \texttt{JsonHandler} obrigou a um tratamento 
+das respostas das APIs. Foi necessário lidar diretamente com estruturas JSON 
+distintas como os documentos do RestDB e os vetores paralelos do Open-Meteo.
 
 \end{document}
