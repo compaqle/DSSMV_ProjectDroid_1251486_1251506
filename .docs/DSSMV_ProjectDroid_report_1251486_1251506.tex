@@ -738,9 +738,113 @@ devolve o resultado da tabela~\ref{tab:testes}: 28 testes, 0 falhas,
 \end{table}
 
 Além dos testes unitários, a aplicação foi testada manualmente no dispositivo
-físico (OPPO CPH2603): registo de planta com pesquisa na OpenPlantbook,
-verificação da lista, rega, medição da luminosidade com o sensor real,
-diário com fotografia e a recepção de avisos meteorológicos no ecrã
-principal.
+físico (OPPO CPH2603), percorrendo os casos de uso de ponta a ponto a partir
+do menu principal. Em cada caso de uso, mostra-se o caminho completo de ecrãs
+até se chegar ao ecrã do próprio caso de uso, do lado do utilizador.
+
+\subsubsection{UC1: Registar Planta}
+
+Parte-se do menu principal; toca-se "Criar Planta"; escreve-se o nome da
+espécie (strawberry) e a OpenPlantbook devolve os resultados; escolhe-se a
+espécie, escreve-se o nome da planta e guarda-se. Ao voltar à lista, o
+Morangueiro (Fragaria x ananassa) passa a aparecer no meio das registadas
+(Figura~\ref{fig:uc1}).
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.24\textwidth]{screenshots/path_menu_straw.png}\hfill
+        \includegraphics[width=0.24\textwidth]{screenshots/path_criar.png}\hfill
+        \includegraphics[width=0.24\textwidth]{screenshots/path_resultados.png}\hfill
+        \includegraphics[width=0.24\textwidth]{screenshots/path_escolhida.png}}
+    \caption{UC1: menu principal (1); ecrã "Criar Planta" (2); resultados da
+    pesquisa na OpenPlantbook (3); espécie escolhida e nome introduzido (4)}
+    \label{fig:uc1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.46\textwidth]{screenshots/path_menu2.png}\hfill
+        \includegraphics[width=0.46\textwidth]{screenshots/path_lista.png}}
+    \caption{UC1: de volta ao menu após guardar (esq.); a lista mostra o
+    Morangueiro entre as registadas (dir.)}
+    \label{fig:uc1_b}
+\end{figure}
+
+\subsubsection{UC6: Produzir Avisos de Temperatura e Humidade}
+
+Ao abrir a aplicação, o ecrã principal obtém a localização e a previsão do
+Open-Meteo e compara-a com os limites de cada espécie registada. A
+Figura~\ref{fig:uc6} mostra os três avisos de frio gerados no próprio menu
+(6.5 °C previstos contra os mínimos de 8/10/10 °C), com a planta e a hora a
+que o valor previsto será atingido.
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.46\textwidth]{screenshots/path_menu.png}}
+    \caption{UC6: avisos de frio gerados automaticamente no menu principal}
+    \label{fig:uc6}
+\end{figure}
+
+\subsubsection{UC8: Medir Luminosidade}
+
+Do menu (Figura~\ref{fig:uc8}, à esq.), toca-se "Ver Plantas", escolhe-se a
+planta e entra-se em "Verificar luz" (Figura~\ref{fig:uc8}, à dir.). Toca-se
+"Fazer Medição" três vezes; na terceira o resultado apresenta as três medidas
+reais do sensor (27 lux) e o veredicto MAU do MedicaoLuz.avaliar contra o
+intervalo 4000--130000 lux da espécie (Figura~\ref{fig:uc8_c}).
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.46\textwidth]{screenshots/path_menu_straw.png}\hfill
+        \includegraphics[width=0.46\textwidth]{screenshots/path_luz1.png}}
+    \caption{UC8: menu (1); ecrã de medição de luz antes da primeira leitura
+    (2)}
+    \label{fig:uc8}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.46\textwidth]{screenshots/path_lux.png}}
+    \caption{UC8: três medições reais do sensor (27 lux) e veredicto MAU}
+    \label{fig:uc8_c}
+\end{figure}
+
+\subsubsection{UC5: Registar Rega}
+
+Do menu, na lista toca-se a planta Tomate 1 e entra-se em "Rega da Planta"
+(Figura~\ref{fig:uc5_a}). Toca-se "REGAR PLANTA" e a gravação é escrita na
+restdb.io; a linha "Última rega" passa a mostrar a data/hora da execução do
+teste (08/11/2026 às 17:36) (Figura~\ref{fig:uc5_b}).
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.46\textwidth]{screenshots/path_rega.png}\hfill
+        \includegraphics[width=0.46\textwidth]{screenshots/path_rega2.png}}
+    \caption{UC5: ecrã da rega antes (esq.) e depois de "REGAR PLANTA" (dir.);
+    a linha "Última rega" fica com a data/hora da execução}
+    \label{fig:uc5_a}
+\end{figure}
+
+\subsubsection{UC9: Diário da Planta}
+
+Do menu, na lista, entra-se em "Diário da Planta", escreve-se o texto do
+registo e guarda-se; o histórico passa a mostrar o registo com a data/hora
+real (Figura~\ref{fig:uc9}).
+
+\begin{figure}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=0.46\textwidth]{screenshots/path_diario_texto.png}\hfill
+        \includegraphics[width=0.46\textwidth]{screenshots/path_diario.png}}
+    \caption{UC9: registo de texto a ser escrito (esq.); histórico do diário
+    com o registo gravado, 08/11/2026 às 17:37 (dir.)}
+    \label{fig:uc9}
+\end{figure}
 
 \end{document}
