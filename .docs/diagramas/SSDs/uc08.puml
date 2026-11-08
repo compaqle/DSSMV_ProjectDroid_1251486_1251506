@@ -8,5 +8,7 @@ participant "Sistema\n(PlantKeep)" as s
 u -> s : 1. O utilizador inicia a medição da luz
 s --> u : 2. O sistema lê o sensor 3 vezes e avalia a adequação à espécie
 s --> u : 3. O sistema apresenta o resultado da avaliação
-s --> u : 2.1. O sistema informa que o dispositivo não suporta a medição
+alt Sem sensor de luz
+    s --> u : 2.1. O sistema informa que o dispositivo não suporta a medição
+end
 @enduml

@@ -9,5 +9,7 @@ u -> s : 1. O utilizador abre o ecrã principal
 s --> u : 2. O sistema obtém a localização e a previsão meteorológica
 s --> u : 3. O sistema compara a previsão com os limites de cada espécie
 s --> u : 4. O sistema apresenta a lista de avisos das plantas
-s --> u : 4.1. O sistema mostra "Sem avisos"
+alt Sem avisos ou valores dentro do intervalo
+    s --> u : 4.1. O sistema mostra "Sem avisos"
+end
 @enduml
