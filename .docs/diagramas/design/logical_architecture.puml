@@ -18,7 +18,9 @@ rectangle "PlantKeep (Android)" {
     Services -(0- Model : dados
     Services -(0- DTO : dados
     Services -(0- Helper
-    DTO -(0- Handler : transporte
+    Services -(0- Handler : rede/json
+    Handler -(0- DTO : transporte
+
 }
 
 interface "HTTP/JSON(externo)" as ExtHTTP
