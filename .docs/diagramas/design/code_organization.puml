@@ -13,10 +13,9 @@ package "com.dssmv.plantkeep" {
     package "ui" as ui
     package "service" as service
     package "model" as model
-    package "exceptions" as exceptions
+
 
     ' Fileira Inferior de Pacotes
-    package "adapter" as adapter
     package "helper" as helper
     package "dto" as dto
     package "handler" as handler
@@ -27,10 +26,9 @@ package "com.dssmv.plantkeep" {
     ' Dependências Horizontais (Fileira Superior)
     ui .right.> service
     service .right.> model
-    model .right.> exceptions
+
 
     ' Dependências Verticais e Diagonais (Entre Fileiras)
-    ui .down.> adapter
     ui .down.> helper
 
     service .down.> helper
