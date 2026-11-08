@@ -15,6 +15,21 @@
 \usepackage{enumitem}
 \setlist[itemize]{noitemsep, topsep=3pt, parsep=0pt, partopsep=0pt}
 \usepackage{tabularx}
+\usepackage{listings}
+\lstset{
+  language=Java,
+  basicstyle=\footnotesize\ttfamily,
+  numbers=left,
+  numberstyle=\footnotesize\ttfamily,
+  xleftmargin=2em,
+  frame=single,
+  tabsize=4,
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  aboveskip=1em,
+  belowskip=1em
+}
 
 \newcommand{\ucspec}[7]{
 \begin{center}
@@ -414,6 +429,138 @@ JSON/HTTP.
 % -------------------------------------------------------------
 \section{Implementação}
 
+\subsection{Overview}
+Naming Convention: Camel Case.
+
+Os excertos de código não são apresentados como imagem -- têm de ser listings de
+texto com cada linha numerada. Usa-se o número de linha para ajudar o leitor a
+localizar a explicação.
+
+Explica-se de seguida a implementação dos métodos ou funções mais importantes
+(tipicamente conceptualmente diferentes):
+
+\begin{itemize}
+  \item JsonHandler.deSerializeJson2ListPlantaDTO
+  \item Planta.setNome
+  \item JsonHandler.deSerializeJson2ListMeteorologiaDTO
+  \item Aviso.verificarTemperatura
+\end{itemize}
+
+\subsection{JsonHandler.deSerializeJson2ListPlantaDTO}
+O método recebe a resposta JSON do RestDB, uma string com um array de objetos
+planta, e devolve uma lista de objetos PlantaDTO (linha 1). Na linha 2 cria-se a
+lista de resultados. Na linha 3 a string é interpretada como um JSONArray. No
+ciclo (linha 4) itera-se sobre cada elemento do array; cada objeto (linha 5) é
+convertido para PlantaDTO pelo método auxiliar privado parsePlantaDTO (que usa
+optString e optLong para tolerar campos em falta) e adicionado à lista. Na linha
+7 devolve-se a lista preenchida.
+
+\begin{lstlisting}[caption={JsonHandler.deSerializeJson2ListPlantaDTO},label=lst:deserplanta]
+public static List<PlantaDTO> deSerializeJson2ListPlantaDTO(String json)
+        throws JSONException {
+    List<PlantaDTO> dtos = new ArrayList<>();
+    JSONArray arr = new JSONArray(json);
+    for (int i = 0; i < arr.length(); i++) {
+        dtos.add(parsePlantaDTO(arr.getJSONObject(i)));
+    }
+    return dtos;
+}
+\end{lstlisting}
+
+\subsection{Planta.setNome}
+O setter valida o nome antes de o guardar (linha 1). Caso o nome seja nulo ou
+tenha menos de três caracteres (linha 2), é lançada uma exceção
+IllegalArgumentException com uma mensagem descritiva (linha 5). Caso contrário,
+o nome é guardado com os espaços em branco de início e fim removidos (linha 3).
+Esta validação de domínio no setter faz parte da regra de negócio RF01 (o nome
+da planta tem de ter pelo menos três caracteres).
+
+\begin{lstlisting}[caption={Planta.setNome},label=lst:setnome]
+public void setNome(String nome) {
+    if (isNomeValid(nome)) {
+        this.nome = nome.trim();
+    } else {
+        throw new IllegalArgumentException(
+            "Planta: nome '" + nome + "' deve ter pelo menos 3 caracteres");
+    }
+}
+\end{lstlisting}
+
+\subsection{JsonHandler.deSerializeJson2ListMeteorologiaDTO}
+O método recebe a resposta JSON do Open-Meteo e devolve uma lista de objetos
+MeteorologiaDTO (linha 1). Ao contrário da lista de plantas, o JSON não é um
+array: os valores estão dentro do objeto "hourly" (linha 2), repartidos por três
+arrays paralelos: time (linha 3), temperature\_2m (linha 4) e
+soil\_moisture\_1\_to\_3cm (linha 5). No ciclo (linha 7) itera-se sobre as horas;
+se faltar a temperatura ou a humidade nessa hora (linha 8), essa entrada é
+saltada. Caso contrário, a temperatura é lida em graus (linha 10) e a humidade
+do solo -- uma fração volúmica entre 0 e 1 -- é convertida em percentagem
+multiplicando por 100 (linha 11). Na linha 12 cria-se o MeteorologiaDTO e
+adiciona-se à lista.
+
+\begin{lstlisting}[caption={JsonHandler.deSerializeJson2ListMeteorologiaDTO},label=lst:desermeteo]
+public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(
+        String json) throws JSONException {
+    List<MeteorologiaDTO> dtos = new ArrayList<>();
+    JSONObject hourlyData = new JSONObject(json).getJSONObject("hourly");
+    JSONArray times = hourlyData.getJSONArray("time");
+    JSONArray temperatures = hourlyData.getJSONArray("temperature_2m");
+    JSONArray soilMoistures = hourlyData.getJSONArray("soil_moisture_1_to_3cm");
+    for (int i = 0; i < times.length(); i++) {
+        if (temperatures.isNull(i) || soilMoistures.isNull(i)) {
+            continue;
+        }
+        String textoData = times.getString(i);
+        double temperatura = temperatures.getDouble(i);
+        double humidadeSolo = soilMoistures.optDouble(i, 0.0) * 100.0;
+        dtos.add(new MeteorologiaDTO(temperatura, humidadeSolo, textoData));
+    }
+    return dtos;
+}
+\end{lstlisting}
+
+\subsection{Aviso.verificarTemperatura}
+Este método implementa a regra de negócio que decide se há aviso de frio ou de
+calor para uma planta (UC6). Recebe a planta, os limites da espécie e o contentor
+com a previsão meteorológica e devolve uma lista de avisos (linha 1). Se qualquer
+um dos argumentos for nulo, devolve uma lista vazia (linhas 4--5). Na linha 7
+obtém-se o registo com a temperatura mínima prevista; se existir e estiver abaixo
+do mínimo suportado pela espécie (linhas 8--10), cria-se um aviso
+TEMPERATURA\_BAIXA com uma mensagem formatada que inclui o valor previsto e o
+mínimo (linhas 11--15). De forma simétrica, na linha 17 obtém-se o registo com a
+temperatura máxima prevista; se estiver acima do máximo da espécie (linhas
+18--20), cria-se um aviso TEMPERATURA\_ALTA (linhas 21--25).
+
+\begin{lstlisting}[caption={Aviso.verificarTemperatura},label=lst:verifTemp]
+public static List<Aviso> verificarTemperatura(Planta p, CuidadosEspecie cuidados,
+        MeteorologiaContainer meteo) {
+    List<Aviso> avisos = new ArrayList<>();
+    if (p == null || cuidados == null || meteo == null) {
+        return avisos;
+    }
+    Meteorologia registoMin = meteo.obterRegistoTemperaturaMinimaPrevista();
+    if (registoMin != null
+            && cuidados.isTemperaturaAbaixoDoMinimo(
+                    registoMin.getTemperatura())) {
+        String msg = String.format(Locale.ROOT,
+                "Frio previsto (%.1f C, Min: %d C)",
+                registoMin.getTemperatura(), cuidados.getMinTemp());
+        avisos.add(new Aviso(p, TipoAviso.TEMPERATURA_BAIXA, msg,
+                registoMin.getDataHora()));
+    }
+    Meteorologia registoMax = meteo.obterRegistoTemperaturaMaximaPrevista();
+    if (registoMax != null
+            && cuidados.isTemperaturaAcimaDoMaximo(
+                    registoMax.getTemperatura())) {
+        String msg = String.format(Locale.ROOT,
+                "Calor previsto (%.1f C, Max: %d C).",
+                registoMax.getTemperatura(), cuidados.getMaxTemp());
+        avisos.add(new Aviso(p, TipoAviso.TEMPERATURA_ALTA, msg,
+                registoMax.getDataHora()));
+    }
+    return avisos;
+}
+\end{lstlisting}
 
 % -------------------------------------------------------------
 \section{Testes}
