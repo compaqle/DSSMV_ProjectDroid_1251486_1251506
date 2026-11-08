@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 40 300 620" width="600" height="1240" font-family="Helvetica, Arial, sans-serif"><rect x="30" y="40" width="300" height="620" fill="#fff"/>
+
+<g>
+    <rect x="30" y="40" width="300" height="560" rx="18" fill="#fff" stroke="#333" stroke-width="2"/>
+    <rect x="30" y="40" width="300" height="44" rx="18" fill="#eee" stroke="#333" stroke-width="2"/>
+    <rect x="30" y="62" width="300" height="22" fill="#eee"/>
+    <text x="180" y="68" font-size="14" text-anchor="middle" font-weight="bold">PlantKeep</text>
+    <text x="180" y="130" font-size="13" text-anchor="middle" font-weight="bold">PlantKeep</text>
+    <text x="180" y="155" font-size="11" text-anchor="middle">A carregar meteorologia e avisos...</text>
+    <text x="180" y="195" font-size="12" font-weight="bold" text-anchor="middle">Avisos Meteorologicos</text>
+    <rect x="55" y="205" width="250" height="120" fill="#fff" stroke="#333"/>
+    <text x="180" y="270" font-size="10" fill="#999" text-anchor="middle">lista de avisos</text>
+    <rect x="55" y="360" width="250" height="45" fill="#fff" stroke="#333"/>
+    <text x="180" y="388" font-size="12" text-anchor="middle">Criar Planta</text>
+    <rect x="55" y="420" width="250" height="45" fill="#fff" stroke="#333"/>
+    <text x="180" y="448" font-size="12" text-anchor="middle">Ver Plantas</text>
+    <text x="180" y="630" font-size="13" text-anchor="middle">MainActivity</text>
+  </g>
+</svg>
