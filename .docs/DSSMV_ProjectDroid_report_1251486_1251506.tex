@@ -16,6 +16,7 @@
 \setlist[itemize]{noitemsep, topsep=3pt, parsep=0pt, partopsep=0pt}
 \usepackage{tabularx}
 \usepackage{listings}
+\usepackage{textcomp}
 \lstset{
   language=Java,
   basicstyle=\footnotesize\ttfamily,
@@ -28,7 +29,8 @@
   breaklines=true,
   breakatwhitespace=true,
   aboveskip=1em,
-  belowskip=1em
+  belowskip=1em,
+  literate={°}{{\textdegree}}1
 }
 
 \newcommand{\ucspec}[7]{
@@ -76,18 +78,18 @@ apresenta a análise de requisitos (user stories, requisitos funcionais e não
 funcionais segundo FURPS+), o design de software em camadas (model/dto/handler/
 services) e a implementação em Java Android.
 \\[2mm]
-Palavras-chave: Android, Java, REST, OpenPlantbook, Open-Meteo, IPMA,
+Palavras-chave: Android, Java, REST, OpenPlantbook, Open-Meteo,
 Sensor de Luz, Arquitetura em Camadas, FURPS+.
 \end{abstract}
 
 % -------------------------------------------------------------
 \section{Contexto}
 
-O objetivo deste projeto é criar uma aplicação Android, para a gestão de plantas
+O objetivo deste projeto é criar uma aplicação Android para a gestão de plantas
 numa horta ou jardim. Quem cultiva plantas em casa encontra dificuldades: saber
 quando regar, saber se a temperatura ou a humidade do solo são adequadas à espécie,
 e acompanhar a evolução de cada planta ao longo do tempo. A aplicação centraliza
-toda esta informação e transformá-la em decisões práticas e automáticas.
+toda esta informação e transforma-a em instruções práticas para o utilizador.
 
 O utilizador pode registar cada uma das suas plantas, indicando a espécie, e
 consultar a informação dessa espécie obtida da API OpenPlantbook (por exemplo:
@@ -101,13 +103,13 @@ efeito de uma rega manual.
 
 A aplicação utiliza características do telemóvel: o sensor de luz ambiente permite
 ao utilizador medir a luminosidade do local onde a planta está e verificar se é
-adequada à espécie. A localização (GPS) é usada para obter a previsão
-meteorológica correta para o localização.
+adequada à espécie. A localização é usada para obter a previsão
+meteorológica correta para a localização.
 
-A persistência está dividida em duas camadas: os dados do utilizador (plantas,
-registos do diário) são guardados na base de dados remota restdb.io, os dados
-meteorológicos e de espécie são externos, obtidos das APIs Open-Meteo e
-OpenPlantbook, respetivamente.
+A persistência está dividida em duas camadas: os dados próprios do utilizador
+(plantas e diário), alojados na base de dados remota RestDB.io, e a informação
+externa sobre meteorologia e espécies das plantas, obtida através das APIs
+Open-Meteo e OpenPlantbook.
 
 Este relatório documenta o contexto, a análise de requisitos, o design de software
 (arquitetura em camadas com separação model,dto,handler,service), a implementação
@@ -169,7 +171,7 @@ em Java Android e os testes realizados.
     \item RF10: O sistema deve guardar os dados do utilizador na base de
         dados remota restdb.io.
     \item RF11: O sistema deve emitir notificações quando um aviso é
-        disparado.
+        gerado.
 \end{itemize}
 
 \subsection{Requisitos Não Funcionais (FURPS+)}
@@ -220,7 +222,7 @@ em Java Android e os testes realizados.
         model é puro (sem rede, JSON ou dependências Android).
     \item RNF09 (Comunicação com o exterior): A aplicação deve comunicar
         com APIs externas via REST (restdb.io,
-        OpenPlantbook, Open-Meteo/IPMA) e explorar
+        OpenPlantbook, Open-Meteo) e explorar
         características do dispositivo (sensor de luz, GPS e notificações).
 \end{itemize}
 
@@ -234,9 +236,9 @@ descrição, pré-condições, pós-condições, fluxos principais e alternativo
 \ucspec{Utilizador}{Registar Planta}{O utilizador regista uma nova planta,
 indicando o nome e a espécie.}{A aplicação está aberta no menu principal.}{A
 planta é criada e guardada na base de dados restdb.io.}{1. O utilizador inicia
-o registo de uma nova planta. \newline 2. O sistema pede o nome e o pid da
-espécie. \newline 3. O utilizador introduz o nome e escolhe a espécie. \newline
-4. O sistema valida o nome (mínimo de 3 caracteres). \newline 5. O sistema cria
+o registo de uma nova planta. \newline 2. O sistema pede o nome da planta e a
+seleção da espécie. \newline 3. O utilizador introduz o nome e escolhe a espécie.
+ \newline 4. O sistema valida o nome (mínimo de 3 caracteres). \newline 5. O sistema cria
 a planta, guarda-a na restdb.io e apresenta-a na lista.}{3.a. Nome inválido:
 \newline 1. O sistema mostra uma mensagem de erro e pede novamente o nome.}
 
@@ -477,30 +479,35 @@ secção de rega (RegaPlantaActivity).
 \section{Implementação}
 
 \subsection{Overview}
-Naming Convention: Camel Case.
 
-Os excertos de código não são apresentados como imagem -- têm de ser listings de
-texto com cada linha numerada. Usa-se o número de linha para ajudar o leitor a
-localizar a explicação.
+O desenvolvimento da aplicação seguiu as convenções habituais da linguagem Java,
+adotando a norma \textit{CamelCase} (com \textit{lowerCamelCase} na designação de métodos,
+atributos e variáveis, e \textit{UpperCamelCase} na identificação das classes).
+A estrutura do código organiza-se segundo uma arquitetura em camadas
+(\texttt{model}, \texttt{dto}, \texttt{services}, \texttt{handler} e
+\texttt{helper}), assegurando uma clara separação de responsabilidades e mantendo
+a lógica de domínio desacoplada da infraestrutura Android e de acessos de rede.
 
-Explica-se de seguida a implementação dos métodos ou funções mais importantes
-(tipicamente conceptualmente diferentes):
+Nas subsecções seguintes analisa-se a implementação de quatro métodos
+conceptualmente distintos e representativos das principais camadas do sistema:
 
 \begin{itemize}
-  \item JsonHandler.deSerializeJson2ListPlantaDTO
-  \item Planta.setNome
-  \item JsonHandler.deSerializeJson2ListMeteorologiaDTO
-  \item Aviso.verificarTemperatura
+  \item \texttt{JsonHandler.deSerializeJson2ListPlantaDTO} -- desserialização de arrays JSON remotos da base de dados;
+  \item \texttt{Planta.setNome} -- validação de regras de integridade do modelo de domínio;
+  \item \texttt{JsonHandler.deSerializeJson2ListMeteorologiaDTO} -- conversão e tratamento de estruturas JSON meteorológicas multidimensionais;
+  \item \texttt{Aviso.verificarTemperatura} -- cálculo de regras de negócio e determinação de avisos preventivos.
 \end{itemize}
 
 \subsection{JsonHandler.deSerializeJson2ListPlantaDTO}
 O método recebe a resposta JSON do RestDB, uma string com um array de objetos
-planta, e devolve uma lista de objetos PlantaDTO (linha 1). Na linha 2 cria-se a
-lista de resultados. Na linha 3 a string é interpretada como um JSONArray. No
-ciclo (linha 4) itera-se sobre cada elemento do array; cada objeto (linha 5) é
-convertido para PlantaDTO pelo método auxiliar privado parsePlantaDTO (que usa
-optString e optLong para tolerar campos em falta) e adicionado à lista. Na linha
-7 devolve-se a lista preenchida.
+planta, e devolve uma lista de objetos PlantaDTO (linhas 1--2). Na linha 3
+instancia-se a lista de resultados \texttt{dtos}. Na linha 4 a string é
+convertida num objeto \texttt{JSONArray}. No ciclo \texttt{for} (linha 5)
+itera-se sobre cada posição do array; na linha 6, cada elemento JSON é
+convertido individualmente num \texttt{PlantaDTO} através do método auxiliar
+privado \texttt{parsePlantaDTO} (que recorre a \texttt{optString} e
+\texttt{optLong} para tolerar campos em falta) e inserido na lista. Na linha 8
+é devolvida a lista \texttt{dtos} preenchida.
 
 \begin{lstlisting}[caption={JsonHandler.deSerializeJson2ListPlantaDTO},label=lst:deserplanta]
 public static List<PlantaDTO> deSerializeJson2ListPlantaDTO(String json)
@@ -515,12 +522,13 @@ public static List<PlantaDTO> deSerializeJson2ListPlantaDTO(String json)
 \end{lstlisting}
 
 \subsection{Planta.setNome}
-O setter valida o nome antes de o guardar (linha 1). Caso o nome seja nulo ou
-tenha menos de três caracteres (linha 2), é lançada uma exceção
-IllegalArgumentException com uma mensagem descritiva (linha 5). Caso contrário,
-o nome é guardado com os espaços em branco de início e fim removidos (linha 3).
-Esta validação de domínio no setter faz parte da regra de negócio RF01 (o nome
-da planta tem de ter pelo menos três caracteres).
+O setter valida o nome da planta antes de o atribuir ao atributo (linha 1). Na
+linha 2 verifica-se se o nome cumpre os critérios de validade através do método
+\texttt{isNomeValid(nome)}. Se for válido, a linha 3 guarda o nome removendo
+eventuais espaços em branco nas extremidades com \texttt{.trim()}. Caso
+contrário (bloco \texttt{else}, linhas 4 a 7), o método lança uma
+\texttt{IllegalArgumentException} por o nome ser nulo, vazio ou conter menos de
+três caracteres, garantindo o cumprimento do requisito funcional RF01.
 
 \begin{lstlisting}[caption={Planta.setNome},label=lst:setnome]
 public void setNome(String nome) {
@@ -535,15 +543,19 @@ public void setNome(String nome) {
 
 \subsection{JsonHandler.deSerializeJson2ListMeteorologiaDTO}
 O método recebe a resposta JSON do Open-Meteo e devolve uma lista de objetos
-MeteorologiaDTO (linha 1). Ao contrário da lista de plantas, o JSON não é um
-array: os valores estão dentro do objeto "hourly" (linha 2), repartidos por três
-arrays paralelos: time (linha 3), temperature\_2m (linha 4) e
-soil\_moisture\_1\_to\_3cm (linha 5). No ciclo (linha 7) itera-se sobre as horas;
-se faltar a temperatura ou a humidade nessa hora (linha 8), essa entrada é
-saltada. Caso contrário, a temperatura é lida em graus (linha 10) e a humidade
-do solo -- uma fração volúmica entre 0 e 1 -- é convertida em percentagem
-multiplicando por 100 (linha 11). Na linha 12 cria-se o MeteorologiaDTO e
-adiciona-se à lista.
+MeteorologiaDTO (linhas 1--2). Na linha 3 cria-se a lista \texttt{dtos}. Ao
+contrário da resposta das plantas, a raiz do JSON contém o objeto
+\texttt{"hourly"} (extraído na linha 4), do qual são obtidos três
+\texttt{JSONArray} paralelos (linhas 5 a 7): \texttt{time},
+\texttt{temperature\_2m} e \texttt{soil\_moisture\_1\_to\_3cm}. O ciclo
+\texttt{for} na linha 8 percorre cada índice horário; caso a temperatura ou a
+humidade do solo apresentem valor nulo nessa hora, a entrada é ignorada com a
+instrução \texttt{continue} (linhas 9 a 11). Para registos válidos, extrai-se a
+data em formato ISO (\texttt{textoData}, linha 12), lê-se a
+\texttt{temperatura} em graus Celsius (linha 13) e converte-se a
+\texttt{humidadeSolo} de fração volúmica para percentagem multiplicando por
+\texttt{100.0} (linha 14). Na linha 15 instancia-se o \texttt{MeteorologiaDTO} e
+adiciona-se à lista, que é devolvida na linha 17.
 
 \begin{lstlisting}[caption={JsonHandler.deSerializeJson2ListMeteorologiaDTO},label=lst:desermeteo]
 public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(
@@ -569,14 +581,15 @@ public static List<MeteorologiaDTO> deSerializeJson2ListMeteorologiaDTO(
 \subsection{Aviso.verificarTemperatura}
 Este método implementa a regra de negócio que decide se há aviso de frio ou de
 calor para uma planta (UC6). Recebe a planta, os limites da espécie e o contentor
-com a previsão meteorológica e devolve uma lista de avisos (linha 1). Se qualquer
-um dos argumentos for nulo, devolve uma lista vazia (linhas 4--5). Na linha 7
+com a previsão meteorológica e devolve uma lista de avisos (linhas 1--2). Se qualquer
+um dos argumentos for nulo, devolve de imediato a lista vazia (linhas 4--6). Na linha 7
 obtém-se o registo com a temperatura mínima prevista; se existir e estiver abaixo
 do mínimo suportado pela espécie (linhas 8--10), cria-se um aviso
 TEMPERATURA\_BAIXA com uma mensagem formatada que inclui o valor previsto e o
 mínimo (linhas 11--15). De forma simétrica, na linha 17 obtém-se o registo com a
 temperatura máxima prevista; se estiver acima do máximo da espécie (linhas
-18--20), cria-se um aviso TEMPERATURA\_ALTA (linhas 21--25).
+18--20), cria-se um aviso TEMPERATURA\_ALTA (linhas 21--25), retornando a lista
+final na linha 27.
 
 \begin{lstlisting}[caption={Aviso.verificarTemperatura},label=lst:verifTemp]
 public static List<Aviso> verificarTemperatura(Planta p, CuidadosEspecie cuidados,
@@ -590,7 +603,7 @@ public static List<Aviso> verificarTemperatura(Planta p, CuidadosEspecie cuidado
             && cuidados.isTemperaturaAbaixoDoMinimo(
                     registoMin.getTemperatura())) {
         String msg = String.format(Locale.ROOT,
-                "Frio previsto (%.1f C, Min: %d C)",
+                "Frio previsto (%.1f °C, Min: %d °C)",
                 registoMin.getTemperatura(), cuidados.getMinTemp());
         avisos.add(new Aviso(p, TipoAviso.TEMPERATURA_BAIXA, msg,
                 registoMin.getDataHora()));
@@ -600,7 +613,7 @@ public static List<Aviso> verificarTemperatura(Planta p, CuidadosEspecie cuidado
             && cuidados.isTemperaturaAcimaDoMaximo(
                     registoMax.getTemperatura())) {
         String msg = String.format(Locale.ROOT,
-                "Calor previsto (%.1f C, Max: %d C).",
+                "Calor previsto (%.1f °C, Max: %d °C).",
                 registoMax.getTemperatura(), cuidados.getMaxTemp());
         avisos.add(new Aviso(p, TipoAviso.TEMPERATURA_ALTA, msg,
                 registoMax.getDataHora()));
@@ -621,7 +634,8 @@ instrumented tests (necessitam do emulador/dispositivo) e a camada de rede
 (NetworkHandler) exige respostas HTTP simuladas, pelo que ficam fora do âmbito
 desta secção.
 
-Correm-no com o JUnit 4 do Gradle: \texttt{gradlew testDebugUnitTest}.
+Os testes são executados através do JUnit 4 do Gradle:
+ \texttt{gradlew testDebugUnitTest}.
 No total são 28 testes, todos verdes.
 
 \subsection{PlantaTest (11 testes)}
@@ -632,9 +646,9 @@ IllegalArgumentException de nome nulo, nome curto e nome só de espaços;
 atualização por setNome com valor válido e inválido; setUltimaRega com
 timestamp negativo (rejeitado) e válido; adicionar um RegistoDiario nulo ao
 diário (rejeitado); e a imutabilidade da lista devolvida por getDiario
-(attempta de modificação direta lança UnsupportedOperationException).
+(attempt de modificação direta lança UnsupportedOperationException).
 
-\begin{lstlisting}[caption={PlantaTest -- validacao do limite do nome},label=lst:plnttest]
+\begin{lstlisting}[caption={PlantaTest -- validacao do limite do nome},label=lst:plnttest, xleftmargin=-2cm, xrightmargin=-2cm]
 @Test
 public void criarPlanta_comNomeNoLimiteDeTresCaracteres_deveCriarComSucesso() {
     Planta p = new Planta("Paz", "Spathiphyllum");
@@ -667,7 +681,7 @@ testes (helper criarPrevisao) e cuidados da espécie com limites conhecidos:
         sem lançar exceção.
 \end{itemize}
 
-\begin{lstlisting}[caption={AvisoTest -- aviso de frio com mensagem exata},label=lst:avisotest]
+\begin{lstlisting}[caption={AvisoTest -- aviso de frio com mensagem exata},label=lst:avisotest,xleftmargin=-2cm, xrightmargin=-2cm]
 @Test
 public void verificarTemperatura_temperaturaAbaixoDoMinimo_deveGerarAvisoFrio() {
     CuidadosEspecie cuidados = criarCuidados(12, 28);
@@ -697,7 +711,7 @@ horas ISO e a conversão da humidade do solo de fração volumétrica
 (o Open-Meteo devolve null em algumas horas), o objeto "hourly" em falta
 (lança JSONException) e o caso de sete dias de previsão (168 horas).
 
-\begin{lstlisting}[caption={JsonHandlerTest -- conversao da humidade do solo},label=lst:jsonhtest]
+\begin{lstlisting}[caption={JsonHandlerTest -- conversao da humidade do solo},label=lst:jsonhtest, xleftmargin=-2cm, xrightmargin=-2cm]
 @Test
 public void deSerializeJsonMeteo_comDadosValidos_deveConverterHorasEHumidadePercentual()
         throws JSONException {
